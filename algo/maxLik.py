@@ -4,97 +4,23 @@ try:
     import algo.BurstSearch as BurstSearch
     import algo.BGrate as BGrate
     import algo.fretAndS as fretAndS
+    from algo.mpBurstLikehood import calcBurstLikehood
 except ImportError:
     import BurstSearch
     import BGrate
     import fretAndS
+    from mpBurstLikehood import calcBurstLikehood
 import datetime
 from scipy.optimize import minimize
 from array import array
-from scipy.linalg import expm
+import ctypes
 import multiprocessing,time
 
-class calcBurstLikehood(multiprocessing.Process):
-    def __init__(self,queueIn,queueOut,burst,n_states,Sth,E,K,p,lk,numB):
-        multiprocessing.Process.__init__(self)
-        self.burst=burst
-        self.lock=lk
-        self.lock.acquire()
-        self.n_states=n_states
-        self.n_burst=len(burst["All"].chl)
-        self.Sth=Sth
-        self.E=E
-        self.K=K
-        self.p=p
-        self.queueIn=queueIn
-        self.queueOut=queueOut
-        self.running=True
-        self.numB=numB
-    def matF(self,c_k):
-        if c_k==1:
-            return self.E
-        elif c_k==2:
-            return np.eye(self.n_states)-self.E
-        else:
-            return None
-    def __call__(self):
-        idx_burst=0
-        while self.running:
-            try:
-                idx_burst=self.queueIn.get()
-                #print(idx_burst)
-            except:
-                print ("queueIn empty")
-                self.running=False
-                self.lock.release()
-            else:
-                if idx_burst==-1:
-                    self.running=False
-                    break
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
-                if self.burst["All"].s[idx_burst]>=self.Sth:
-                    #self.queueOut.put(0)
-                    continue
-                lenPhoton=self.burst["All"].ntag[idx_burst]
-                if lenPhoton<2:
-                    #self.queueOut.put(0)
-                    continue
-                lnL_j=np.linspace(1,1,self.n_states)
-                t_k_0=-1
-                prod=np.eye(self.n_states)
-                for idx_photon in range(lenPhoton):
-                    F=self.matF(self.burst["All"].chl[idx_burst].iloc[idx_photon])
-                    if F is not None:
-                        if t_k_0<0:
-                            t_k_0=self.burst["All"].timetag[idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                                +self.burst["All"].dtime[idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
-                            lnL_j=np.dot(F,self.p)
-                            continue
-                        t_k_1=self.burst["All"].timetag[idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                            +self.burst["All"].dtime[idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
-                        tau=t_k_1-t_k_0
-                        t_k_0=t_k_1
-                        FdotExp=np.dot(F,expm(self.K)*tau)
-                        prod=np.dot(FdotExp,prod)
-                if t_k_0<0:
-                    #self.queueOut.put(0)
-                    continue
-                lnL_j=np.dot(FdotExp,lnL_j)
-                T1=np.linspace(1,1,self.n_states)
-                T1.shape=(self.n_states,1)
-                T1=np.transpose(T1)
-                L_burst=np.dot(T1,lnL_j)
-                lnL_burst=0
-                if L_burst<1e-300:
-                    print("L_burst is too small:",L_burst)
-                    lnL_burst=np.log(L_burst*1e300)-np.log(1e300)
-                else:
-                    lnL_burst=np.log(L_burst)
-                self.queueOut.put(lnL_burst)
-                self.numB.value+=1
-        #print("calc end")
-        self.lock.release()
-        #self.terminate()
 class GS_MLE():
     def __init__(self, burst,Sth=0.88):
         self.timemes=datetime.datetime.now()
@@ -103,6 +29,9 @@ class GS_MLE():
         self.n_burst=len(burst["All"].chl)
         self.Sth=Sth
         self.minIter=0
+        self.cpu_count=multiprocessing.cpu_count()
+        self.chunks=list(chunks(range(self.n_burst), int(self.n_burst/(self.cpu_count-1))))
+        self.procNum=len(self.chunks)
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
 
@@ -110,12 +39,30 @@ class GS_MLE():
         params[n_states:n_states^2] matrix of K
         """
         self.params=params
+        self.sharedArrP=multiprocessing.Array("d",params[:self.n_states*self.n_states])
+        self.procRec=[]
+        #lockRec=[]
+        self.queueOut = multiprocessing.Queue()
+        self.numB = multiprocessing.Value('l', 0)
+        self.numWorkingProc = multiprocessing.Value(ctypes.c_int16, 0)
+        self.sumCanStartEvent=multiprocessing.Event()
+        self.lkhCanStartEvent=multiprocessing.Event()
+        for idx_proc in range(self.procNum):
+            #lk=multiprocessing.Lock()
+            cp=calcBurstLikehood(self.chunks[idx_proc],self.queueOut,self.burst,self.n_states,self.Sth,self.procNum,\
+                                self.sharedArrP,self.numB,self.numWorkingProc,self.sumCanStartEvent,self.lkhCanStartEvent)
+            self.procRec.append(multiprocessing.Process(target=cp))
+            #lockRec.append(lk)
+        for pid in self.procRec:
+            pid.daemon=True
+            pid.start()
+
         import datetime
         starttime = datetime.datetime.now()
         results = minimize(self.lnLikelihood, params, method='Nelder-Mead')
         print (results)
         endtime = datetime.datetime.now()
-        print (endtime - starttime)
+        print ("Total Max likehood time:",endtime - starttime," s")
 
     def lnLikelihood(self,params):
         """calc ln likehood of TCSCP stream.
@@ -128,7 +75,7 @@ class GS_MLE():
         """
         sumLnL=0
         self.minIter+=1
-        self.E=genMatE(self.n_states,params[:self.n_states])
+        E=genMatE(self.n_states,params[:self.n_states])
         K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
         p=genMatP(K)
 
@@ -136,7 +83,7 @@ class GS_MLE():
             print("==================================")
             print(p)
             print(K)
-            print(self.E)
+            print(E)
             if self.minIter%10==0:
                 oldtime=self.timemes
                 self.timemes=datetime.datetime.now()
@@ -148,7 +95,7 @@ class GS_MLE():
         numB = multiprocessing.Value('l', 0)
         for idx_burst in range(self.n_burst):
             queueIn.put(idx_burst)
-        for idx_proc in range(multiprocessing.cpu_count()-1):
+        for idx_proc in range(self.cpu_count-1):
             queueIn.put(-1)
             lk=multiprocessing.Lock()
             cp=calcBurstLikehood(queueIn,queueOut,self.burst,self.n_states,self.Sth,self.E,K,p,lk,numB)
@@ -163,7 +110,7 @@ class GS_MLE():
         #     print("queueIn no empty,",queueIn.qsize())
         #     time.sleep(2)
         #
-        for idx_proc in range(multiprocessing.cpu_count()-1):
+        for idx_proc in range(self.cpu_count-1):
             lockRec[idx_proc].acquire()
             #procRec[idx_proc].terminate()
             #lockRec[idx_proc].release()
@@ -182,7 +129,7 @@ class GS_MLE():
             #    continue
             #print(sumLnL[0][0]+5000)
             sumLnL+=resBLH
-        for idx_proc in range(multiprocessing.cpu_count()-1):
+        for idx_proc in range(self.cpu_count-1):
             #lockRec[idx_proc].acquire()
             procRec[idx_proc].terminate()
             lockRec[idx_proc].release()
