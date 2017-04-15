@@ -1,19 +1,24 @@
 from scipy.linalg import expm
 import numpy as np
 import multiprocessing
-class calcBurstLikehood(multiprocessing.Process):
-    def __init__(self,queueIn,queueOut,burst,n_states,Sth,E,K,p,lk,numB):
-        multiprocessing.Process.__init__(self)
+class calcBurstLikehood():#multiprocessing.Process):
+    def __init__(self,chunkRange,queueOut,burst,n_states,\
+            Sth,procNum,paramsArr,numB,numWorkingProc,sumCanStartEvent\
+            ,lkhCanStartEvent):
+        #multiprocessing.Process.__init__(self)
         self.burst=burst
-        self.lock=lk
-        self.lock.acquire()
+        self.sumCanStartEvent=sumCanStartEvent
+        self.lkhCanStartEvent=lkhCanStartEvent
         self.n_states=n_states
         self.n_burst=len(burst["All"].chl)
         self.Sth=Sth
+        self.params=paramsArr
+        E=genMatE(self.n_states,params[:self.n_states])
+        K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
+        p=genMatP(K)
         self.E=E
         self.K=K
         self.p=p
-        self.queueIn=queueIn
         self.queueOut=queueOut
         self.running=True
         self.numB=numB
@@ -27,18 +32,9 @@ class calcBurstLikehood(multiprocessing.Process):
     def __call__(self):
         idx_burst=0
         while self.running:
-            try:
-                idx_burst=self.queueIn.get()
-                #print(idx_burst)
-            except:
-                print ("queueIn empty")
-                self.running=False
-                self.lock.release()
-            else:
-                if idx_burst==-1:
-                    self.running=False
-                    break
-
+            self.lkhCanStartEvent.wait()
+            for idx_burst in self.chunkRange:
+                
                 if self.burst["All"].s[idx_burst]>=self.Sth:
                     #self.queueOut.put(0)
                     continue
@@ -82,3 +78,42 @@ class calcBurstLikehood(multiprocessing.Process):
         #print("calc end")
         self.lock.release()
         #self.terminate()
+
+
+def genMatE(n,args):
+    if len(args)<1:
+        return None
+    if len(args)!=n:
+        return None
+    matE=np.zeros([n,n])
+    for i in range(n):
+        matE[i,i]=args[i]
+    return matE
+def genMatK(n,args):
+    if len(args)<1:
+        return None
+    if len(args)!=n*n-n:
+        return None
+    matK=np.zeros([n,n])
+    for i in range(n):
+        for j in range(n):
+            if i<j:
+                matK[i,j]=args[i*(n-1)+j-1]
+            elif i>j:
+                matK[i,j]=args[i*(n-1)+j]
+    for i in range(n):
+        for j in range(n):
+            if i==j:
+                matK[i,j]=-np.sum(matK[:,j])
+    return matK
+def genMatP(matK):
+    n=matK.shape[0]
+    if n<1:
+        return None
+    matP=np.empty([n,1])
+    ap=0
+    for i in range(n):
+        ap+=matK[i,i]
+    for i in range(n):
+        matP[i,0]=matK[i,i]/ap
+    return matP

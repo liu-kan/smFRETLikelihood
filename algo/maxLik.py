@@ -45,22 +45,24 @@ class GS_MLE():
         self.queueOut = multiprocessing.Queue()
         self.numB = multiprocessing.Value('l', 0)
         self.numWorkingProc = multiprocessing.Value(ctypes.c_int16, 0)
+        #同一时间正在进行计算的进程，如果为负，结束所有进程
         self.sumCanStartEvent=multiprocessing.Event()
         self.lkhCanStartEvent=multiprocessing.Event()
         for idx_proc in range(self.procNum):
             #lk=multiprocessing.Lock()
-            cp=calcBurstLikehood(self.chunks[idx_proc],self.queueOut,self.burst,self.n_states,self.Sth,self.procNum,\
-                                self.sharedArrP,self.numB,self.numWorkingProc,self.sumCanStartEvent,self.lkhCanStartEvent)
+            cp=calcBurstLikehood(self.chunks[idx_proc],self.queueOut,self.burst,self.n_states\
+                                ,self.Sth,self.procNum,self.sharedArrP,self.numB,\
+                                self.numWorkingProc,self.sumCanStartEvent,self.lkhCanStartEvent)
             self.procRec.append(multiprocessing.Process(target=cp))
             #lockRec.append(lk)
         for pid in self.procRec:
             pid.daemon=True
             pid.start()
-
-        import datetime
         starttime = datetime.datetime.now()
         results = minimize(self.lnLikelihood, params, method='Nelder-Mead')
         print (results)
+        for pid in self.procRec:
+            pid.terminate()
         endtime = datetime.datetime.now()
         print ("Total Max likehood time:",endtime - starttime," s")
 
@@ -146,44 +148,6 @@ def mdotl(*args):
     for i in range(len(args)-1):
         r=np.dot(r,args[i+1])
     return r
-
-def genMatE(n,args):
-    if len(args)<1:
-        return None
-    if len(args)!=n:
-        return None
-    matE=np.zeros([n,n])
-    for i in range(n):
-        matE[i,i]=args[i]
-    return matE
-def genMatK(n,args):
-    if len(args)<1:
-        return None
-    if len(args)!=n*n-n:
-        return None
-    matK=np.zeros([n,n])
-    for i in range(n):
-        for j in range(n):
-            if i<j:
-                matK[i,j]=args[i*(n-1)+j-1]
-            elif i>j:
-                matK[i,j]=args[i*(n-1)+j]
-    for i in range(n):
-        for j in range(n):
-            if i==j:
-                matK[i,j]=-np.sum(matK[:,j])
-    return matK
-def genMatP(matK):
-    n=matK.shape[0]
-    if n<1:
-        return None
-    matP=np.empty([n,1])
-    ap=0
-    for i in range(n):
-        ap+=matK[i,i]
-    for i in range(n):
-        matP[i,0]=matK[i,i]/ap
-    return matP
 
 if __name__ == '__main__':
     import matplotlib,os
