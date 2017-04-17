@@ -158,13 +158,13 @@ if __name__ == '__main__':
     dbname='/home/liuk/sf/oc/data/38.sqlite'
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="E:/dbox/sf/oc/data/1min.sqlite"
+    dbname='/home/liuk/sf/oc/data/1min.sqlite'
     br=BGrate.calcBGrate(dbname,20,400)
     burst=BurstSearch.findBurst(br,dbname,["All"])
     burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
     #matplotlib.pyplot.plot(burst["All"].s)
     gsml=GS_MLE(burst,0.891)
-    gsml.n_states=3
+    gsml.n_states=2
     gsml.MaxLikehood([0.3,0.7,0.2, 3,3,3, 3,3,3])
 
     endtime = datetime.datetime.now()

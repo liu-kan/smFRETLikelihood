@@ -1,14 +1,16 @@
 import multiprocessing
+import multiprocessing as mp
 import os,sys
 import random
 import time
 
 class simulation(multiprocessing.Process):
-    def __init__(self, name):
+    def __init__(self, name,event):
         # must call this before anything else
         multiprocessing.Process.__init__(self)
 
         # then any other initialization
+        self.event=event
         self.name = name
         self.number = 0.0
         sys.stdout.write('[%s] created: %f\n' % (self.name, self.number))
@@ -19,14 +21,17 @@ class simulation(multiprocessing.Process):
 
         self.number = random.uniform(0.0, 10.0)
         time.sleep( 5 )
+        #if self.name=='foo' :
+        self.event.wait()        
         sys.stdout.write('[%s] completed: %f\n' % (self.name, self.number))
         
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()
+    #multiprocessing.freeze_support()
     sim_list = []
-    sim_list.append(simulation('foo'))
-    sim_list.append(simulation('bar'))
+    e=mp.Event()
+    sim_list.append(simulation('foo',e))
+    sim_list.append(simulation('bar',e))
     for sim in sim_list:
         sim.start()
     for sim in sim_list:

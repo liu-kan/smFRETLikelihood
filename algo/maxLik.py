@@ -29,9 +29,10 @@ class GS_MLE():
         self.n_burst=len(burst["All"].chl)
         self.Sth=Sth
         self.minIter=0
-        self.cpu_count=multiprocessing.cpu_count()
+        self.cpu_count=4#multiprocessing.cpu_count()
         self.chunks=list(chunks(range(self.n_burst), int(self.n_burst/(self.cpu_count-1))))
         self.procNum=len(self.chunks)
+        self.allLikhDone=multiprocessing.Semaphore(self.procNum-1)
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
 
@@ -39,9 +40,11 @@ class GS_MLE():
         params[n_states:n_states^2] matrix of K
         """
         self.params=params
+
         self.sharedArrP=multiprocessing.Array("d",params[:self.n_states*self.n_states])
         self.procRec=[]
         #lockRec=[]
+
         self.queueOut = multiprocessing.Queue()
         self.numB = multiprocessing.Value('l', 0)
         self.numWorkingProc = multiprocessing.Value(ctypes.c_int16, 0)
@@ -52,19 +55,23 @@ class GS_MLE():
             #lk=multiprocessing.Lock()
             cp=calcBurstLikehood(self.chunks[idx_proc],self.queueOut,self.burst,self.n_states\
                                 ,self.Sth,self.procNum,self.sharedArrP,self.numB,\
-                                self.numWorkingProc,self.sumCanStartEvent,self.lkhCanStartEvent)
+                                self.numWorkingProc,self.sumCanStartEvent,self.lkhCanStartEvent\
+                                ,self.allLikhDone)
             self.procRec.append(multiprocessing.Process(target=cp))
             #lockRec.append(lk)
+
         for pid in self.procRec:
             pid.daemon=True
             pid.start()
         starttime = datetime.datetime.now()
-        results = minimize(self.lnLikelihood, params, method='Nelder-Mead')
+        results = minimize(self.lnLikelihood, params[:self.n_states*self.n_states], method='Nelder-Mead',options=dict(maxiter=1000,disp=True),tol=1e-10)
         print (results)
-        for pid in self.procRec:
-            pid.terminate()
+        self.numWorkingProc=-1
         endtime = datetime.datetime.now()
         print ("Total Max likehood time:",endtime - starttime," s")
+        for pid in self.procRec:
+            pid.join(1)
+            pid.terminate()
 
     def lnLikelihood(self,params):
         """calc ln likehood of TCSCP stream.
@@ -75,13 +82,20 @@ class GS_MLE():
         ln(L)=sum(ln(L_j))
         \[L = {1^T}\prod\limits_{k = 2}^{N_j} [F(c_k)exp(K\tau _k)]F(\c_1)p_{eq} \]
         """
-        sumLnL=0
-        self.minIter+=1
-        E=genMatE(self.n_states,params[:self.n_states])
-        K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
-        p=genMatP(K)
 
+        self.lkhCanStartEvent.clear()
+        sumLnL=0
+        self.sharedArrP[:self.n_states*self.n_states]=params[:self.n_states*self.n_states]
+
+        self.lkhCanStartEvent.set()
+
+        self.minIter+=1
+        #print(self.minIter)
         if self.minIter%10==0:
+
+            E=genMatE(self.n_states,params[:self.n_states])
+            K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
+            p=genMatP(K)
             print("==================================")
             print(p)
             print(K)
@@ -89,57 +103,24 @@ class GS_MLE():
             if self.minIter%10==0:
                 oldtime=self.timemes
                 self.timemes=datetime.datetime.now()
-                print("The speed of analysis is %f burst/s" % ((10*self.n_burst)/float((self.timemes-oldtime).seconds)))
-        queueIn = multiprocessing.Queue()
-        queueOut = multiprocessing.Queue()
-        procRec=[]
-        lockRec=[]
-        numB = multiprocessing.Value('l', 0)
-        for idx_burst in range(self.n_burst):
-            queueIn.put(idx_burst)
-        for idx_proc in range(self.cpu_count-1):
-            queueIn.put(-1)
-            lk=multiprocessing.Lock()
-            cp=calcBurstLikehood(queueIn,queueOut,self.burst,self.n_states,self.Sth,self.E,K,p,lk,numB)
-            procRec.append(multiprocessing.Process(target=cp))
-            lockRec.append(lk)
+                timesp=float((self.timemes-oldtime).seconds)
+                if timesp>0:
+                    print("The speed of analysis is %f burst/s" % ((10*self.n_burst)/timesp))
 
-        for pid in procRec:
-            pid.daemon=True
-            pid.start()
-
-        # while queueIn.empty()==False:
-        #     print("queueIn no empty,",queueIn.qsize())
-        #     time.sleep(2)
-        #
-        for idx_proc in range(self.cpu_count-1):
-            lockRec[idx_proc].acquire()
-            #procRec[idx_proc].terminate()
-            #lockRec[idx_proc].release()
-        # for pidt in procRec:
-        #     #pid.daemon=True
-        #     pidt.terminate()
-
-        #print("Joined")
-        #print(queueOut.qsize(),numB.value)
-        qs=numB.value
+        self.sumCanStartEvent.wait()
+        qs=self.numB.value
         for idx_burst in range(qs):
             #resBLH=0
-            #try:
-            resBLH=queueOut.get(True,3)
-            #except:
-            #    continue
+            try:
+                resBLH=self.queueOut.get(True,2)
+            except:
+                print("queueOut except")
+                continue
             #print(sumLnL[0][0]+5000)
-            sumLnL+=resBLH
-        for idx_proc in range(self.cpu_count-1):
-            #lockRec[idx_proc].acquire()
-            procRec[idx_proc].terminate()
-            lockRec[idx_proc].release()
-        queueIn.close()
-        queueOut.close()
-
-        #print(-sumLnL[0][0])
-        return -sumLnL[0][0]
+            sumLnL=sumLnL+resBLH[0][0]
+        self.numB.value=0
+        #print(sumLnL)
+        return -sumLnL
 
 def mdotl(*args):
     if len(args)<2:
@@ -148,6 +129,44 @@ def mdotl(*args):
     for i in range(len(args)-1):
         r=np.dot(r,args[i+1])
     return r
+
+def genMatE(n,args):
+    if len(args)<1:
+        return None
+    if len(args)!=n:
+        return None
+    matE=np.zeros([n,n])
+    for i in range(n):
+        matE[i,i]=args[i]
+    return matE
+def genMatK(n,args):
+    if len(args)<1:
+        return None
+    if len(args)!=n*n-n:
+        return None
+    matK=np.zeros([n,n])
+    for i in range(n):
+        for j in range(n):
+            if i<j:
+                matK[i,j]=args[i*(n-1)+j-1]
+            elif i>j:
+                matK[i,j]=args[i*(n-1)+j]
+    for i in range(n):
+        for j in range(n):
+            if i==j:
+                matK[i,j]=-np.sum(matK[:,j])
+    return matK
+def genMatP(matK):
+    n=matK.shape[0]
+    if n<1:
+        return None
+    matP=np.empty([n,1])
+    ap=0
+    for i in range(n):
+        ap+=matK[i,i]
+    for i in range(n):
+        matP[i,0]=matK[i,i]/ap
+    return matP
 
 if __name__ == '__main__':
     import matplotlib,os
