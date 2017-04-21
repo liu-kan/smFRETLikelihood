@@ -1,4 +1,5 @@
 import numpy as np
+from mpi4py import MPI
 from scipy.linalg import expm
 try:
     import algo.BurstSearch as BurstSearch
@@ -150,23 +151,27 @@ def genMatP(matK):
         matP[i,0]=matK[i,i]/ap
     return matP
 
+comm=MPI.COMM_WORLD
+rank=comm.Get_rank()
 if __name__ == '__main__':
     import matplotlib
     import datetime
-    starttime = datetime.datetime.now()
+    if rank==0:
+        starttime = datetime.datetime.now()
+        dbname='/home/liuk/sf/oc/data/38.sqlite'
+        dbname='E:/liuk/proj/ptu/data/55.sqlite'
+        #dbname='E:/sf/oc/data/38.sqlite'
+        dbname='/home/liuk/sf/oc/data/1min.sqlite'
+        #dbname='/prog/data/1min.sqlite'
+        br=BGrate.calcBGrate(dbname,20,400)
+        burst=BurstSearch.findBurst(br,dbname,["All"])
+        burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
 
-    dbname='/home/liuk/sf/oc/data/38.sqlite'
-    dbname='E:/liuk/proj/ptu/data/55.sqlite'
-    #dbname='E:/sf/oc/data/38.sqlite'
-    dbname='/home/liuk/sf/oc/data/1min.sqlite'
-    #dbname='/prog/data/1min.sqlite'
-    br=BGrate.calcBGrate(dbname,20,400)
-    burst=BurstSearch.findBurst(br,dbname,["All"])
-    burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
-    #matplotlib.pyplot.plot(burst["All"].s)
-    gsml=GS_MLE(burst,0.891)
-    gsml.n_states=2
-    gsml.MaxLikehood([0.3,0.7,0.2, 3,3,3, 3,3,3])
-
-    endtime = datetime.datetime.now()
-    print (endtime - starttime)
+        #gsml=GS_MLE(burst,0.891)
+        #gsml.n_states=2
+        #gsml.MaxLikehood([0.3,0.7,0.2, 3,3,3, 3,3,3])
+        comm.Bcast(burst)
+        endtime = datetime.datetime.now()
+        print (endtime - starttime)
+    else:
+        mpiBurstLikelihood.calcBurstLikelihood()

@@ -131,7 +131,7 @@ class GS_MLE():
         self.E=genMatE(self.n_states,params[:self.n_states])
         K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
         p=genMatP(K)
-
+        procNum=4#multiprocessing.cpu_count()-1
         if self.minIter%10==0:
             print("==================================")
             print(p)
@@ -148,7 +148,7 @@ class GS_MLE():
         numB = multiprocessing.Value('l', 0)
         for idx_burst in range(self.n_burst):
             queueIn.put(idx_burst)
-        for idx_proc in range(multiprocessing.cpu_count()-1):
+        for idx_proc in range(procNum):
             queueIn.put(-1)
             lk=multiprocessing.Lock()
             cp=calcBurstLikehood(queueIn,queueOut,self.burst,self.n_states,self.Sth,self.E,K,p,lk,numB)
@@ -163,7 +163,7 @@ class GS_MLE():
         #     print("queueIn no empty,",queueIn.qsize())
         #     time.sleep(2)
         #
-        for idx_proc in range(multiprocessing.cpu_count()-1):
+        for idx_proc in range(procNum):
             lockRec[idx_proc].acquire()
             #procRec[idx_proc].terminate()
             #lockRec[idx_proc].release()
@@ -182,7 +182,7 @@ class GS_MLE():
             #    continue
             #print(sumLnL[0][0]+5000)
             sumLnL+=resBLH
-        for idx_proc in range(multiprocessing.cpu_count()-1):
+        for idx_proc in range(procNum):
             #lockRec[idx_proc].acquire()
             procRec[idx_proc].terminate()
             lockRec[idx_proc].release()

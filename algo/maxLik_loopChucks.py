@@ -9,7 +9,7 @@ except ImportError:
     import BurstSearch
     import BGrate
     import fretAndS
-    from mpBurstLikehood import calcBurstLikehood
+    from mpBurstLikehood_loopChuncks import calcBurstLikehood
 import datetime
 from scipy.optimize import minimize
 from array import array
@@ -29,10 +29,10 @@ class GS_MLE():
         self.n_burst=len(burst["All"].chl)
         self.Sth=Sth
         self.minIter=0
-        self.cpu_count=8#multiprocessing.cpu_count()
-        self.chunks=list(chunks(range(self.n_burst), int(self.n_burst/(self.cpu_count-1))))
-        self.procNum=len(self.chunks)
-        print("self.procNum",self.procNum)
+        self.cpu_count=multiprocessing.cpu_count()
+        self.chunks=list(chunks(range(self.n_burst), max(1,int(self.n_burst/(self.cpu_count*2)))))
+        self.procNum=8
+        #print("self.procNum",self.procNum)
         self.allLikhDone=multiprocessing.Semaphore(self.procNum-1)
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
@@ -45,7 +45,7 @@ class GS_MLE():
         self.sharedArrP=multiprocessing.Array("d",params[:self.n_states*self.n_states])
         self.procRec=[]
         #lockRec=[]
-
+        self.queueIn = multiprocessing.Queue()
         self.queueOut = multiprocessing.Queue()
         self.numB = multiprocessing.Value('l', 0)
         self.numWorkingProc = multiprocessing.Value(ctypes.c_int16, 0)
@@ -54,9 +54,10 @@ class GS_MLE():
         self.lkhCanStartEvent=multiprocessing.Event()
         self.lkhCanStartEvent.clear()
         self.sumCanStartEvent.clear()
+
         for idx_proc in range(self.procNum):
             #lk=multiprocessing.Lock()
-            cp=calcBurstLikehood(self.chunks[idx_proc],self.queueOut,self.burst,self.n_states\
+            cp=calcBurstLikehood(self.queueIn,self.queueOut,self.burst,self.n_states\
                                 ,self.Sth,self.procNum,self.sharedArrP,self.numB,\
                                 self.numWorkingProc,self.sumCanStartEvent,self.lkhCanStartEvent\
                                 ,self.allLikhDone)
@@ -67,8 +68,8 @@ class GS_MLE():
             pid.daemon=True
             pid.start()
         starttime = datetime.datetime.now()
-        results = minimize(self.lnLikelihood, params[:self.n_states*self.n_states], \
-                           method='Nelder-Mead')#,options=dict(maxiter=1000,disp=True),tol=1e-8)
+        results = minimize(self.lnLikelihood, params[:self.n_states*self.n_states],\
+                           method='Nelder-Mead')#,options=dict(maxiter=1000,disp=True),tol=1e-10)
         print (results)
         self.numWorkingProc=-1
         endtime = datetime.datetime.now()
@@ -91,7 +92,8 @@ class GS_MLE():
         self.sumCanStartEvent.clear()
         sumLnL=0
         self.sharedArrP[:self.n_states*self.n_states]=params[:self.n_states*self.n_states]
-
+        for c in self.chunks:
+            self.queueIn.put(c)
         self.lkhCanStartEvent.set()
 
         self.minIter+=1
@@ -125,6 +127,7 @@ class GS_MLE():
             sumLnL=sumLnL+resBLH[0][0]
         self.numB.value=0
         #print(sumLnL)
+
         return -sumLnL
 
 def mdotl(*args):

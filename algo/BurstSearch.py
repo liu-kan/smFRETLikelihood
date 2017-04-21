@@ -12,19 +12,19 @@ except ImportError:
     import BGrate
 import sqlite3
 from array import array
-import collections
+#import collections
 import matplotlib.pyplot as pl
 from pandas import DataFrame
 
 def getBGrateAtT(bgra,ch,timing):
-    lent=len(bgra[ch].time)
+    lent=len(bgra[ch]['time'])
     ridxt=0
     for idxt in range(lent):
-        if timing>bgra[ch].time[idxt]:
+        if timing>bgra[ch]['time'][idxt]:
             ridxt=idxt-1
             break;
     ridxt=max(0,ridxt)
-    return bgra[ch].bgrate[ridxt]
+    return bgra[ch]['bgrate'][ridxt]
 
 def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
 #dbname='/home/liuk/prog/ptu/data/30.sqlite'
@@ -111,8 +111,11 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
         #fig = pl.figure()
         #ax = fig.add_subplot(111)
         #ax.plot(timeline,buf)
-        cburst = collections.namedtuple('burst', ['ntag', 'burstW','timetag','dtime','chl','e','s'])
-        burst[ch]=cburst(ntag,burstW,timetag,dtime,chl,fretE,fretS)
+        #cburst = collections.namedtuple('burst', ['ntag', 'burstW','timetag','dtime','chl','e','s'])
+        #burst[ch]=cburst(ntag,burstW,timetag,dtime,chl,fretE,fretS)
+        cburst=dict({'ntag':ntag, 'burstW':burstW,'timetag':timetag,'dtime':dtime,\
+                    'chl':chl,'e':fretE,'s':fretS})
+        burst[ch]=cburst
     conn.close()
     burst["SyncResolution"]=br["SyncResolution"]
     burst["DelayResolution"]=br["DelayResolution"]
@@ -120,6 +123,6 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
 
 if __name__ == '__main__':
     dbname='E:/liuk/proj/ptu/data/46.sqlite'
-    dbname='E:/sf/oc/data/38.sqlite'
+    dbname='E:/dbox/sf/oc/data/1min.sqlite'
     br=BGrate.calcBGrate(dbname,20,400)
     burst=findBurst(br,dbname,["All"])

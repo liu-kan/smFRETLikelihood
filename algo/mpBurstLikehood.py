@@ -37,15 +37,11 @@ class calcBurstLikehood():#multiprocessing.Process):
         #idx_burst=0
         while self.numWorkingProc.value!=-1:
             startLKH=self.lkhCanStartEvent.wait(1)
+            #print("proc:",self.params[:])
             if not startLKH:
                 continue
-            self.numWorkingProc.value+=1
-            print(self.numWorkingProc.value)
-            #print("numWorkingProc",self.numWorkingProc.value,self.procNum,self.params[:])
-            if self.numWorkingProc.value==self.procNum:
-                #print("self.lkhCanStartEvent.clear()")
-                self.lkhCanStartEvent.clear()
-                #保证 所有进程开始计算后 lkhCanStartEvent立即clear
+            #self.numWorkingProc.value+=1
+            #print("proc:",self.params[:])
             E=genMatE(self.n_states,self.params[:self.n_states])
             K=genMatK(self.n_states,self.params[self.n_states:self.n_states*self.n_states])
             p=genMatP(K)
@@ -88,7 +84,7 @@ class calcBurstLikehood():#multiprocessing.Process):
                 L_burst=np.dot(T1,lnL_j)
                 lnL_burst=0
                 if L_burst<1e-300:
-                    #print("L_burst is too small:",L_burst)
+                    print("L_burst is too small:",L_burst)
                     lnL_burst=np.log(L_burst*1e300)-np.log(1e300)
                 else:
                     lnL_burst=np.log(L_burst)
@@ -100,9 +96,14 @@ class calcBurstLikehood():#multiprocessing.Process):
             if not self.allLikhDone.acquire(False):
                 self.lkhCanStartEvent.clear()
                 self.sumCanStartEvent.set()
-            self.sumCanStartEvent.wait()
-            self.numWorkingProc.value-=1
-            self.allLikhDone.release()
+                #print("numWorkingProc allLikhDone.acquire",self.numWorkingProc.value)
+                #self.numWorkingProc.value-=1
+                #self.sumCanStartEvent.wait()
+            else:
+                self.sumCanStartEvent.wait()
+                #self.numWorkingProc.value-=1
+                #print("numWorkingProc ",self.numWorkingProc.value)
+                self.allLikhDone.release()
 
         #print("calc end")
         #self.lock.release()

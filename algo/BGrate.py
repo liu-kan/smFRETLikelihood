@@ -10,7 +10,7 @@ from scipy.optimize import leastsq #这里就是我们要使用的最小二乘�
 import sqlite3
 from array import array
 from cycler import cycler
-import collections
+#import collections
 
 def fake_func(p, x):
     f = np.poly1d(p) #多项式分布的函数
@@ -68,9 +68,12 @@ def getBG(ch,timeSp,lenBin,c,MeasDesc_GlobalResolution):
         t1=t2
         #hasData=False
     #pl.plot(np.frombuffer(timeline, dtype=np.double), np.frombuffer(buf, dtype=np.double), label='BG_'+ch+"(cps)")
-    bgRate = collections.namedtuple('bgRate', ['time', 'bgrate'])
-    br=bgRate(timeline,buf)
-    return br
+    #bgRate = collections.namedtuple('bgRate', ['time', 'bgrate'])
+    #br=bgRate(timeline,buf)
+    #return br
+    bgRate=dict({'time':timeline,'bgrate':buf})
+    return bgRate
+
 
 def calcBGrate(dbname,timeSp=20,lenbin=300):
     #conn = sqlite3.connect('E:/doc/pro/ptu/data/33.sqlite')
@@ -102,4 +105,4 @@ def calcBGrate(dbname,timeSp=20,lenbin=300):
     return brcd
 if __name__ == '__main__':
     #calcBGrate('/home/liuk/sf/oc/data/38.sqlite')
-    br=calcBGrate('E:/dbox/sf/oc/data/38.sqlite')
+    br=calcBGrate('E:/dbox/sf/oc/data/1min.sqlite')

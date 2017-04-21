@@ -5,15 +5,18 @@ try:
     import algo.BGrate as BGrate
     import algo.fretAndS as fretAndS
     from algo.mpBurstLikehood import calcBurstLikehood
+    import algo.ostools as ostools
 except ImportError:
     import BurstSearch
     import BGrate
     import fretAndS
+    import ostools
     from mpBurstLikehood import calcBurstLikehood
 import datetime
 from scipy.optimize import minimize
 from array import array
 import ctypes
+
 import multiprocessing,time
 
 def chunks(l, n):
@@ -29,8 +32,10 @@ class GS_MLE():
         self.n_burst=len(burst["All"].chl)
         self.Sth=Sth
         self.minIter=0
-        self.cpu_count=8#multiprocessing.cpu_count()
-        self.chunks=list(chunks(range(self.n_burst), int(self.n_burst/(self.cpu_count-1))))
+
+        thPerCpu=1#ostools.hyperthreadingPerCore()
+        self.cpu_count=multiprocessing.cpu_count()/thPerCpu
+        self.chunks=list(chunks(range(self.n_burst), int(self.n_burst/(self.cpu_count))))
         self.procNum=len(self.chunks)
         print("self.procNum",self.procNum)
         self.allLikhDone=multiprocessing.Semaphore(self.procNum-1)
@@ -68,7 +73,7 @@ class GS_MLE():
             pid.start()
         starttime = datetime.datetime.now()
         results = minimize(self.lnLikelihood, params[:self.n_states*self.n_states], \
-                           method='Nelder-Mead')#,options=dict(maxiter=1000,disp=True),tol=1e-8)
+                           method='Nelder-Mead',options=dict(maxiter=1000,disp=True),tol=1e-7)#,tol=1e-10
         print (results)
         self.numWorkingProc=-1
         endtime = datetime.datetime.now()
