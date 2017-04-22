@@ -13,6 +13,7 @@ import datetime
 from scipy.optimize import minimize
 from array import array
 from scipy.linalg import expm
+from mpiBurstLikelihood import calcBurstLikelihood
 class GS_MLE():
     def __init__(self, burst,Sth=0.88):
         self.timemes=datetime.datetime.now()
@@ -153,11 +154,27 @@ def genMatP(matK):
 
 comm=MPI.COMM_WORLD
 rank=comm.Get_rank()
+
+def chunks(l, n):
+    """Yield successive nth chunks from l."""
+    lenl=len(l)
+    stack=[]
+    if(lenl%n==0):
+        for i in range(0, lenl, lenl/n):
+            stack.append(l[i:i + lenl/n])
+        for i in range(0, lenl, lenl/n):
+            yield stack.pop()
+    else:
+        for i in range(0, lenl, int(lenl/n)+1):
+            stack.append(l[i:i + int(lenl/n)+1])
+        for i in range(0, lenl, int(lenl/n)+1):
+            yield stack.pop()
+
 if __name__ == '__main__':
-    import matplotlib
-    import datetime
+
+    clsize=comm.Get_size()
     if rank==0:
-        starttime = datetime.datetime.now()
+        #starttime = datetime.datetime.now()
         dbname='/home/liuk/sf/oc/data/38.sqlite'
         dbname='E:/liuk/proj/ptu/data/55.sqlite'
         #dbname='E:/sf/oc/data/38.sqlite'
@@ -166,12 +183,30 @@ if __name__ == '__main__':
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
         burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
-
+        n_burst=len(burst["All"].chl)
+        if n_burst<clsize:
+            clsize=n_burst
+        chunkLists=list(chunks(range(n_burst), int(n_burst/clsize)))
         #gsml=GS_MLE(burst,0.891)
         #gsml.n_states=2
         #gsml.MaxLikehood([0.3,0.7,0.2, 3,3,3, 3,3,3])
-        comm.Bcast(burst)
-        endtime = datetime.datetime.now()
-        print (endtime - starttime)
+
+        #endtime = datetime.datetime.now()
+        #print (endtime - starttime)
+        n_states=2
     else:
-        mpiBurstLikelihood.calcBurstLikelihood()
+        burst=dict()
+        n_states=-1
+    clsize=comm.bcast(clsize,root=0)
+    burst=comm.bcast(burst,root=0)
+    n_states=comm.bcast(n_states,root=0)
+    gsml=GS_MLE(burst,0.891)
+    gsml.n_states=n_states
+    params=[0.3,0.7,0.2, 3,3,3, 3,3,3]
+    stop=0
+    if rank==0:
+        gsml.MaxLikehood(params,stop)
+        stop=1
+        gsml.lnLikelihood(params,stop)
+    else:
+        gsml.lnLikelihood(params,stop)
