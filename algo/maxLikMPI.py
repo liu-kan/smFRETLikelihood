@@ -15,13 +15,14 @@ from array import array
 from scipy.linalg import expm
 from mpiBurstLikelihood import calcBurstLikelihood
 class GS_MLE():
-    def __init__(self, burst,Sth=0.88):
+    def __init__(self, burst,comm,Sth=0.88):
         self.timemes=datetime.datetime.now()
         self.burst=burst
         self.n_states=1 #调用likelihood前更新self.n_states
         self.n_burst=len(burst["All"].chl)
         self.Sth=Sth
         self.minIter=0
+        self.comm=comm
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
 
@@ -29,12 +30,9 @@ class GS_MLE():
         params[n_states:n_states^2] matrix of K
         """
         self.params=params
-        import datetime
-        starttime = datetime.datetime.now()
+
         results = minimize(self.lnLikelihood, params, method='Nelder-Mead')
-        print (results)
-        endtime = datetime.datetime.now()
-        print (endtime - starttime)
+
 
     def lnLikelihood(self,params):
         """calc ln likehood of TCSCP stream.
@@ -46,7 +44,8 @@ class GS_MLE():
         \[L = {1^T}\prod\limits_{k = 2}^{N_j} [F(c_k)exp(K\tau _k)]F(\c_1)p_{eq} \]
         """
         sumLnL=0
-        self.minIter+=1
+        stop=params[self.n_states*self.n_states]
+        stop=self.comm.bcast(stop,root=0)
         self.E=genMatE(self.n_states,params[:self.n_states])
         K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
         p=genMatP(K)
@@ -200,13 +199,15 @@ if __name__ == '__main__':
     clsize=comm.bcast(clsize,root=0)
     burst=comm.bcast(burst,root=0)
     n_states=comm.bcast(n_states,root=0)
-    gsml=GS_MLE(burst,0.891)
+    gsml=GS_MLE(burst,comm,0.891)
     gsml.n_states=n_states
     params=[0.3,0.7,0.2, 3,3,3, 3,3,3]
-    stop=0
+    params=params[:n_states]
+    params.append(0)
+    #stop=0
     if rank==0:
-        gsml.MaxLikehood(params,stop)
+        gsml.MaxLikehood(params)
         stop=1
-        gsml.lnLikelihood(params,stop)
+        gsml.lnLikelihood(params)
     else:
-        gsml.lnLikelihood(params,stop)
+        gsml.lnLikelihood(params)

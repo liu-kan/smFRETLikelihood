@@ -9,4 +9,4 @@
 
     virtualenv venv
     source venv/bin/activate
-    pip install numpy scipy matplotlib pyqt5 pandas
+    pip install numpy scipy matplotlib pyqt5 pandas mpi4py
