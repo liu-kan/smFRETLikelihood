@@ -16,7 +16,7 @@ deb http://mirrors.ustc.edu.cn/debian-security/ jessie/updates main contrib non-
 
 RUN apt -y update && \
     apt -y install vim mpich openssh-server
-RUN conda install -y pyqt
+#RUN conda install -y pyqt
 
 ## sshd
 RUN mkdir /var/run/sshd
