@@ -4,18 +4,19 @@ MAINTAINER Liu K <liukan@126.com>
 
 USER root
 
-RUN echo -e "deb http://mirrors.aliyun.com/debian jessie main contrib non-free\n\
-deb-src http://mirrors.aliyun.com/debian jessie main contrib non-free\n\
-deb http://mirrors.aliyun.com/debian jessie-proposed-updates main contrib non-free\n\
-deb-src http://mirrors.aliyun.com/debian jessie-proposed-updates main contrib non-free\n\
-deb http://mirrors.aliyun.com/debian jessie-updates main contrib non-free\n\
-deb-src http://mirrors.aliyun.com/debian jessie-updates main contrib non-free\n\
-deb http://mirrors.ustc.edu.cn/debian-security jessie/updates main\n\
+RUN echo "deb http://mirrors.ustc.edu.cn/debian/ jessie main contrib non-free \n\
+#deb-src http://mirrors.ustc.edu.cn/debian/ jessie main contrib non-free \n\
+deb http://mirrors.ustc.edu.cn/debian/ jessie-updates main contrib non-free \n\
+#deb-src http://mirrors.ustc.edu.cn/debian/ jessie-updates main contrib non-free \n\
+deb http://mirrors.ustc.edu.cn/debian/ jessie-backports main contrib non-free \n\
+#deb-src http://mirrors.ustc.edu.cn/debian/ jessie-backports main contrib non-free \n\
+deb http://mirrors.ustc.edu.cn/debian-security/ jessie/updates main contrib non-free \n\
+#deb-src http://mirrors.ustc.edu.cn/debian-security/ jessie/updates main contrib non-free \n\
 " > /etc/apt/sources.list
 
-RUN apt-get -y update && \
-    apt-get -y vim mpich openssh-server && \
-    conda install -y pyqt
+RUN apt -y update && \
+    apt -y install vim mpich openssh-server
+RUN conda install -y pyqt
 
 ## sshd
 RUN mkdir /var/run/sshd

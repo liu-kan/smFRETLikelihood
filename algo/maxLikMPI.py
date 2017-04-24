@@ -25,7 +25,7 @@ class GS_MLE():
         self.minIter=0
         self.comm=comm
         self.stop=[0]
-        self.params=[]        
+        self.params=[]
         self.counterPrint=0
         self.oldIter=0
     def MaxLikehood(self,params):
@@ -204,7 +204,7 @@ if __name__ == '__main__':
         dbname='/home/liuk/sf/oc/data/38.sqlite'
         dbname='E:/liuk/proj/ptu/data/55.sqlite'
         #dbname='E:/sf/oc/data/38.sqlite'
-        dbname='/home/liuk/sf/oc/data/1min.sqlite'
+        dbname='/smfret/1min.sqlite'
         #dbname='/prog/data/1min.sqlite'
 
         br=BGrate.calcBGrate(dbname,20,400)
