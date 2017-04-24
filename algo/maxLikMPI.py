@@ -9,32 +9,42 @@ except ImportError:
     import BurstSearch
     import BGrate
     import fretAndS
-import datetime
+import datetime,sys
 from scipy.optimize import minimize
 from array import array
 from scipy.linalg import expm
-from mpiBurstLikelihood import calcBurstLikelihood
+#from mpiBurstLikelihood import calcBurstLikelihood
 class GS_MLE():
-    def __init__(self, burst,comm,Sth=0.88):
+    def __init__(self, burst,comm,burstIdxRange,Sth=0.88):
         self.timemes=datetime.datetime.now()
         self.burst=burst
+        self.burstIdxRange=burstIdxRange
         self.n_states=1 #调用likelihood前更新self.n_states
-        self.n_burst=len(burst["All"].chl)
+        self.n_burst=len(burst["All"]['chl'])
         self.Sth=Sth
         self.minIter=0
         self.comm=comm
+        self.stop=[0]
+        self.params=[]        
+        self.counterPrint=0
+        self.oldIter=0
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
 
         params[:n_states] E_{states_i}
         params[n_states:n_states^2] matrix of K
         """
+
         self.params=params
+        startTime=datetime.datetime.now()
+        results = minimize(self.lnLikelihood, params, args=(self.stop,),method='Nelder-Mead')
+        stopTime=datetime.datetime.now()
+        print(results)
+        print("Time spend:",stopTime-startTime)
+        self.stop=[1]
+        self.lnLikelihood(params,self.stop)
 
-        results = minimize(self.lnLikelihood, params, method='Nelder-Mead')
-
-
-    def lnLikelihood(self,params):
+    def lnLikelihood(self,params,stopp):
         """calc ln likehood of TCSCP stream.
 
         params[:n_states] E_{states_i}
@@ -44,41 +54,54 @@ class GS_MLE():
         \[L = {1^T}\prod\limits_{k = 2}^{N_j} [F(c_k)exp(K\tau _k)]F(\c_1)p_{eq} \]
         """
         sumLnL=0
-        stop=params[self.n_states*self.n_states]
-        stop=self.comm.bcast(stop,root=0)
-        self.E=genMatE(self.n_states,params[:self.n_states])
-        K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
-        p=genMatP(K)
 
-        if self.minIter%10==0:
-            print("==================================")
-            print(p)
-            print(K)
-            print(self.E)
-            if self.minIter%10==0:
+        stopp[0]=self.comm.bcast(stopp[0], root=0)
+        if stopp[0]!=0:
+            return 0
+        self.params=self.comm.bcast(self.params, root=0)
+        self.E=genMatE(self.n_states,params[:self.n_states])
+        #print(self.params)
+        K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
+        #print(params[self.n_states:self.n_states*self.n_states])
+        p=genMatP(K)
+        self.minIter=self.minIter+1
+        rank = self.comm.Get_rank()
+        if rank ==0:
+            if self.minIter > self.counterPrint*10:
+                self.counterPrint+=1
+                print("==================================")
+                print(p)
+                print(K)
+                print(self.E)
+
                 oldtime=self.timemes
                 self.timemes=datetime.datetime.now()
-                print("The speed of analysis is %f burst/s" % ((10*self.n_burst)/float((self.timemes-oldtime).seconds)))
+                timesp=float((self.timemes-oldtime).seconds)
+                if timesp<1e-100:
+                    timesp=1.0
+                print("The speed of analysis is %f burst/s" % (((self.minIter-self.oldIter)*self.n_burst)/timesp))
+                self.oldIter=self.minIter
+                sys.stdout.flush()
 
-        for idx_burst in range(self.n_burst):
-            if self.burst["All"].s[idx_burst]>=self.Sth:
+        for idx_burst in self.burstIdxRange:
+            if self.burst["All"]['s'][idx_burst]>=self.Sth:
                 continue
-            lenPhoton=self.burst["All"].ntag[idx_burst]
+            lenPhoton=self.burst["All"]['ntag'][idx_burst]
             if lenPhoton<2:
                 continue
             lnL_j=np.linspace(1,1,self.n_states)
             t_k_0=-1
             prod=np.eye(self.n_states)
             for idx_photon in range(lenPhoton):
-                F=self.matF(self.burst["All"].chl[idx_burst].iloc[idx_photon])
+                F=self.matF(self.burst["All"]['chl'][idx_burst].iloc[idx_photon])
                 if F is not None:
                     if t_k_0<0:
-                        t_k_0=self.burst["All"].timetag[idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                            +self.burst["All"].dtime[idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
+                        t_k_0=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
+                            +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
                         lnL_j=np.dot(F,p)
                         continue
-                    t_k_1=self.burst["All"].timetag[idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                        +self.burst["All"].dtime[idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
+                    t_k_1=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
+                        +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
                     tau=t_k_1-t_k_0
                     t_k_0=t_k_1
                     FdotExp=np.dot(F,expm(K)*tau)
@@ -92,12 +115,15 @@ class GS_MLE():
             L_burst=np.dot(T1,lnL_j)
             lnL_burst=0
             if L_burst<1e-300:
-                print("L_burst is too small:",L_burst)
+                if rank==0:
+                    print("L_burst is too small:",L_burst)
                 lnL_burst=np.log(L_burst*1e300)-np.log(1e300)
             else:
                 lnL_burst=np.log(L_burst)
             sumLnL+=lnL_burst
-        return -sumLnL
+        summ=self.comm.reduce(sumLnL,op=MPI.SUM, root=0)
+        if rank ==0:
+            return -summ
     def matF(self,c_k):
         if c_k==1:
             return self.E
@@ -151,17 +177,16 @@ def genMatP(matK):
         matP[i,0]=matK[i,i]/ap
     return matP
 
-comm=MPI.COMM_WORLD
-rank=comm.Get_rank()
+
 
 def chunks(l, n):
     """Yield successive nth chunks from l."""
     lenl=len(l)
     stack=[]
-    if(lenl%n==0):
-        for i in range(0, lenl, lenl/n):
-            stack.append(l[i:i + lenl/n])
-        for i in range(0, lenl, lenl/n):
+    if lenl%n==0:
+        for i in range(0, lenl, int(lenl/n)):
+            stack.append(l[i:i + int(lenl/n)])
+        for i in range(0, lenl, int(lenl/n)):
             yield stack.pop()
     else:
         for i in range(0, lenl, int(lenl/n)+1):
@@ -170,8 +195,10 @@ def chunks(l, n):
             yield stack.pop()
 
 if __name__ == '__main__':
-
+    comm=MPI.COMM_WORLD
+    rank=comm.Get_rank()
     clsize=comm.Get_size()
+    #print("rank",rank)
     if rank==0:
         #starttime = datetime.datetime.now()
         dbname='/home/liuk/sf/oc/data/38.sqlite'
@@ -179,13 +206,15 @@ if __name__ == '__main__':
         #dbname='E:/sf/oc/data/38.sqlite'
         dbname='/home/liuk/sf/oc/data/1min.sqlite'
         #dbname='/prog/data/1min.sqlite'
+
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
         burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
-        n_burst=len(burst["All"].chl)
+        n_burst=len(burst["All"]['chl'])
         if n_burst<clsize:
             clsize=n_burst
-        chunkLists=list(chunks(range(n_burst), int(n_burst/clsize)))
+        chunkLists=list(chunks(range(n_burst), clsize))
+
         #gsml=GS_MLE(burst,0.891)
         #gsml.n_states=2
         #gsml.MaxLikehood([0.3,0.7,0.2, 3,3,3, 3,3,3])
@@ -196,18 +225,22 @@ if __name__ == '__main__':
     else:
         burst=dict()
         n_states=-1
+        chunkLists=list()
     clsize=comm.bcast(clsize,root=0)
     burst=comm.bcast(burst,root=0)
     n_states=comm.bcast(n_states,root=0)
-    gsml=GS_MLE(burst,comm,0.891)
+    burstIdxRange=comm.scatter( chunkLists, root=0)
+    #print(burstIdxRange,rank)
+    gsml=GS_MLE(burst,comm,burstIdxRange,0.891)
     gsml.n_states=n_states
+
     params=[0.3,0.7,0.2, 3,3,3, 3,3,3]
-    params=params[:n_states]
-    params.append(0)
-    #stop=0
+    params=params[:n_states*n_states]
+    #print(params)
+    stop=[0]
     if rank==0:
         gsml.MaxLikehood(params)
-        stop=1
-        gsml.lnLikelihood(params)
+        #gsml.lnLikelihood(params,stop)
     else:
-        gsml.lnLikelihood(params)
+        while stop[0]==0:
+            gsml.lnLikelihood(params,stop)

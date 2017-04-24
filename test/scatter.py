@@ -29,7 +29,8 @@ if rank==0:
     a=list(chunks(range(10), size))
     print(a)
 else:
-    a=list()
+    #a=list()
+    pass
 al=list()
 # Scatter data into my_A arrays
 al=comm.scatter( a, root=0)
