@@ -29,7 +29,7 @@ RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so
 ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 EXPOSE 22
-EXPOSE 10000-10100
+EXPOSE 1000
 
 #RUN useradd -ms /bin/bash liuk
 #USER liuk
@@ -44,8 +44,8 @@ ADD sshconfig /root/.ssh/config
 RUN cat /root/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
 RUN cat ~/id_rsa.pub >> ~/.ssh/authorized_keys &&\
     chmod 600 ~/.ssh/authorized_keys ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
-RUN echo "export MPIR_CVAR_CH3_PORT_RANGE=10000:10100" >> ~/.bashrc
-ENV MPIR_CVAR_CH3_PORT_RANGE=10000:10100
+RUN echo "export MPIEXEC_PORT_RANGE=1000:1000" >> ~/.bashrc
+ENV MPIEXEC_PORT_RANGE=1000:1000
 
 USER root
 CMD ["/usr/sbin/sshd", "-D"]
