@@ -1,3 +1,4 @@
+ # -*- coding: utf-8 -*-
 import numpy as np
 from mpi4py import MPI
 from scipy.linalg import expm
@@ -14,6 +15,14 @@ from scipy.optimize import minimize
 from array import array
 from scipy.linalg import expm
 #from mpiBurstLikelihood import calcBurstLikelihood
+
+def appendResult(fn,results,n,timesp):
+    fo = open(fn, "w+")
+    fo.write(str(n)+' : ======== '+str(datetime.datetime.now())+'\n')
+    fo.write( str (results)+'\n')
+    fo.write('time spend : '+str(timesp)+'\n')
+    fo.close()
+
 class GS_MLE():
     def __init__(self, burst,comm,burstIdxRange,Sth=0.88):
         self.timemes=datetime.datetime.now()
@@ -40,6 +49,7 @@ class GS_MLE():
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='Nelder-Mead')
         stopTime=datetime.datetime.now()
         print(results)
+        appendResult('results.txt',results,self.n_states,stopTime-startTime)
         print("Time spend:",stopTime-startTime)
         self.stop=[1]
         self.lnLikelihood(params,self.stop)
@@ -205,7 +215,7 @@ if __name__ == '__main__':
         dbname='E:/liuk/proj/ptu/data/55.sqlite'
         #dbname='E:/sf/oc/data/38.sqlite'
         dbname='/smfret/1min.sqlite'
-        #dbname='/prog/data/1min.sqlite'
+        dbname='/home/liuk/Seafile/oc/data/1min.sqlite'
 
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])

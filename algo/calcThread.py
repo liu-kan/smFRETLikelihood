@@ -1,3 +1,4 @@
+ # -*- coding: utf-8 -*-
 from PyQt5 import QtCore
 import algo.BurstSearch as BurstSearch
 import algo.BGrate as BGrate
