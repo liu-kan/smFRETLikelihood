@@ -12,6 +12,6 @@ kill:
 
 mirrordockerhub:
 	echo "{ \n\
-	"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"] \n\
+	\"registry-mirrors\": [\"https://docker.mirrors.ustc.edu.cn\"] \n\
 	}\n\
 	" > /etc/docker/daemon.json
