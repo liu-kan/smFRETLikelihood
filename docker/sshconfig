@@ -1,0 +1,6 @@
+Host nMac
+    Hostname 10.0.0.136
+    Port 222
+Host nAli
+    Hostname 10.0.0.241
+    Port 222
