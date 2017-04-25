@@ -20,7 +20,7 @@ RUN apt -y update && \
 
 ## sshd
 RUN mkdir /var/run/sshd
-RUN echo 'root:screencast' | chpasswd
+RUN echo 'root:liukan' | chpasswd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # SSH login fix. Otherwise user is kicked off after login
@@ -29,4 +29,18 @@ RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so
 ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 EXPOSE 22
+EXPOSE 10000-10100
+
+RUN useradd -ms /bin/bash liuk
+USER liuk
+WORKDIR /home/liuk
+RUN ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa && \
+    cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys && \
+    chmod 600 ~/.ssh/authorized_keys
+ADD id_rsa.pub /home/liuk/id_rsa.pub
+ADD sshconfig /home/liuk/.ssh/config
+RUN cat ~/id_rsa.pub >> ~/.ssh/authorized_keys
+ENV MPIR_CVAR_CH3_PORT_RANGE=10000:10100
+
+USER root
 CMD ["/usr/sbin/sshd", "-D"]
