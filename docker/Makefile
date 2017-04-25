@@ -1,4 +1,5 @@
 build:
+	cp ~/.ssh/id_rsa.pub id_rsa.pub_
 	docker build --rm -t intelpython_mpi .
 enter:
 	docker exec -it mpi_node bash

@@ -34,12 +34,16 @@ EXPOSE 10000-10100
 #RUN useradd -ms /bin/bash liuk
 #USER liuk
 #WORKDIR /home/liuk
-RUN ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa && \
-    cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys && \
-    chmod 600 ~/.ssh/authorized_keys
-ADD id_rsa.pub /root/id_rsa.pub
+#RUN ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa && \
+#    cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys && \
+#    chmod 600 ~/.ssh/authorized_keys
+ADD id_rsa.pub_ /root/id_rsa.pub
+ADD id_rsa.pub /root/.ssh/id_rsa.pub
+ADD id_rsa /root/.ssh/id_rsa
 ADD sshconfig /root/.ssh/config
-RUN cat ~/id_rsa.pub >> ~/.ssh/authorized_keys
+RUN cat /root/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+RUN cat ~/id_rsa.pub >> ~/.ssh/authorized_keys &&\
+    chmod 600 ~/.ssh/authorized_keys ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
 RUN echo "export MPIR_CVAR_CH3_PORT_RANGE=10000:10100" >> ~/.bashrc
 ENV MPIR_CVAR_CH3_PORT_RANGE=10000:10100
 
