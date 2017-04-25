@@ -31,15 +31,16 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 EXPOSE 22
 EXPOSE 10000-10100
 
-RUN useradd -ms /bin/bash liuk
-USER liuk
-WORKDIR /home/liuk
+#RUN useradd -ms /bin/bash liuk
+#USER liuk
+#WORKDIR /home/liuk
 RUN ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa && \
     cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys && \
     chmod 600 ~/.ssh/authorized_keys
-ADD id_rsa.pub /home/liuk/id_rsa.pub
-ADD sshconfig /home/liuk/.ssh/config
+ADD id_rsa.pub /root/id_rsa.pub
+ADD sshconfig /root/.ssh/config
 RUN cat ~/id_rsa.pub >> ~/.ssh/authorized_keys
+RUN echo "export MPIR_CVAR_CH3_PORT_RANGE=10000:10100" >> ~/.bashrc
 ENV MPIR_CVAR_CH3_PORT_RANGE=10000:10100
 
 USER root

@@ -1,7 +1,7 @@
 build:
 	docker build --rm -t intelpython_mpi .
 enter:
-	docker exec -it mpi_node sh -c "export TERM=xterm && bash"
+	docker exec -it mpi_node bash
 run:
 	docker run -d --name mpi_node -v `pwd`/../:/smfret -p 10000-10100:10000-10100 -p 222:22 intelpython_mpi
 
