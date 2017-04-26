@@ -16,3 +16,6 @@ mirrordockerhub:
 	\"registry-mirrors\": [\"https://docker.mirrors.ustc.edu.cn\"] \n\
 	}\n\
 	" > /etc/docker/daemon.json
+
+mpiexec:
+	docker exec --privileged mpi_node mpirun --allow-run-as-root -n 8 -H ma,sa python3 /smfret/algo/maxLikDockerMPI.py
