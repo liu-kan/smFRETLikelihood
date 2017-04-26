@@ -84,7 +84,7 @@ class GS_MLE():
                     prod=np.dot(FdotExp,prod)
             if t_k_0<0:
                 continue
-            lnL_j=np.dot(FdotExp,lnL_j)
+            lnL_j=np.dot(prod,lnL_j)
             T1=np.linspace(1,1,self.n_states)
             T1.shape=(self.n_states,1)
             T1=np.transpose(T1)
