@@ -127,7 +127,7 @@ class GS_MLE():
                 if t_k_0<0:
                     continue
                 #lnL_j=np.dot(prod,lnL_j)
-                L_burst=np.dot(self.T1,lnL_j)
+                L_burst=np.dot(T1,lnL_j)
                 lnL_burst=np.log(L_burst)-sumlnAlpha
                 sumLnL+=lnL_burst[0,0]
         summ=self.comm.reduce(sumLnL,op=MPI.SUM, root=0)
