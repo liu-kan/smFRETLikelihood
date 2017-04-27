@@ -46,7 +46,10 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        results = minimize(self.lnLikelihood, params, args=(self.stop,),method='Nelder-Mead')
+        boundE=[(0,1)]*self.n_states
+        boundK=[(0,loat('Inf'))]*(self.n_states*(self.n_states-1)]
+        results = minimize(self.lnLikelihood, params, args=(self.stop,),method='SLSQP' \
+                           bounds=boundE+boundK)
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime)
