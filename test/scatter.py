@@ -10,26 +10,26 @@ def chunks(l, n):
     """Yield successive nth chunks from l."""
     lenl=len(l)
     stack=[]
-    if(lenl%n==0):
-        for i in range(0, lenl, lenl/n):
-            stack.append(l[i:i + lenl/n])
-        for i in range(0, lenl, lenl/n):
-            yield stack.pop()
-    else:
-        for i in range(0, lenl, int(lenl/n)+1):
-            stack.append(l[i:i + int(lenl/n)+1])
-        for i in range(0, lenl, int(lenl/n)+1):
-            yield stack.pop()
+    stackList=[]
+    for i in range(0, lenl, lenl//n):
+        stack.append(l[i:i + lenl//n])
+    for i in range(n):
+        stackList.append([stack[i]])
+    if len(stack)>n:
+        for i in range(n,len(stack)):
+            stackList[i-n].append(stack[i])
+    for i in range(0, n):
+        yield stackList.pop()
 
 
 comm = MPI.COMM_WORLD
 rank =comm.Get_rank()
 size = comm.Get_size()
 if rank==0:
-    a=list(chunks(range(10), size))
+    a=list(chunks(range(735), size))
     print(a)
 else:
-    #a=list()
+    a=list()
     pass
 al=list()
 # Scatter data into my_A arrays
@@ -39,5 +39,5 @@ print("After Scatter:")
 for r in range(comm.size):
     if comm.rank == r:
         for i in al:
-            print("~~[%d] %s [%d]" % (comm.rank, al,i))
+            print("~~",comm.rank, al,i)
 comm.Barrier()

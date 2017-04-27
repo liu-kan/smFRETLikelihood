@@ -93,44 +93,45 @@ class GS_MLE():
                 self.oldIter=self.minIter
                 sys.stdout.flush()
 
-        for idx_burst in self.burstIdxRange:
-            if self.burst["All"]['s'][idx_burst]>=self.Sth:
-                continue
-            lenPhoton=self.burst["All"]['ntag'][idx_burst]
-            if lenPhoton<2:
-                continue
-            lnL_j=np.linspace(1,1,self.n_states)
-            t_k_0=-1
-            prod=np.eye(self.n_states)
-            for idx_photon in range(lenPhoton):
-                F=self.matF(self.burst["All"]['chl'][idx_burst].iloc[idx_photon])
-                if F is not None:
-                    if t_k_0<0:
-                        t_k_0=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
+        for burstIdxRangeItem in self.burstIdxRange:
+            for idx_burst in burstIdxRangeItem:
+                if self.burst["All"]['s'][idx_burst]>=self.Sth:
+                    continue
+                lenPhoton=self.burst["All"]['ntag'][idx_burst]
+                if lenPhoton<2:
+                    continue
+                lnL_j=np.linspace(1,1,self.n_states)
+                t_k_0=-1
+                prod=np.eye(self.n_states)
+                for idx_photon in range(lenPhoton):
+                    F=self.matF(self.burst["All"]['chl'][idx_burst].iloc[idx_photon])
+                    if F is not None:
+                        if t_k_0<0:
+                            t_k_0=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
+                                +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
+                            lnL_j=np.dot(F,p)
+                            continue
+                        t_k_1=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
                             +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
-                        lnL_j=np.dot(F,p)
-                        continue
-                    t_k_1=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                        +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
-                    tau=t_k_1-t_k_0
-                    t_k_0=t_k_1
-                    FdotExp=np.dot(F,expm(K)*tau)
-                    prod=np.dot(FdotExp,prod)
-            if t_k_0<0:
-                continue
-            lnL_j=np.dot(prod,lnL_j)
-            T1=np.linspace(1,1,self.n_states)
-            T1.shape=(self.n_states,1)
-            T1=np.transpose(T1)
-            L_burst=np.dot(T1,lnL_j)
-            lnL_burst=0
-            if L_burst<1e-300:
-                if rank==0:
-                    print("L_burst is too small:",L_burst)
-                lnL_burst=np.log(L_burst*1e300)-np.log(1e300)
-            else:
-                lnL_burst=np.log(L_burst)
-            sumLnL+=lnL_burst
+                        tau=t_k_1-t_k_0
+                        t_k_0=t_k_1
+                        FdotExp=np.dot(F,expm(K)*tau)
+                        prod=np.dot(FdotExp,prod)
+                if t_k_0<0:
+                    continue
+                lnL_j=np.dot(prod,lnL_j)
+                T1=np.linspace(1,1,self.n_states)
+                T1.shape=(self.n_states,1)
+                T1=np.transpose(T1)
+                L_burst=np.dot(T1,lnL_j)
+                lnL_burst=0
+                if L_burst<1e-300:
+                    if rank==0:
+                        print("L_burst is too small:",L_burst)
+                    lnL_burst=np.log(L_burst*1e300)-np.log(1e300)
+                else:
+                    lnL_burst=np.log(L_burst)
+                sumLnL+=lnL_burst
         summ=self.comm.reduce(sumLnL,op=MPI.SUM, root=0)
         if rank ==0:
             return -summ
@@ -188,34 +189,34 @@ def genMatP(matK):
     return matP
 
 
-
 def chunks(l, n):
     """Yield successive nth chunks from l."""
     lenl=len(l)
     stack=[]
-    if lenl%n==0:
-        for i in range(0, lenl, int(lenl/n)):
-            stack.append(l[i:i + int(lenl/n)])
-        for i in range(0, lenl, int(lenl/n)):
-            yield stack.pop()
-    else:
-        for i in range(0, lenl, int(lenl/n)+1):
-            stack.append(l[i:i + int(lenl/n)+1])
-        for i in range(0, lenl, int(lenl/n)+1):
-            yield stack.pop()
+    stackList=[]
+    for i in range(0, lenl, lenl//n):
+        stack.append(l[i:i + lenl//n])
+    for i in range(n):
+        stackList.append([stack[i]])
+    if len(stack)>n:
+        for i in range(n,len(stack)):
+            stackList[i-n].append(stack[i])
+    for i in range(0, n):
+        yield stackList.pop()
+
 
 if __name__ == '__main__':
     comm=MPI.COMM_WORLD
     rank=comm.Get_rank()
     clsize=comm.Get_size()
-    #print("rank",rank)
+    print("============size=====",clsize)
     if rank==0:
         #starttime = datetime.datetime.now()
         dbname='/home/liuk/sf/oc/data/38.sqlite'
         dbname='E:/liuk/proj/ptu/data/55.sqlite'
         #dbname='E:/sf/oc/data/38.sqlite'
         dbname='/smfret/1min.sqlite'
-        dbname='/home/liuk/Seafile/oc/data/1min.sqlite'
+        dbname='/home/liuk/prog/smFRETLikelihood/data/1min.sqlite'
 
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
