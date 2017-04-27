@@ -1,10 +1,10 @@
 build:
 	cp ~/.ssh/id_rsa.pub id_rsa.pub_
-	docker build --rm -t intelpython_mpi .
+	docker build --rm -t intelpython_mpi -f Dockerfile.mpich .
 enter:
 	docker exec -it mpi_node bash
 run:
-	docker run -d --name mpi_node -v `pwd`/../:/smfret -p 22:22 -p 1000:1000 intelpython_mpi
+	docker run -d --name mpi_node -v `pwd`/../:/smfret -p 22:22 -p 1000:1100 intelpython_mpi
 	#docker run -d --name mpi_node -v `pwd`/../:/smfret -p 10000-10100:10000-10100 -p 222:22 intelpython_mpi
 
 kill:

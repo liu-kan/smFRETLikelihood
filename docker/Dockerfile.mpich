@@ -44,8 +44,8 @@ ADD sshconfig /root/.ssh/config
 RUN cat /root/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
 RUN cat ~/id_rsa.pub >> ~/.ssh/authorized_keys &&\
     chmod 600 ~/.ssh/authorized_keys ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
-RUN echo "export MPIEXEC_PORT_RANGE=1000:1000" >> ~/.bashrc
-ENV MPIEXEC_PORT_RANGE=1000:1000
+RUN echo "export MPIEXEC_PORT_RANGE=1000:1100" >> ~/.bashrc
+ENV MPIEXEC_PORT_RANGE=1000:1100
 
 USER root
 CMD ["/usr/sbin/sshd", "-D"]
