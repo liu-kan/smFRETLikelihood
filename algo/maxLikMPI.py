@@ -45,9 +45,6 @@ class GS_MLE():
         """
 
         self.params=params
-        T1=np.linspace(1,1,self.n_states)
-        T1.shape=(self.n_states,1)
-        self.T1=np.transpose(T1)
         startTime=datetime.datetime.now()
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='Nelder-Mead')
         stopTime=datetime.datetime.now()
@@ -71,6 +68,9 @@ class GS_MLE():
         stopp[0]=self.comm.bcast(stopp[0], root=0)
         if stopp[0]!=0:
             return 0
+        T1=np.linspace(1,1,self.n_states)
+        T1.shape=(self.n_states,1)
+        T1=np.transpose(T1)
         self.params=self.comm.bcast(self.params, root=0)
         self.E=genMatE(self.n_states,params[:self.n_states])
         #print(self.params)
@@ -121,7 +121,7 @@ class GS_MLE():
                         t_k_0=t_k_1
                         FdotExp=np.dot(F,expm(K)*tau)
                         lnL_j=np.dot(FdotExp,lnL_j)
-                        alpha=1.0/np.dot(self.T1,lnL_j)
+                        alpha=1.0/np.dot(T1,lnL_j)
                         lnL_j=lnL_j*alpha
                         sumlnAlpha+=np.log(alpha)
                 if t_k_0<0:
