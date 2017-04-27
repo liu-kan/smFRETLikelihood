@@ -50,7 +50,7 @@ class GS_MLE():
         boundK=[(0,float('Inf'))]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='SLSQP' \
-                           bounds=bound)
+                           ,bounds=bound)
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime)
