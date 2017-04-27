@@ -46,8 +46,8 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        boundE=[(0,1)]*self.n_states
-        boundK=[(0,float('Inf'))]*(self.n_states*(self.n_states-1))
+        boundE=[(0.00001,0.99999)]*self.n_states
+        boundK=[(0.00001,float('Inf'))]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='SLSQP' \
                            ,bounds=bound)
