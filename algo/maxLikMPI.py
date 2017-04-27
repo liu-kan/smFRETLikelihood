@@ -25,7 +25,7 @@ def appendResult(fn,results,n,timesp):
 
 class GS_MLE():
     def __init__(self, burst,comm,burstIdxRange,Sth=0.88):
-        self.timemes=datetime.datetime.now()
+        self.timemes=MPI.Wtime()
         self.burst=burst
         self.burstIdxRange=burstIdxRange
         self.n_states=1 #调用likelihood前更新self.n_states
@@ -77,7 +77,7 @@ class GS_MLE():
         self.minIter=self.minIter+1
         rank = self.comm.Get_rank()
         if rank ==0:
-            if self.minIter > self.counterPrint*10:
+            if self.minIter > self.counterPrint*50:
                 self.counterPrint+=1
                 print("==================================")
                 print(p)
@@ -85,8 +85,8 @@ class GS_MLE():
                 print(self.E)
 
                 oldtime=self.timemes
-                self.timemes=datetime.datetime.now()
-                timesp=float((self.timemes-oldtime).seconds)
+                self.timemes=MPI.Wtime()
+                timesp=self.timemes-oldtime
                 if timesp<1e-100:
                     timesp=1.0
                 print("The speed of analysis is %f burst/s" % (((self.minIter-self.oldIter)*self.n_burst)/timesp))
