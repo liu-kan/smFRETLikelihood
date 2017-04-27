@@ -207,18 +207,12 @@ def chunks(l, n):
         yield stackList.pop()
 
 
-if __name__ == '__main__':
+def main(dbname):
     comm=MPI.COMM_WORLD
     rank=comm.Get_rank()
     clsize=comm.Get_size()
     #print("============size=====",clsize)
     if rank==0:
-        #starttime = datetime.datetime.now()
-        dbname='/home/liuk/sf/oc/data/38.sqlite'
-        dbname='E:/liuk/proj/ptu/data/55.sqlite'
-        #dbname='E:/sf/oc/data/38.sqlite'
-        dbname='/smfret/1min.sqlite'
-        dbname='/home/liuk/prog/smFRETLikelihood/data/1min.sqlite'
 
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
@@ -257,3 +251,14 @@ if __name__ == '__main__':
     else:
         while stop[0]==0:
             gsml.lnLikelihood(params,stop)
+
+if __name__ == '__main__':
+    #starttime = datetime.datetime.now()
+    dbname='/home/liuk/sf/oc/data/38.sqlite'
+    dbname='E:/liuk/proj/ptu/data/55.sqlite'
+    #dbname='E:/sf/oc/data/38.sqlite'
+    dbname='/smfret/1min.sqlite'
+    dbname='/home/liuk/prog/smFRETLikelihood/data/1min.sqlite'
+    if len(sys.argv)>1:
+        dbname=sys.argv[1]
+    main(dbname)
