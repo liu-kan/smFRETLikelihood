@@ -1,8 +1,9 @@
 #!/bin/bash
 if [[ $# -ge 1 ]];then
-  #echo $1
-  mpiexec -f host -n 184 python maxLikMPI.py $1
+
+  #python ../test/echo.py $2 $1
+  mpiexec $1 python maxLikMPI.py $2
 else
-  #echo "lala"
+  echo "lala"
   mpiexec -f host -n 184 python maxLikMPI.py
 fi

@@ -226,10 +226,10 @@ def main(comm,dbname,n_states):
 
         #endtime = datetime.datetime.now()
         #print (endtime - starttime)
-        n_states=2
+
     else:
         burst=dict()
-        n_states=-1
+
         chunkLists=list()
     clsize=comm.bcast(clsize,root=0)
     burst=comm.bcast(burst,root=0)
@@ -260,7 +260,10 @@ if __name__ == '__main__':
     n_states=2
     comm=MPI.COMM_WORLD
     rank=comm.Get_rank()
+
     if rank==0:
+        print("=========running mpi in ",comm.Get_size()," nodes~=============")
+        sys.stdout.flush()
         if len(sys.argv)>1:
             dbname=sys.argv[1]
         if len(sys.argv)>2:

@@ -1,14 +1,11 @@
-2 : ======== 2017-04-27 11:19:12.991198
- final_simplex: (array([[ 0.3,  0.7,  0.2,  3. ],
-       [ 0.3,  0.7,  0.2,  3. ],
-       [ 0.3,  0.7,  0.2,  3. ],
-       [ 0.3,  0.7,  0.2,  3. ],
-       [ 0.3,  0.7,  0.2,  3. ]]), array([ inf,  inf,  inf,  inf,  inf]))
-           fun: inf
-       message: 'Maximum number of function evaluations has been exceeded.'
-          nfev: 803
-           nit: 134
-        status: 1
-       success: False
-             x: array([ 0.3,  0.7,  0.2,  3. ])
-time spend : 0:02:43.188445
+2 : ======== 2017-04-27 15:49:50.646501
+     fun: 6929796.0447806
+     jac: array([-0.4375, -0.25  ,  0.125 ,  0.1875])
+ message: 'Optimization terminated successfully.'
+    nfev: 135
+     nit: 17
+    njev: 17
+  status: 0
+ success: True
+       x: array([  0.34080638,   0.32319465,  11.17117056,   2.8667357 ])
+time spend : 0:04:25.932727
