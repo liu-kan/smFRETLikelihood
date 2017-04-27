@@ -207,13 +207,11 @@ def chunks(l, n):
         yield stackList.pop()
 
 
-def main(dbname):
-    comm=MPI.COMM_WORLD
+def main(comm,dbname,n_states):
     rank=comm.Get_rank()
     clsize=comm.Get_size()
     #print("============size=====",clsize)
     if rank==0:
-
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
         burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
@@ -235,7 +233,7 @@ def main(dbname):
         chunkLists=list()
     clsize=comm.bcast(clsize,root=0)
     burst=comm.bcast(burst,root=0)
-    n_states=comm.bcast(n_states,root=0)
+
     burstIdxRange=comm.scatter( chunkLists, root=0)
     #print(burstIdxRange,rank)
     gsml=GS_MLE(burst,comm,burstIdxRange,0.891)
@@ -259,6 +257,14 @@ if __name__ == '__main__':
     #dbname='E:/sf/oc/data/38.sqlite'
     dbname='/smfret/1min.sqlite'
     dbname='/home/liuk/prog/smFRETLikelihood/data/1min.sqlite'
-    if len(sys.argv)>1:
-        dbname=sys.argv[1]
-    main(dbname)
+    n_states=2
+    comm=MPI.COMM_WORLD
+    rank=comm.Get_rank()
+    if rank==0:
+        if len(sys.argv)>1:
+            dbname=sys.argv[1]
+        if len(sys.argv)>2:
+            n_states=sys.argv[2]
+    dbname=comm.bcast(dbname,root=0)
+    n_states=comm.bcast(n_states,root=0)
+    main(comm,dbname,n_states)
