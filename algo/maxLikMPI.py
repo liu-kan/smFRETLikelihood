@@ -207,7 +207,7 @@ def chunks(l, n):
         yield stackList.pop()
 
 
-def main(comm,dbname,n_states):
+def main(comm,dbname,n_states,Sth):
     rank=comm.Get_rank()
     clsize=comm.Get_size()
     #print("============size=====",clsize)
@@ -236,7 +236,7 @@ def main(comm,dbname,n_states):
 
     burstIdxRange=comm.scatter( chunkLists, root=0)
     #print(burstIdxRange,rank)
-    gsml=GS_MLE(burst,comm,burstIdxRange,0.891)
+    gsml=GS_MLE(burst,comm,burstIdxRange,Sth)
     gsml.n_states=n_states
 
     params=[0.3,0.7,0.2, 3,3,3, 3,3,3]
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     n_states=2
     comm=MPI.COMM_WORLD
     rank=comm.Get_rank()
-
+    Sth=0.90
     if rank==0:
         print("=========running mpi in ",comm.Get_size()," nodes~=============")
         sys.stdout.flush()
@@ -268,6 +268,9 @@ if __name__ == '__main__':
             dbname=sys.argv[1]
         if len(sys.argv)>2:
             n_states=int(sys.argv[2])
+        if len(sys.argv)>3:
+            Sth=int(sys.argv[3])
     dbname=comm.bcast(dbname,root=0)
     n_states=comm.bcast(n_states,root=0)
-    main(comm,dbname,n_states)
+    Sth=comm.bcast(Sth,root=0)
+    main(comm,dbname,n_states,Sth)
