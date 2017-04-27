@@ -267,7 +267,7 @@ if __name__ == '__main__':
         if len(sys.argv)>1:
             dbname=sys.argv[1]
         if len(sys.argv)>2:
-            n_states=int(sys.argv[2])
+            n_states=float(sys.argv[2])
         if len(sys.argv)>3:
             Sth=int(sys.argv[3])
     dbname=comm.bcast(dbname,root=0)
