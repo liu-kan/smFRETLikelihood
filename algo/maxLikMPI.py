@@ -45,8 +45,8 @@ class GS_MLE():
         """
 
         self.params=params
-        self.T1=np.linspace(1,1,self.n_states)
-        self.T1.shape=(self.n_states,1)
+        T1=np.linspace(1,1,self.n_states)
+        T1.shape=(self.n_states,1)
         self.T1=np.transpose(T1)
         startTime=datetime.datetime.now()
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='Nelder-Mead')
