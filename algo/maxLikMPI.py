@@ -45,6 +45,9 @@ class GS_MLE():
         """
 
         self.params=params
+        self.T1=np.linspace(1,1,self.n_states)
+        self.T1.shape=(self.n_states,1)
+        self.T1=np.transpose(T1)
         startTime=datetime.datetime.now()
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='Nelder-Mead')
         stopTime=datetime.datetime.now()
@@ -92,7 +95,7 @@ class GS_MLE():
                 print("The speed of analysis is %f burst/s" % (((self.minIter-self.oldIter)*self.n_burst)/timesp))
                 self.oldIter=self.minIter
                 sys.stdout.flush()
-
+        sumlnAlpha=np.zeros([1,1])
         for burstIdxRangeItem in self.burstIdxRange:
             for idx_burst in burstIdxRangeItem:
                 if self.burst["All"]['s'][idx_burst]>=self.Sth:
@@ -100,9 +103,10 @@ class GS_MLE():
                 lenPhoton=self.burst["All"]['ntag'][idx_burst]
                 if lenPhoton<2:
                     continue
-                lnL_j=np.linspace(1,1,self.n_states)
+                lnL_j=np.ones([self.n_states,1])
                 t_k_0=-1
-                prod=np.eye(self.n_states)
+                #prod=np.eye(self.n_states)
+
                 for idx_photon in range(lenPhoton):
                     F=self.matF(self.burst["All"]['chl'][idx_burst].iloc[idx_photon])
                     if F is not None:
@@ -116,22 +120,16 @@ class GS_MLE():
                         tau=t_k_1-t_k_0
                         t_k_0=t_k_1
                         FdotExp=np.dot(F,expm(K)*tau)
-                        prod=np.dot(FdotExp,prod)
+                        lnL_j=np.dot(FdotExp,lnL_j)
+                        alpha=1.0/np.dot(self.T1,lnL_j)
+                        lnL_j=lnL_j*alpha
+                        sumlnAlpha+=np.log(alpha)
                 if t_k_0<0:
                     continue
-                lnL_j=np.dot(prod,lnL_j)
-                T1=np.linspace(1,1,self.n_states)
-                T1.shape=(self.n_states,1)
-                T1=np.transpose(T1)
-                L_burst=np.dot(T1,lnL_j)
-                lnL_burst=0
-                if L_burst<1e-300:
-                    if rank==0:
-                        print("L_burst is too small:",L_burst)
-                    lnL_burst=np.log(L_burst*1e300)-np.log(1e300)
-                else:
-                    lnL_burst=np.log(L_burst)
-                sumLnL+=lnL_burst
+                #lnL_j=np.dot(prod,lnL_j)
+                L_burst=np.dot(self.T1,lnL_j)
+                lnL_burst=np.log(L_burst)-sumlnAlpha
+                sumLnL+=lnL_burst[0,0]
         summ=self.comm.reduce(sumLnL,op=MPI.SUM, root=0)
         if rank ==0:
             return -summ
