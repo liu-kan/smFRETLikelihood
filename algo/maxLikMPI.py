@@ -209,7 +209,7 @@ if __name__ == '__main__':
     comm=MPI.COMM_WORLD
     rank=comm.Get_rank()
     clsize=comm.Get_size()
-    print("============size=====",clsize)
+    #print("============size=====",clsize)
     if rank==0:
         #starttime = datetime.datetime.now()
         dbname='/home/liuk/sf/oc/data/38.sqlite'
