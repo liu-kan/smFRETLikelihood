@@ -35,7 +35,7 @@ class GS_MLE():
         self.comm=comm
         self.stop=[0]
         self.params=[]
-        self.counterPrint=0
+
         self.oldIter=0
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
@@ -84,13 +84,11 @@ class GS_MLE():
         self.minIter=self.minIter+1
         rank = self.comm.Get_rank()
         if rank ==0:
-            if self.minIter > self.counterPrint*50:
-                self.counterPrint+=1
+            if (self.minIter-self.oldIter)*self.n_burst>10000:
                 print("==================================")
                 print(p)
                 print(K)
                 print(self.E)
-
                 oldtime=self.timemes
                 self.timemes=MPI.Wtime()
                 timesp=self.timemes-oldtime
