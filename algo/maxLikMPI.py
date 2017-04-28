@@ -46,7 +46,7 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        boundE=[(0.00001,0.99999)]*self.n_states
+        boundE=[(0.01,0.99)]*self.n_states
         boundK=[(0.00001,float('Inf'))]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='L-BFGS-B' \
@@ -84,7 +84,7 @@ class GS_MLE():
         self.minIter=self.minIter+1
         rank = self.comm.Get_rank()
         if rank ==0:
-            if (self.minIter-self.oldIter)*self.n_burst>10000:
+            if (self.minIter-self.oldIter)*self.n_burst>7000:
                 print("==================================")
                 print(p)
                 print(K)
