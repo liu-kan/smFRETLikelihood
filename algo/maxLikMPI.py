@@ -16,9 +16,9 @@ from array import array
 from scipy.linalg import expm
 #from mpiBurstLikelihood import calcBurstLikelihood
 
-def appendResult(fn,results,n,timesp):
-    fo = open(fn, "w+")
-    fo.write(str(n)+' : ======== '+str(datetime.datetime.now())+'\n')
+def appendResult(fn,results,n,timesp,Sth):
+    fo = open(fn, "a")
+    fo.write("n_states:"+str(n)+" Sth:"+str(Sth)+' : ======== '+str(datetime.datetime.now())+'\n')
     fo.write( str (results)+'\n')
     fo.write('time spend : '+str(timesp)+'\n')
     fo.close()
@@ -49,11 +49,11 @@ class GS_MLE():
         boundE=[(0.00001,0.99999)]*self.n_states
         boundK=[(0.00001,float('Inf'))]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
-        results = minimize(self.lnLikelihood, params, args=(self.stop,),method='SLSQP' \
+        results = minimize(self.lnLikelihood, params, args=(self.stop,),method='L-BFGS-B' \
                            ,bounds=bound)
         stopTime=datetime.datetime.now()
         print(results)
-        appendResult('results.txt',results,self.n_states,stopTime-startTime)
+        appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth)
         print("Time spend:",stopTime-startTime)
         self.stop=[1]
         self.lnLikelihood(params,self.stop)
