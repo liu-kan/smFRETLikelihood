@@ -213,6 +213,7 @@ def main(comm,dbname,n_states,Sth):
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
         burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
+        sys.stdout.flush()
         n_burst=len(burst["All"]['chl'])
         if n_burst<clsize:
             clsize=n_burst
