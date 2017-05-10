@@ -46,7 +46,7 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        boundE=[(0.01,0.99)]*self.n_states
+        boundE=[(0.01,0.999)]*self.n_states
         boundK=[(0.00001,float('Inf'))]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='L-BFGS-B' \
@@ -84,7 +84,7 @@ class GS_MLE():
         self.minIter=self.minIter+1
         rank = self.comm.Get_rank()
         if rank ==0:
-            if (self.minIter-self.oldIter)*self.n_burst>7000:
+            if (self.minIter-self.oldIter)*self.n_burst>10000:
                 print("==================================")
                 print(p)
                 print(K)
@@ -121,7 +121,7 @@ class GS_MLE():
                             +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
                         tau=t_k_1-t_k_0
                         t_k_0=t_k_1
-                        FdotExp=np.dot(F,expm(K)*tau)
+                        FdotExp=np.dot(F,expm(K*tau))
                         lnL_j=np.dot(FdotExp,lnL_j)
                         alpha=1.0/np.dot(T1,lnL_j)
                         lnL_j=lnL_j*alpha
@@ -213,7 +213,6 @@ def main(comm,dbname,n_states,Sth):
         br=BGrate.calcBGrate(dbname,20,400)
         burst=BurstSearch.findBurst(br,dbname,["All"])
         burstSeff, burstFRET,wei,H,xedges, yedges=fretAndS.FretAndS(dbname,burst,(27,27),br)
-        sys.stdout.flush()
         n_burst=len(burst["All"]['chl'])
         if n_burst<clsize:
             clsize=n_burst
