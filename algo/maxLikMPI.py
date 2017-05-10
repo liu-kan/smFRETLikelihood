@@ -47,7 +47,7 @@ class GS_MLE():
         self.params=params
         startTime=datetime.datetime.now()
         boundE=[(0.01,0.999)]*self.n_states
-        boundK=[(0.00001,float('Inf'))]*(self.n_states*(self.n_states-1))
+        boundK=[(0.00001,10000000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='L-BFGS-B' \
                            ,bounds=bound)
@@ -237,7 +237,7 @@ def main(comm,dbname,n_states,Sth):
     gsml=GS_MLE(burst,comm,burstIdxRange,Sth)
     gsml.n_states=n_states
 
-    params=[0.3,0.7,0.2, 3,3,3, 3,3,3]
+    params=[0.38,0.6,675.0, 325.0,3,3, 3,3,3]
     params=params[:n_states*n_states]
     #print(params)
     stop=[0]
