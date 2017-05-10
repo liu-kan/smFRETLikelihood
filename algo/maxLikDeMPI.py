@@ -49,8 +49,8 @@ class GS_MLE():
         boundE=[(0.01,0.999)]*self.n_states
         boundK=[(0.00001,10000000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
-        results = differential_evolution(self.lnLikelihood, args=(self.stop,) \
-                           ,bounds=bound)
+        results = differential_evolution(self.lnLikelihood, args=(self.stop,), \
+                           maxiter=700,bounds=bound)
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth)
