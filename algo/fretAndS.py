@@ -109,6 +109,7 @@ def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)
+            
         w=len(data)
         #print(w)
         nda=0#ch1
@@ -134,7 +135,7 @@ def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
         wei.append(w)
         if (nda+ndd)==0:
             burstFRET.append(1)
-            burst["All"].e[i]=1
+            burst["All"]['e'][i]=1
         else:
             burstFRET.append((nda)/(nda+ndd))
             burst["All"]['e'][i]=(nda)/(nda+ndd)

@@ -105,4 +105,4 @@ def calcBGrate(dbname,timeSp=20,lenbin=300):
     return brcd
 if __name__ == '__main__':
     #calcBGrate('/home/liuk/sf/oc/data/38.sqlite')
-    br=calcBGrate('E:/dbox/sf/oc/data/1min.sqlite')
+    br=calcBGrate('/home/liuk/prog/data/RSV89C224C.sqlite')
