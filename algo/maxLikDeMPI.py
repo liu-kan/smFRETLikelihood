@@ -16,10 +16,10 @@ from array import array
 from scipy.linalg import expm
 #from mpiBurstLikelihood import calcBurstLikelihood
 
-def appendResult(fn,results,n,timesp,Sth,arg):
+def appendResult(fn,results,n,timesp,Sth,dbname):
     fo = open(fn, "a")
     fo.write("n_states:"+str(n)+" Sth:"+str(Sth)+' : ======== '+str(datetime.datetime.now())+'\n')a
-    fo.write(arg+'\n')
+    fo.write(dbname+'\n')
     fo.write( str (results)+'\n')
     fo.write("E:==========="+'\n')
     fo.write(str(genMatE(n,results.x))+'\n')
@@ -32,7 +32,7 @@ def appendResult(fn,results,n,timesp,Sth,arg):
     fo.close()
 
 class GS_MLE():
-    def __init__(self, burst,comm,burstIdxRange,Sth=0.88):
+    def __init__(self, burst,comm,burstIdxRange,Sth=0.88,dbname=''):
         self.timemes=MPI.Wtime()
         self.burst=burst
         self.burstIdxRange=burstIdxRange
@@ -43,7 +43,7 @@ class GS_MLE():
         self.comm=comm
         self.stop=[0]
         self.params=[]
-
+        self.dbname=dbname
         self.oldIter=0
     def MaxLikehood(self,params):
         """calc ln likehood of TCSCP stream.
@@ -61,7 +61,7 @@ class GS_MLE():
                            strategy ='best1exp',maxiter=700,bounds=bound)
         stopTime=datetime.datetime.now()
         print(results)
-        appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth)
+        appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth,self.dbname)
         print("Time spend:",stopTime-startTime)
         self.stop=[1]
         self.lnLikelihood(params,self.stop)
@@ -242,7 +242,7 @@ def main(comm,dbname,n_states,Sth):
 
     burstIdxRange=comm.scatter( chunkLists, root=0)
     #print(burstIdxRange,rank)
-    gsml=GS_MLE(burst,comm,burstIdxRange,Sth)
+    gsml=GS_MLE(burst,comm,burstIdxRange,Sth,dbname)
     gsml.n_states=n_states
 
     params=[0.38,0.6,0.5,675.0, 325.0,3,3, 3,3,3]
