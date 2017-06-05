@@ -26,7 +26,7 @@ class Window(QtWidgets.QWidget):
         self.fretBtn = QtWidgets.QPushButton('E-FRET Histogram')
         self.thresholdEBtn = QtWidgets.QPushButton('select threshold of E')
         self.maxLikBtn = QtWidgets.QPushButton('MaxLikiHood')
-        self.filename = QtWidgets.QLineEdit('/home/liuk/sf/oc/data/1min.sqlite')
+        self.filename = QtWidgets.QLineEdit('/home/liuk/prog/data/RSV89C224C.sqlite')
         logList = QtWidgets.QListWidget()
         self.n_states = QtWidgets.QLineEdit('2')
 
