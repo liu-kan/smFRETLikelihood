@@ -16,10 +16,18 @@ from array import array
 from scipy.linalg import expm
 #from mpiBurstLikelihood import calcBurstLikelihood
 
-def appendResult(fn,results,n,timesp,Sth):
+def appendResult(fn,results,n,timesp,Sth,arg):
     fo = open(fn, "a")
-    fo.write("n_states:"+str(n)+" Sth:"+str(Sth)+' : ======== '+str(datetime.datetime.now())+'\n')
+    fo.write("n_states:"+str(n)+" Sth:"+str(Sth)+' : ======== '+str(datetime.datetime.now())+'\n')a
+    fo.write(arg+'\n')
     fo.write( str (results)+'\n')
+    fo.write("E:==========="+'\n')
+    fo.write(str(genMatE(n,results.x))+'\n')
+    fo.write("K:==========="+'\n')
+    k=genMatK(n,results.x+'\n')
+    fo.write(str(k)+'\n')
+    fo.write("P==========="+'\n')
+    fo.write(str(genMatP(k))+'\n')
     fo.write('time spend : '+str(timesp)+'\n')
     fo.close()
 
@@ -46,11 +54,11 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        boundE=[(0.01,0.999)]*self.n_states
-        boundK=[(0.00001,10000000)]*(self.n_states*(self.n_states-1))
+        boundE=[(-0.15,0.999)]*self.n_states
+        boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = differential_evolution(self.lnLikelihood, args=(self.stop,), \
-                           maxiter=700,bounds=bound)
+                           strategy ='best1exp',maxiter=700,bounds=bound)
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth)
@@ -237,7 +245,7 @@ def main(comm,dbname,n_states,Sth):
     gsml=GS_MLE(burst,comm,burstIdxRange,Sth)
     gsml.n_states=n_states
 
-    params=[0.38,0.6,675.0, 325.0,3,3, 3,3,3]
+    params=[0.38,0.6,0.5,675.0, 325.0,3,3, 3,3,3]
     params=params[:n_states*n_states]
     #print(params)
     stop=[0]

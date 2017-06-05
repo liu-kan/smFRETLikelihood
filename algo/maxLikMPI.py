@@ -50,7 +50,7 @@ class GS_MLE():
         boundK=[(0.00001,10000000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = minimize(self.lnLikelihood, params, args=(self.stop,),method='L-BFGS-B' \
-                           ,bounds=bound)
+                           ,bounds=bound,options=dict({'maxiter':500}))
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth)
