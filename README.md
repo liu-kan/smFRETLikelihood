@@ -6,7 +6,5 @@
 ![正常ES图](algo/minusBG.png)
 
 # 安装
-
-    virtualenv venv
-    source venv/bin/activate
-    pip install numpy scipy matplotlib pyqt5 pandas mpi4py
+    # Install conda python3 version    
+    conda install numpy scipy matplotlib pandas mpi4py
