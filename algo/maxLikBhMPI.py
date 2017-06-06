@@ -34,18 +34,18 @@ def appendResult(fn,results,n,timesp,Sth,dbname):
 class bhSteps(object):
     def __init__(self, bounds, stepsize=1):
         self.bounds = bounds
+        self.xs=len(bounds)
         if stepsize<0:
             stepsize=stepsize*-1
         if stepsize>1:
             stepsize=1/stepsize
         self.stepsize=stepsize
     def __call__(self, x):
-        idx=0
-        for bound in self.bounds:
-            xmax=(bound[1]-x[idx])*self.stepsize
-            xmin=(bound[0]-x[idx])*self.stepsize
+        for idx in range(self.xs):
+            xmax=(self.bounds[idx][1]-x[idx])*self.stepsize
+            xmin=(self.bounds[idx][0]-x[idx])*self.stepsize
             x[idx]=x[idx]+np.random.uniform(xmin,xmax)
-            idx=idx+1
+        return x
 
 class GS_MLE():
     def __init__(self, burst,comm,burstIdxRange,Sth=0.88,dbname=''):
