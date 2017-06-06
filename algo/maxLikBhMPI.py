@@ -43,7 +43,7 @@ class bhSteps(object):
         idx=0
         for bound in self.bounds:
             xmax=(bound[1]-x[idx])*self.stepsize
-            xmin=(x[idx]-bound[0])*self.stepsize
+            xmin=(bound[0]-x[idx])*self.stepsize
             x[idx]=x[idx]+np.random.uniform(xmin,xmax)
             idx=idx+1
 
