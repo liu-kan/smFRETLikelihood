@@ -31,22 +31,21 @@ def appendResult(fn,results,n,timesp,Sth,dbname):
     fo.write('time spend : '+str(timesp)+'\n')
     fo.close()
 
-class bhBounds(object):
-    def __init__(self, bounds):
-        xmin=[]
-        xmax=[]
-        for bound in bounds:
-            xmax.append(bound[1] )
-            xmin.append(bound[0] )
-        self.xmina = np.array(xmin)
-        self.xmaxa = np.array(xmax)
-        print(self.xmina)
-        print(self.xmaxa)
-    def __call__(self, **kwargs):
-        x = kwargs["x_new"]
-        tmax = bool(np.all(x <= self.xmaxa))
-        tmin = bool(np.all(x >= self.xmina))
-        return tmax and tmin
+class bhSteps(object):
+    def __init__(self, bounds, stepsize=1):
+        self.bounds = bounds
+        if stepsize<0:
+            stepsize=stepsize*-1
+        if stepsize>1:
+            stepsize=1/stepsize
+        self.stepsize=stepsize
+    def __call__(self, x):
+        idx=0
+        for bound in self.bounds:
+            xmax=(bound[1]-x[idx])*self.stepsize
+            xmin=(x[idx]-bound[0])*self.stepsize
+            x[idx]=x[idx]+np.random.uniform(xmin,xmax)
+            idx=idx+1
 
 class GS_MLE():
     def __init__(self, burst,comm,burstIdxRange,Sth=0.88,dbname=''):
@@ -74,11 +73,11 @@ class GS_MLE():
         boundE=[(-0.15,0.999)]*self.n_states
         boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
-        bhBound=bhBounds(bound)
+        bhStep=bhSteps(bound,0.5)
         minimizer_kwargs = {"method":"L-BFGS-B","args":(self.stop,)}
         results = basinhopping(self.lnLikelihood, params, \
                            minimizer_kwargs=minimizer_kwargs,\
-                           accept_test= bhBound)
+                           take_step= bhStep)
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth,self.dbname)
