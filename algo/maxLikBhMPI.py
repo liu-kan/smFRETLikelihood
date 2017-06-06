@@ -40,6 +40,8 @@ class bhBounds(object):
             xmin.append(bound[0] )
         self.xmina = np.array(xmin)
         self.xmaxa = np.array(xmax)
+        print(self.xmina)
+        print(self.xmaxa)
     def __call__(self, **kwargs):
         x = kwargs["x_new"]
         tmax = bool(np.all(x <= self.xmaxa))
