@@ -33,11 +33,11 @@ def appendResult(fn,results,n,timesp,Sth,dbname):
 
 class bhBounds(object):
     def __init__(self, bounds):
-        self.xmin=[]
-        self.xmax=[]
+        xmin=[]
+        xmax=[]
         for bound in bounds:
-            self.xmax.append(bound[1] )
-            self.xmin.append(bound[0] )
+            xmax.append(bound[1] )
+            xmin.append(bound[0] )
         self.xmina = np.array(xmin)
         self.xmaxa = np.array(xmax)
     def __call__(self, **kwargs):
