@@ -41,10 +41,13 @@ class bhSteps(object):
             stepsize=1/stepsize
         self.stepsize=stepsize
     def __call__(self, x):
+        print('x0:'+str(x))
+        print('bounds:'+str(self.bounds))
         for idx in range(self.xs):
             xmax=(self.bounds[idx][1]-x[idx])*self.stepsize
             xmin=(self.bounds[idx][0]-x[idx])*self.stepsize
             x[idx]=x[idx]+np.random.uniform(xmin,xmax)
+        print('x1:'+str(x))
         return x
 
 class GS_MLE():
