@@ -73,8 +73,8 @@ class GS_MLE():
         boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         bhBound=bhBounds(bound)
-        minimizer_kwargs = {"method":"L-BFGS-B"}
-        results = basinhopping(self.lnLikelihood, args=(self.stop,), \
+        minimizer_kwargs = {"method":"L-BFGS-B","args":(self.stop,)}
+        results = basinhopping(self.lnLikelihood, \
                            minimizer_kwargs=minimizer_kwargs,\
                            accept_test= bhBound)
         stopTime=datetime.datetime.now()
