@@ -18,7 +18,7 @@ from scipy.linalg import expm
 
 def appendResult(fn,results,n,timesp,Sth,dbname):
     fo = open(fn, "a")
-    fo.write("n_states:"+str(n)+" Sth:"+str(Sth)+' : ======== '+str(datetime.datetime.now())+'\n')a
+    fo.write("n_states:"+str(n)+" Sth:"+str(Sth)+' : ======== '+str(datetime.datetime.now())+'\n')
     fo.write(dbname+'\n')
     fo.write( str (results)+'\n')
     fo.write("E:==========="+'\n')
