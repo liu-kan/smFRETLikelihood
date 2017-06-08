@@ -122,7 +122,8 @@ class GS_MLE():
                 timesp=self.timemes-oldtime
                 if timesp<1e-100:
                     timesp=1.0
-                print("The speed of analysis is %f burst/s" % (((self.minIter-self.oldIter)*self.n_burst)/timesp))
+                print("The speed of analysis near %dth Iter is %f burst/s" % (minIter,((self.minIter-self.oldIter)*self.n_burst)/timesp))
+
                 self.oldIter=self.minIter
                 sys.stdout.flush()
         sumlnAlpha=np.zeros([1,1])
