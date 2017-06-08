@@ -52,7 +52,7 @@ class GS_MLE():
         params[n_states:n_states^2] matrix of K
         """
 
-
+        self.params=params
         startTime=datetime.datetime.now()
         boundE=[(-0.1,0.999)]*self.n_states
         boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
@@ -84,8 +84,8 @@ class GS_MLE():
         T1=np.linspace(1,1,self.n_states)
         T1.shape=(self.n_states,1)
         T1=np.transpose(T1)
-        self.params=params
-        self.params=self.comm.bcast(self.params, root=0)
+
+        self.params=self.comm.bcast(params, root=0)
         self.E=genMatE(self.n_states,self.params[:self.n_states])
         #print(self.params)
         K=genMatK(self.n_states,self.params[self.n_states:self.n_states*self.n_states])
