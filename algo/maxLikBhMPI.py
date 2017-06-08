@@ -77,7 +77,7 @@ class GS_MLE():
         minimizer_kwargs = {"method":"L-BFGS-B","args":(self.stop,)}
         results = basinhopping(self.lnLikelihood, params, \
                            minimizer_kwargs=minimizer_kwargs,\
-                           take_step= bhStep,niter=200,niter_success=20)
+                           niter=200,niter_success=20) #take_step= bhStep,
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth,self.dbname)
