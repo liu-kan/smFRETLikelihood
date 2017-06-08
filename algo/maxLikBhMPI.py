@@ -44,10 +44,39 @@ class bhSteps(object):
         for idx in range(self.xs):
             xmax=(self.bounds[idx][1]-x[idx])*self.stepsizex
             xmin=(self.bounds[idx][0]-x[idx])*self.stepsizex
-
             x[idx]=x[idx]+np.random.uniform(xmin,xmax)
         return x
 
+class bhBounds(object):
+    def __init__(self,  bounds):
+        self.bounds = bounds
+        self.xs=len(bounds)
+        xmax=[]
+        xmin=[]
+        for idx in range(self.xs):
+            xmax.append(self.bounds[idx][1])
+            xmin.append(self.bounds[idx][0])
+        self.xmax=np.array(xmax)
+        self.xmin=np.array(xmin)
+    def __call__(self, **kwargs):
+        x = kwargs["x_new"]
+        tmax = bool(np.all(x <= self.xmax))
+        tmin = bool(np.all(x >= self.xmin))
+        return tmax and tmin
+
+def test_bhbounds():
+    '''
+    python test https://atom.io/packages/atom-python-test
+    '''
+    boundE=[(-0.15,0.999)]*2
+    boundK=[(0.1,100000)]*(2*(2-1))
+    bound=boundE+boundK
+    bhBoundTest=bhBounds(bound)
+    print(bhBounds)
+    assert bhBoundTest(x_new=[0.5,0.5,34,1156]) == True
+    assert bhBoundTest(x_new=[-0.5,0.5,34,56]) == False
+    assert bhBoundTest(x_new=[0.5,-0.5,34,56]) == False
+    assert bhBoundTest(x_new=[0.5,0.5,3543526434,56]) == False
 class GS_MLE():
     def __init__(self, burst,comm,burstIdxRange,Sth=0.88,dbname=''):
         self.timemes=MPI.Wtime()
@@ -74,10 +103,12 @@ class GS_MLE():
         boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         bhStep=bhSteps(bound,0.5)
+        bhBoundTest=bhBounds(bound)
         minimizer_kwargs = {"method":"L-BFGS-B","args":(self.stop,)}
         results = basinhopping(self.lnLikelihood, params, \
                            minimizer_kwargs=minimizer_kwargs,\
-                           niter=200,niter_success=20) #take_step= bhStep,
+                           niter=200,niter_success=20,take_step= bhStep,\
+                           accept_test =bhBoundTest)
         stopTime=datetime.datetime.now()
         print(results)
         appendResult('results.txt',results,self.n_states,stopTime-startTime,self.Sth,self.dbname)

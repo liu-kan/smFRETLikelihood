@@ -30,18 +30,19 @@ class bhSteps(object):
     def __call__(self, x):
         print(self.stepsizex)
         print('=============')
-        #print('old x:'+str(x))
+        print('old x:'+str(x))
         for idx in range(self.xs):
             xmax=(self.bounds[idx][1]-x[idx])*self.stepsizex
             xmin=(self.bounds[idx][0]-x[idx])*self.stepsizex
             print(x[idx]+xmin,x[idx]+xmax)
             x[idx]=x[idx]+np.random.uniform(xmin,xmax)
-        #print('new x:'+str(x))
+        print('new x:'+str(x))
         return x
 
 
 
 def func2d(x):
+    print("calc x:",x)
     f = np.cos(14.5 * x[0] - 0.3) + (x[1] + 0.2) * x[1] + (x[0] + \
                                                             0.2) * x[0]
     df = np.zeros(2)
@@ -53,7 +54,7 @@ minimizer_kwargs = {"method":"L-BFGS-B", "jac":True}
 x0 = [1.0, 1.0]
 
 n_states=2
-boundE=[(-8.15,8.999)]*n_states
+boundE=[(-10,10)]*n_states
 boundK=[(0.1,100)]*(n_states*(n_states-1))
 bound=boundE#+boundK
 bhStep=bhSteps(bound,1)
