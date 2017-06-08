@@ -40,6 +40,26 @@ class bhSteps(object):
         return x
 
 
+class bhBounds(object):
+    def __init__(self,  bounds):
+        self.bounds = bounds
+        self.xs=len(bounds)
+        xmax=[]
+        xmin=[]
+        for idx in range(self.xs):
+            xmax.append(self.bounds[idx][1])
+            xmin.append(self.bounds[idx][0])
+        self.xmax=np.array(xmax)
+        self.xmin=np.array(xmin)
+    def __call__(self, **kwargs):
+        x = kwargs["x_new"]
+        tmax = bool(np.all(x <= self.xmax))
+        tmin = bool(np.all(x >= self.xmin))
+        ret = tmax and tmin
+        if ret==False:
+            print("rej",x)
+            sys.stdout.flush()
+        return ret
 
 def func2d(x):
     print("calc x:",x)
@@ -54,10 +74,10 @@ minimizer_kwargs = {"method":"L-BFGS-B", "jac":True}
 x0 = [1.0, 1.0]
 
 n_states=2
-boundE=[(-10,10)]*n_states
+boundE=[(0,10)]*n_states
 boundK=[(0.1,100)]*(n_states*(n_states-1))
 bound=boundE#+boundK
 bhStep=bhSteps(bound,1)
-print(bhStep([0.5,0.6,1,99]))
-ret = basinhopping(func2d, x0, minimizer_kwargs=minimizer_kwargs,niter=200,take_step=bhStep)
+bhBoundTest=bhBounds(bound)
+ret = basinhopping(func2d, x0, minimizer_kwargs=minimizer_kwargs,niter=200,take_step=bhStep,accept_test =bhBoundTest)
 print("global minimum: x = [%.4f, %.4f], f(x0) = %.4f" % (ret.x[0], ret.x[1],ret.fun))
