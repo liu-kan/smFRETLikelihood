@@ -62,8 +62,11 @@ class bhBounds(object):
         x = kwargs["x_new"]
         tmax = bool(np.all(x <= self.xmax))
         tmin = bool(np.all(x >= self.xmin))
-        return tmax and tmin
-
+        ret = tmax and tmin
+        if ret==False:
+            print("rej")
+            sys.stdout.flush()
+        return ret
 def test_bhbounds():
     '''
     python test https://atom.io/packages/atom-python-test
