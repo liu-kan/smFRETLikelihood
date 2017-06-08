@@ -24,7 +24,7 @@ def appendResult(fn,results,n,timesp,Sth,dbname):
     fo.write("E:==========="+'\n')
     fo.write(str(genMatE(n,results.x))+'\n')
     fo.write("K:==========="+'\n')
-    k=genMatK(n,results.x+'\n')
+    k=genMatK(n,results.x)
     fo.write(str(k)+'\n')
     fo.write("P==========="+'\n')
     fo.write(str(genMatP(k))+'\n')
