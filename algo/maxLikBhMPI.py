@@ -44,6 +44,7 @@ class bhSteps(object):
         for idx in range(self.xs):
             xmax=(self.bounds[idx][1]-x[idx])*self.stepsizex
             xmin=(self.bounds[idx][0]-x[idx])*self.stepsizex
+            print()
             x[idx]=x[idx]+np.random.uniform(xmin,xmax)
         return x
 
@@ -103,9 +104,9 @@ class GS_MLE():
         T1.shape=(self.n_states,1)
         T1=np.transpose(T1)
         self.params=self.comm.bcast(self.params, root=0)
-        self.E=genMatE(self.n_states,params[:self.n_states])
+        self.E=genMatE(self.n_states,self.params[:self.n_states])
         #print(self.params)
-        K=genMatK(self.n_states,params[self.n_states:self.n_states*self.n_states])
+        K=genMatK(self.n_states,self.params[self.n_states:self.n_states*self.n_states])
         #print(params[self.n_states:self.n_states*self.n_states])
         p=genMatP(K)
         self.minIter=self.minIter+1
