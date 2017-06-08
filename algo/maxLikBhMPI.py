@@ -115,7 +115,7 @@ class GS_MLE():
         boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         bhStep=bhSteps(bound,1)
-        bhBoundTest=bhBounds(bound)
+        bhBoundTest=bhBoundsTest(bound)
         minimizer_kwargs = {"method":"L-BFGS-B","args":(self.stop,)}
         results = basinhopping(self.lnLikelihood, params, \
                            minimizer_kwargs=minimizer_kwargs,\
