@@ -40,7 +40,8 @@ class MatplotlibWidget(FigureCanvasQTAgg):
         self.mpl_connect('button_press_event', self.onclick)
     def drawHist(self,H,xedges,yedges):
         im=self.ax.imshow(H.transpose()[::-1], interpolation='bessel',
-                       cmap=cm.jet,extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+                       cmap=cm.jet,extent=[0,1,0,1])
+                       #[xedges[0], xedges[-1], yedges[0], yedges[-1]])
         self.fig.colorbar(im)
         self.draw()
     def onMouseMove(self,event):

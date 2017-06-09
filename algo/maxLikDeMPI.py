@@ -146,11 +146,11 @@ class GS_MLE():
         if rank ==0:
             return -summ
     def matF(self,c_k):
-        if c_k==1:
+        if c_k==1: #1);//DexAem
             return self.E
-        elif c_k==2:
+        elif c_k==2: #2);//DexDem
             return np.eye(self.n_states)-self.E
-        else:
+        else:#4);//AexDem 3);//AexAem
             return None
 def mdotl(*args):
     if len(args)<2:
