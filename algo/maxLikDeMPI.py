@@ -54,8 +54,8 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        boundE=[(-0.1,0.999)]*self.n_states
-        boundK=[(0.1,100000)]*(self.n_states*(self.n_states-1))
+        boundE=[(0.001,0.999)]*self.n_states
+        boundK=[(0.01,100000)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = differential_evolution(self.lnLikelihood, args=(self.stop,), \
                            strategy ='rand1bin',maxiter=80,bounds=bound,\
