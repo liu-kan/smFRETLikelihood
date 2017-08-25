@@ -133,18 +133,20 @@ def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
             if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
                 continue
         wei.append(w)
+        gamma=0.31        
+        beta=1.42
         if (nda+ndd)==0:
             burstFRET.append(1)
             burst["All"]['e'][i]=1
         else:
-            burstFRET.append((nda)/(nda+ndd))
-            burst["All"]['e'][i]=(nda)/(nda+ndd)
+            burstFRET.append((nda)/(nda+gamma*ndd))
+            burst["All"]['e'][i]=(nda)/(nda+gamma*ndd)
         if (nda+ndd+naa)==0:
             burstSeff.append(1)
             burst["All"]['s'][i]=1
         else:
-            burstSeff.append((nda+ndd)/(nda+ndd+naa))
-            burst["All"]['s'][i]=(nda+ndd)/(nda+ndd+naa)
+            burstSeff.append((nda+gamma*ndd)/(nda+gamma*ndd+naa/beta))
+            burst["All"]['s'][i]=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
 
     H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins, weights=wei)
     #conn.close()

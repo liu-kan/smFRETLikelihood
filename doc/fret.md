@@ -1,4 +1,4 @@
-
+gamma=0.34 alph=0.08 beta=0.07
     def _calculate_fret_eff(self, pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
