@@ -15,6 +15,7 @@ except ImportError:
     import BGrate
 
 import matplotlib
+import scipy
 import matplotlib.pyplot as plt
 from array import array
 
@@ -289,8 +290,8 @@ if __name__ == '__main__':
 
     burstSeff, burstFRET,burstZ,wei,H,xedges, yedges=FretZ(dbname,burst,(27,27),br)
 
-    #with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    #    pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
+    with open('../untils/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([ burstFRET,burstSeff,burstZ], f)
 
     # Getting back the objects:
     #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
