@@ -1,4 +1,5 @@
 gamma=0.34 alph=0.08 beta=0.07
+
     def _calculate_fret_eff(self, pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
@@ -28,3 +29,9 @@ gamma=0.34 alph=0.08 beta=0.07
                  for nd, na, nda, naa, g in
                  zip(self.nd, self.na, self.nda, naa, G)]
         self.add(S=S)
+
+Eco=(x*nb-ba)/(nb-ba-bd)
+
+    nb=5938.650324780
+    ba=995.0
+    bd=3237.39
