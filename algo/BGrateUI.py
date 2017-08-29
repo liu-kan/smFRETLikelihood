@@ -6,7 +6,7 @@
 import numpy as np
 #import scipy as sp
 from scipy.optimize import leastsq #这里就是我们要使用的最小二乘的函数
-#import matplotlib.pyplot as pl
+import matplotlib.pyplot as pl
 import sqlite3
 from array import array
 from cycler import cycler
@@ -55,6 +55,9 @@ def getBG(ch,timeSp,lenBin,c,MeasDesc_GlobalResolution):
                 y.append(np.log(vh))
                 x.append(bin[iy])
             iy=iy+1
+        #x=bin[0:lenbin]
+        #y=np.log(hist)#/(timeSp/lenbin)
+
         m = 2  #多项式的次数
         #先随机产生一组多项式分布的参数
         p0 = np.random.randn(m)
@@ -64,12 +67,17 @@ def getBG(ch,timeSp,lenBin,c,MeasDesc_GlobalResolution):
         timeline.append(t1*MeasDesc_GlobalResolution)
         t1=t2
         #hasData=False
-    #pl.plot(np.frombuffer(timeline, dtype=np.double), np.frombuffer(buf, dtype=np.double), label='BG_'+ch+"(cps)")    
+    pl.plot(np.frombuffer(timeline, dtype=np.double), np.frombuffer(buf, dtype=np.double), label='BG_'+ch+"(cps)")
+    #bgRate = collections.namedtuple('bgRate', ['time', 'bgrate'])
+    #br=bgRate(timeline,buf)
+    #return br
     bgRate=dict({'time':timeline,'bgrate':buf})
     return bgRate
 
 
-def calcBGrate(dbname,timeSp=20,lenbin=300):    
+def calcBGrate(dbname,timeSp=20,lenbin=300):
+    #conn = sqlite3.connect('E:/doc/pro/ptu/data/33.sqlite')
+    #conn = sqlite3.connect('/home/liuk/prog/ptu/data/30.sqlite')
     conn = sqlite3.connect(dbname)
     #timeSp=20
     #lenbin=300
@@ -81,14 +89,16 @@ def calcBGrate(dbname,timeSp=20,lenbin=300):
 
     #print (MeasDesc_GlobalResolution)
     chs=["DexAem","DexDem","AexAem","All"]
-    #fig = pl.figure()
-    #ax = fig.add_subplot(111)
-    #ax.set_prop_cycle(cycler('color', ['red', 'black', 'yellow','blue']))#set_color_cycle(['red', 'black', 'blue'])    
+    fig = pl.figure()
+    ax = fig.add_subplot(111)
+    ax.set_prop_cycle(cycler('color', ['red', 'black', 'yellow','blue']))#set_color_cycle(['red', 'black', 'blue'])
+    #bgRateCh = collections.namedtuple('bgRateCh', ['ch', 'bgRate'])
     brcd=dict()
     for ch in chs:
-        brcd[ch]=getBG(ch,timeSp,lenbin,c,MeasDesc_GlobalResolution)        
-    #pl.legend(loc='best')
-    #pl.show()
+        brcd[ch]=getBG(ch,timeSp,lenbin,c,MeasDesc_GlobalResolution)
+        #.append(bgRateCh(ch,getBG(ch,timeSp,lenbin,c)))
+    pl.legend(loc='best')
+    pl.show()
     brcd["SyncResolution"]=MeasDesc_GlobalResolution
     brcd["DelayResolution"]=DelayResolution
     conn.close()

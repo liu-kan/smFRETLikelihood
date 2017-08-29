@@ -54,8 +54,8 @@ class GS_MLE():
 
         self.params=params
         startTime=datetime.datetime.now()
-        boundE=[(0.001,0.999)]*self.n_states
-        boundK=[(0.01,100000)]*(self.n_states*(self.n_states-1))
+        boundE=[(0.16755,0.45486)]*self.n_states
+        boundK=[(-10.0,20.0)]*(self.n_states*(self.n_states-1))
         bound=boundE+boundK
         results = differential_evolution(self.lnLikelihood, args=(self.stop,), \
                            strategy ='rand1bin',maxiter=80,bounds=bound,\
@@ -174,13 +174,15 @@ def genMatK(n,args):
         return None
     if len(args)!=n*n-n:
         return None
+    nargs=np.ones([1,n*n-n])*2.0
+    nargs=np.power(nargs,args)
     matK=np.zeros([n,n])
     for i in range(n):
         for j in range(n):
             if i<j:
-                matK[i,j]=args[i*(n-1)+j-1]
+                matK[i,j]=nargs[0,i*(n-1)+j-1]
             elif i>j:
-                matK[i,j]=args[i*(n-1)+j]
+                matK[i,j]=nargs[0,i*(n-1)+j]
     for i in range(n):
         for j in range(n):
             if i==j:
