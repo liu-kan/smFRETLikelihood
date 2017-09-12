@@ -55,6 +55,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
         fretE=array("d")
         fretS=array("d")
         fretZ=array("d")
+        lifetime=array("d")
         timetag=[]
         dtime=[]
         chl=[]
@@ -105,6 +106,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
                     fretS.append(-1)
                     fretE.append(-1)
                     fretZ.append(-1)
+                    lifetime.append(-1)
                     i=i+continuousPhoton+jugeD
                 else:
                     i=i+1
@@ -116,7 +118,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
         #cburst = collections.namedtuple('burst', ['ntag', 'burstW','timetag','dtime','chl','e','s'])
         #burst[ch]=cburst(ntag,burstW,timetag,dtime,chl,fretE,fretS)
         cburst=dict({'ntag':ntag, 'burstW':burstW,'timetag':timetag,'dtime':dtime,\
-                    'chl':chl,'e':fretE,'s':fretS,'z':fretZ})
+                    'chl':chl,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime})
         burst[ch]=cburst
     conn.close()
     burst["SyncResolution"]=br["SyncResolution"]

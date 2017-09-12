@@ -15,8 +15,6 @@ except ImportError:
     import BGrate
 
 import matplotlib
-import scipy
-import matplotlib.pyplot as plt
 from array import array
 
 import matplotlib.cm as cm
@@ -25,8 +23,9 @@ from PyQt5.QtWidgets import QVBoxLayout
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 import sys
 import matplotlib as mpl
-#mpl.use('Qt5Agg')
+mpl.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+import matplotlib.pyplot as plt
 
 class ControlMainWindow(QtWidgets.QMainWindow):
     def __init__(self,H,xedges,yedges, parent=None):
@@ -66,8 +65,8 @@ class MatplotlibWidget(FigureCanvasQTAgg):
 
         #---- setup event ----
         #self.mpl_connect('key_press_event', self.onkeypress)
-        self.mpl_connect('motion_notify_event', self.onMouseMove)
-        self.mpl_connect('button_press_event', self.onclick)
+        #self.mpl_connect('motion_notify_event', self.onMouseMove)
+        #self.mpl_connect('button_press_event', self.onclick)
     def onkeypress(self, event):
         print(' Key pressed.')
         if event.key in ['D', 'd'] and self.rs.active:
@@ -90,16 +89,49 @@ class MatplotlibWidget(FigureCanvasQTAgg):
         self.updatingLine=not self.updatingLine
 
 
-def FretZ(dbname,burst,bins=(25,25),bgrate=None):
+def FretAndLifetime(dbname,burst,bins=(25,25),bgrate=None):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     lenburst=len(burst["All"]['chl'])
     print("lenburst:",lenburst)
     burstFRET = array("d")#np.zeros(lenburst)
     burstSeff = array("d")#np.zeros(lenburst)
-    burstZ = array("d")
+    burstTau = array("d")#np.zeros(lenburst)
     wei = array("d")#np.zeros(lenburst)
     #fw = np.zeros(lenburst)
+
+    '''     
+    i=1000
+    data=burst["All"]['chl'][i]
+    w=len(data)
+    print(w)
+    nda=0#ch1
+    ndd=0;#ch2
+    naa=0;#ch3
+    nad=0#ch4
+    histdtime=array("d")
+    for idxd in range(w):
+        d=data.iloc[idxd]
+        dtime=burst["All"]['dtime'][i].iloc[idxd]*burst["DelayResolution"]
+        if d==1:
+            nda+=1
+        elif d==2:
+            ndd+=1
+            histdtime.append(dtime)
+        elif d==3:
+            naa+=1
+        elif d==4:
+            nad+=1
+            #sumdtimed+=dtime
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    n, bins, patches = plt.hist(histdtime, 100,  facecolor='g', alpha=0.75)
+    print(len(histdtime))
+    plt.legend(loc='best')
+    plt.show() 
+    '''
+    
+
     for i in range(lenburst):
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
 #                  (burst["All"].stag[i],burst["All"].etag[i]))
@@ -111,24 +143,28 @@ def FretZ(dbname,burst,bins=(25,25),bgrate=None):
             backgT=burst["All"]['burstW'][i]/2+tt.iloc[0]*bgrate["SyncResolution"] #中点时刻
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
-            bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)
-            
+            bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
         w=len(data)
         #print(w)
         nda=0#ch1
         ndd=0;#ch2
         naa=0;#ch3
         nad=0#ch4
-
-        for d in data:
+        sumdtimed=array("d")
+        for idxd in range(w):
+            d=data.iloc[idxd]
+            dtime=burst["All"]['dtime'][i].iloc[idxd]*burst["DelayResolution"]
             if d==1:
                 nda+=1
             elif d==2:
                 ndd+=1
+                sumdtimed.append(dtime)
             elif d==3:
                 naa+=1
             elif d==4:
                 nad+=1
+                #sumdtimed+=dtime
+        
         if bgrate!=None:
             naa=naa-bgAA*burst["All"]['burstW'][i]
             ndd=ndd-bgDD*burst["All"]['burstW'][i]
@@ -136,30 +172,28 @@ def FretZ(dbname,burst,bins=(25,25),bgrate=None):
             if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
                 continue
         wei.append(w)
+        Tau=sum(sumdtimed)/len(sumdtimed)/(4.1e-9)
+        burstTau.append(Tau)
+        burst["All"]['lifetime'][i]=Tau        
         gamma=0.31        
         beta=1.42
-        if ndd==0:
-            zp=np.log(nda/(gamma*0.001))
-            burstZ.append(zp)
-            burst["All"]['z'][i]=zp
-        else:
-            zp=np.log(nda/(gamma*ndd))
-            burst["All"]['z'][i]=zp
-            burstZ.append(zp)
         if (nda+ndd)==0:
             burstFRET.append(1)
             burst["All"]['e'][i]=1
         else:
-            burstFRET.append((nda)/(nda+gamma*ndd))
-            burst["All"]['e'][i]=(nda)/(nda+gamma*ndd)
+            theFret=(nda)/(nda+gamma*ndd)
+            burstFRET.append(theFret)
+            burst["All"]['e'][i]=theFret
         if (nda+ndd+naa)==0:
             burstSeff.append(1)
             burst["All"]['s'][i]=1
         else:
-            burstSeff.append((nda+gamma*ndd)/(nda+gamma*ndd+naa/beta))
-            burst["All"]['s'][i]=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+            theFret=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+            burstSeff.append(theFret)
+            burst["All"]['s'][i]=theFret
 
-    H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins, weights=wei)
+    H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
+    #print(burstTau[0:100])
     #conn.close()
     #fig, ax = plt.subplots()
     #plt.subplots_adjust(bottom=0.15)
@@ -184,7 +218,7 @@ def FretZ(dbname,burst,bins=(25,25),bgrate=None):
 
     #g.plot_marginals(sns.distplot)
     #g.plot_joint(plt.hist2d)
-    return burstSeff, burstFRET,burstZ,wei,H,xedges, yedges
+    return burstSeff, burstFRET,wei,H,xedges, yedges
 
 def betweenXY(v,arr):
     si=-1
@@ -283,31 +317,24 @@ class RectBuilder:
 
 if __name__ == '__main__':
     import pickle
+    dbname='/home/liuk/sf/oc/data/38.sqlite'
 
-    dbname="/home/liuk/proj/data/86c_224c.sqlite"
+    dbname='E:/liuk/proj/ptu/data/55.sqlite'
+    #dbname='E:/sf/oc/data/38.sqlite'
+    dbname="/home/liuk/proj/data/RSV89C224C.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     burst=BurstSearch.findBurst(br,dbname,["All"])
 
-    burstSeff, burstFRET,burstZ,wei,H,xedges, yedges=FretZ(dbname,burst,(27,27),br)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(dbname,burst,(70,70),br)
 
-    with open('../untils/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([ burstFRET,burstSeff,burstZ], f)
+    # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
 
     # Getting back the objects:
     #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
         #obj0, obj1, obj2 = pickle.load(f)
 
-    #app = QtWidgets.QApplication(sys.argv)
-    #mySW = ControlMainWindow(H,xedges, yedges)
-    #mySW.show()
-    #sys.exit(app.exec_())
-    fig = plt.figure()
-    ax = fig.add_subplot(131)
-    n, bins, patches = plt.hist(burstFRET, 100, normed=1, facecolor='g', alpha=0.75)
-    ax = fig.add_subplot(132)
-    n, bins, patches = plt.hist(burstSeff, 100, normed=1, facecolor='g', alpha=0.75)
-    ax = fig.add_subplot(133)
-    n, bins, patches = plt.hist(burstZ, 100, normed=1, facecolor='g', alpha=0.75)
-    plt.legend(loc='best')
-    plt.show()
-    
+    app = QtWidgets.QApplication(sys.argv)
+    mySW = ControlMainWindow(H,xedges, yedges)
+    mySW.show()
+    sys.exit(app.exec_())

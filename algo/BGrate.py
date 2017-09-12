@@ -77,7 +77,7 @@ def calcBGrate(dbname,timeSp=20,lenbin=300):
     c.execute("SELECT value FROM fretData_Var where varName='MeasDesc_GlobalResolution'")
     MeasDesc_GlobalResolution= c.fetchone()[0] #6.2497500099996e-08
     c.execute("SELECT value FROM fretData_Var where varName='MeasDesc_Resolution'")
-    DelayResolution= c.fetchone()[0] #6.2497500099996e-08
+    DelayResolution= c.fetchone()[0] #2.50000003337858e-11
 
     #print (MeasDesc_GlobalResolution)
     chs=["DexAem","DexDem","AexAem","All"]
