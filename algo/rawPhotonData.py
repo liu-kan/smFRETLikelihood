@@ -89,18 +89,18 @@ if __name__ == '__main__':
             y.append(hist[vh])
             x.append(bin[vh])     
             #print(bin[vh])           
-    m = 2  #多项式的次数
-    #先随机产生一组多项式分布的参数
+    xx=np.array(x)
+    yy=np.array(y)
     p0 = np.array([np.min(ad),max(hist)*2])
-    plsq = least_squares(fun, p0, jac=jac, args=(x,y), verbose=1)
+    plsq = least_squares(fun, p0, jac=jac, args=(xx,yy), verbose=1)
     print(plsq)
             
     fig = plt.figure()
     ax = fig.add_subplot(111)
     n, bins, patches = plt.hist(ad, thebin, facecolor='g', alpha=0.75)
 
-    fy=fake_func(plsq[0],x)
-    l = plt.plot(x, fy, 'r--', linewidth=2)
+    fy=model(plsq.x,xx)
+    l = plt.plot(xx, fy, 'r--', linewidth=2)
     #lr = plt.plot(x, np.exp(y), 'bo', linewidth=2)
     plt.legend(loc='best')
     plt.show()    
