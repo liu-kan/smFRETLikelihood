@@ -21,12 +21,13 @@ from scipy.optimize import leastsq
 import matplotlib.cm as cm
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QVBoxLayout
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
+#from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 import sys
 import matplotlib as mpl
-mpl.use('Qt5Agg')
+#mpl.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
+import pickle
 
 class ControlMainWindow(QtWidgets.QMainWindow):
     def __init__(self,H,xedges,yedges, parent=None):
@@ -159,7 +160,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
         # plt.legend(loc='best')
         # plt.show()
         Tau_D=-1*plsq[0][0]*1e-9#
-        Tau_D=np.mean(burstTauD)*1e-9
+        Tau_D=11.74*1e-9
+    with open('../data/TauD.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([burstTauD], f)
     print('Tau_D:',Tau_D)
     lenburst=len(burst["All"]['chl'])
     print("lenburst:",lenburst)
@@ -240,7 +243,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
             if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
                 continue        
         Tau=np.mean(sumdtimed)/(Tau_D)
-        if Tau<=100:
+        if Tau<=1:
             wei.append(w)
             burstTau.append(Tau)
             burst["All"]['lifetime'][i]=Tau        
@@ -264,13 +267,14 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
     H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
     #print(burstTau[0:100])
     #conn.close()
-    #fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
     #plt.subplots_adjust(bottom=0.15)
 
-    #im=plt.imshow(H.transpose()[::-1], interpolation='bessel',
-    #              cmap=cm.jet,extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-    #plt.colorbar(im)
-
+    im=plt.imshow(H.transpose()[::-1], interpolation='bessel',
+                  cmap=cm.jet,extent=[0,1,0,1])
+                  #extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+    plt.colorbar(im)
+    plt.show()
 
 
     #rs=RectSect(ax,xedges,yedges)
@@ -283,11 +287,11 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
     #bnMLH = Button(axMLH, 'calc ML')
     #bnMLH.on_clicked(callback.calc)
     #import seaborn as sns
-    #g = sns.JointGrid(x=burstFRET, y=burstSeff)
+    #g = sns.JointGrid(x=burstFRET, y=burstTau)
 
     #g.plot_marginals(sns.distplot)
     #g.plot_joint(plt.hist2d)
-    return burstSeff, burstFRET,wei,H,xedges, yedges
+    return burstTau, burstFRET,wei,H,xedges, yedges
 
 def betweenXY(v,arr):
     si=-1
@@ -406,7 +410,7 @@ if __name__ == '__main__':
     #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
         #obj0, obj1, obj2 = pickle.load(f)
 
-    app = QtWidgets.QApplication(sys.argv)
-    mySW = ControlMainWindow(H,xedges, yedges)
-    mySW.show()
-    sys.exit(app.exec_())
+    #app = QtWidgets.QApplication(sys.argv)
+    #mySW = ControlMainWindow(H,xedges, yedges)
+    #mySW.show()
+    #sys.exit(app.exec_())

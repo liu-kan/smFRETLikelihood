@@ -50,22 +50,13 @@ class rawPhotonData:
                     })
         return photons
 
-
-def model(x,u):
-    return x[0]*np.exp(-1*x[1]*u)
-def jac(x, u, y):
-    J = np.empty((u.size, x.size))
-    J[:, 0] = np.exp(-x[1]*u)
-    J[:, 1] = -x[0]*u*np.exp(-x[1])
-    return J
-def fun(x, u, y):
-    return model(x,u)-y
-#残差函数
+def func(x, a, b):
+    return a * np.exp(-x /b )
 
 if __name__ == '__main__':
-    from scipy.optimize import least_squares
+    from scipy.optimize import curve_fit
     import matplotlib.pyplot as plt
-    
+    import pickle    
     try:        
         import algo.BGrate as BGrate
     except ImportError:
@@ -78,6 +69,8 @@ if __name__ == '__main__':
         for ddd in dd:            
             ad.append(ddd*r.DelayResolution*1e9)
     print(len(ad))
+    with open('../data/TauDraw.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([ad], f)
     thebin=200
     [hist,bin]=np.histogram(ad, bins=thebin)
     x=array("d")
@@ -87,20 +80,23 @@ if __name__ == '__main__':
     for vh in range(sidx,lenhist):
         if hist[vh]>0 and bin[vh]>bin[sidx]+1:        
             y.append(hist[vh])
-            x.append(bin[vh])     
+            x.append(bin[vh]-bin[sidx]-1)     
             #print(bin[vh])           
     xx=np.array(x)
     yy=np.array(y)
-    p0 = np.array([np.min(ad),max(hist)*2])
-    plsq = least_squares(fun, p0, jac=jac, args=(xx,yy), verbose=1)
-    print(plsq)
+    p0 = [np.min(ad),np.max(ad)]
+    #plsq = least_squares(fun, p0, jac=jac, gtol=0,bounds=([0, p0[0]], [9999,p0[1]]), args=(xx,yy), verbose=1)
+    popt, pcov = curve_fit(func, xx, yy, \
+                    verbose=1,method='trf',loss='cauchy')
+                    #,bounds=([0, p0[0]/2.0,-np.inf], [np.inf,p0[1]*2.0,np.inf]),\
+    print(popt)
             
     fig = plt.figure()
     ax = fig.add_subplot(111)
     n, bins, patches = plt.hist(ad, thebin, facecolor='g', alpha=0.75)
 
-    fy=model(plsq.x,xx)
-    l = plt.plot(xx, fy, 'r--', linewidth=2)
+    #fy=model(plsq.x,xx)
+    l = plt.plot(xx+bin[sidx]+1, func(xx,*popt), 'b--', linewidth=2)
     #lr = plt.plot(x, np.exp(y), 'bo', linewidth=2)
     plt.legend(loc='best')
     plt.show()    
