@@ -91,21 +91,21 @@ class MatplotlibWidget(FigureCanvasQTAgg):
         self.updatingLine=not self.updatingLine
 
 
-def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
+
+#burstD如果是浮点数，则为Donor only的TauD，否则为Donor only的提取的burst
+def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.8695):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     Tau_D=1e-9
     if type(burstD) is float:
         Tau_D=burstD*1e-9
+        print('已经制定TauD')
     else:
         lenburstD=len(burstD["All"]['chl'])
         burstTauD = array("d")#np.zeros(lenburst)
         weiD = array("d")#np.zeros(lenburst)
             
         for i in range(lenburstD):
-    #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
-    #                  (burst["All"].stag[i],burst["All"].etag[i]))
-    #        data=c.fetchall()
             data=burstD["All"]['chl'][i]
             if bgrateD==None:
                 tt=burstD["All"]['timetag'][i]
@@ -159,10 +159,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
         # n, bins, patches = plt.hist(burstTauD, 200, facecolor='g', alpha=0.75)
         # plt.legend(loc='best')
         # plt.show()
-        Tau_D=-1*plsq[0][0]*1e-9#
-        Tau_D=11.74*1e-9
-    with open('../data/TauD.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([burstTauD], f)
+        Tau_D=-1*plsq[0][0]*1e-9#        
+        with open('../data/TauD.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+            pickle.dump([burstTauD], f)
     print('Tau_D:',Tau_D)
     lenburst=len(burst["All"]['chl'])
     print("lenburst:",lenburst)
@@ -229,7 +228,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None):
                 nda+=1
             elif d==2:
                 ndd+=1
-                sumdtimed.append(burst["All"]['dtime'][i].iloc[idxd]*burst["DelayResolution"])
+                detime=burst["All"]['dtime'][i].iloc[idxd]*burst["DelayResolution"]-T0*1e-9
+                if detime>=0:
+                    sumdtimed.append(detime)
             elif d==3:
                 naa+=1
             elif d==4:
@@ -390,18 +391,15 @@ class RectBuilder:
 
 if __name__ == '__main__':
     import pickle
-    dbname='/home/liuk/sf/oc/data/38.sqlite'
-
-    dbname='E:/liuk/proj/ptu/data/55.sqlite'
-    #dbname='E:/sf/oc/data/38.sqlite'
     dbname="/home/liuk/proj/data/RSV89C224C.sqlite"
+    dbname="/home/liuk/proj/data/48diUb_NC_488_cy5.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     burst=BurstSearch.findBurst(br,dbname,["All"])
-    brD=BGrate.calcBGrate(dbTau_D,20,400)
-    burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
+    #brD=BGrate.calcBGrate(dbTau_D,20,400)
+    #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(70,70),br,burstD,brD)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(70,70),br,4.1)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

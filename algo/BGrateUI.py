@@ -11,6 +11,7 @@ import sqlite3
 from array import array
 from cycler import cycler
 #import collections
+from sklearn.metrics import r2_score
 
 def fake_func(p, x):
     f = np.poly1d(p) #多项式分布的函数
@@ -29,6 +30,7 @@ def getBG(ch,timeSp,lenBin,c,MeasDesc_GlobalResolution):
 
     hasData=True
     buf = array("d")
+    r2buf = array("d")
     timeline=array("d")
     #idxbuf=0
     while hasData:
@@ -63,11 +65,15 @@ def getBG(ch,timeSp,lenBin,c,MeasDesc_GlobalResolution):
         p0 = np.random.randn(m)
         plsq = leastsq(residuals, p0, args=(y, x))
         #print(plsq)
+        coefficient_of_dermination = r2_score(fake_func(plsq[0],x),y)
+        r2buf.append(coefficient_of_dermination)
         buf.append(-1*plsq[0][0])
         timeline.append(t1*MeasDesc_GlobalResolution)
         t1=t2
         #hasData=False
-    pl.plot(np.frombuffer(timeline, dtype=np.double), np.frombuffer(buf, dtype=np.double), label='BG_'+ch+"(cps)")
+    pl.plot(np.frombuffer(timeline, dtype=np.double), np.frombuffer(buf[1]*buf, dtype=np.double), label='BG_'+ch+"(cps)")
+    #pl.plot(np.frombuffer(timeline, dtype=np.double), np.frombuffer(r2buf, dtype=np.double), label='r2_BG_'+ch)
+    #显示R2 拟合结果
     #bgRate = collections.namedtuple('bgRate', ['time', 'bgrate'])
     #br=bgRate(timeline,buf)
     #return br
