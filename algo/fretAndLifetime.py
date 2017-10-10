@@ -395,6 +395,9 @@ if __name__ == '__main__':
     dbname="/home/liuk/proj/data/48diUb_NC_488_cy5.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
+    if type(br)==type(1):
+        return br
+
     burst=BurstSearch.findBurst(br,dbname,["All"])
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
