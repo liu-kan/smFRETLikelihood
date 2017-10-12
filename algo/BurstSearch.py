@@ -30,7 +30,8 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
 #dbname='/home/liuk/prog/ptu/data/30.sqlite'
 #dbname='E:/doc/proj/ptu/data/37.sqlite'
 
-
+    T0=brcd["T0"]
+    Tlen=brcd["Tlen"]    
     conn = sqlite3.connect(dbname)
     #timeSp=20
     #lenbin=300
