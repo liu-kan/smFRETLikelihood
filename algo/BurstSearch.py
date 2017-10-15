@@ -16,22 +16,35 @@ from array import array
 import matplotlib.pyplot as pl
 from pandas import DataFrame
 
-def getBGrateAtT(bgra,ch,timing):
-    lent=len(bgra[ch]['time'])
-    ridxt=0
-    for idxt in range(lent):
-        if timing>bgra[ch]['time'][idxt]:
-            ridxt=idxt-1
-            break;
-    ridxt=max(0,ridxt)
-    return bgra[ch]['bgrate'][ridxt]
+def getBGrateAtT(bgra, ch, timing):
+    lent = len(bgra[ch]['time'])
+    ridxt=-1
+    if timing<bgra[ch]['time'][0] or timing>bgra[ch]['time'][lent-1]:
+        return 0
+    for idxt in range(lent-1):
+        if timing<bgra[ch]['time'][idxt+1] and timing>=bgra[ch]['time'][idxt]:
+            ridxt=idxt
+            break
+    if ridxt>=0:
+        return bgra[ch]['bgrate'][ridxt]
+    else:
+        return 0
 
+def data2Dcol(data,row0,row1,col):
+    rows=slice(row0,row1)
+    d=data[rows]
+    r=[]
+    for line in d:
+        r.append(line[col])
+    return r
+data=[(2,4,6),(1,2,3)]
+data2Dcol(data,0,2,2)
 def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
 #dbname='/home/liuk/prog/ptu/data/30.sqlite'
 #dbname='E:/doc/proj/ptu/data/37.sqlite'
 
-    T0=brcd["T0"]
-    Tlen=brcd["Tlen"]    
+    T0=br["T0"]
+    Tlen=br["Tlen"]    
     conn = sqlite3.connect(dbname)
     #timeSp=20
     #lenbin=300
@@ -127,7 +140,9 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
     return burst
 
 if __name__ == '__main__':
+    import timeit
     dbname='E:/liuk/proj/ptu/data/46.sqlite'
-    dbname='E:/dbox/sf/oc/data/1min.sqlite'
-    br=BGrate.calcBGrate(dbname,20,400)
-    burst=findBurst(br,dbname,["All"])
+    dbname='/home/liuk/proj/data/LS35_RSV86C224C.sqlite'
+    br=BGrate.calcBGrate(dbname,20,400,chs=["All"])
+    t = timeit.Timer('findBurst(tbr,tdb,ch)',setup='tbr = br; tdb = dbname; ch=["All"]')
+    t.timeit(1)

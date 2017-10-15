@@ -98,7 +98,7 @@ def getBG(ch,timeSp,lenBin,c,MeasDesc_GlobalResolution,T0=0,Tlen=-1,axBG=None, a
     return bgRate
 
 
-def calcBGrate(dbname,timeSp=20.0,lenbin=300,T0=0,Tlen=-1,axBG=None, axR2=None):    
+def calcBGrate(dbname,timeSp=20.0,lenbin=300,T0=0,Tlen=-1,axBG=None, axR2=None, chs=[]):    
     if (Tlen>=0 and Tlen<timeSp) or T0<0:
         print('Tlen must bigger than timeSp, T0 must >=0')
         return -1
@@ -111,17 +111,14 @@ def calcBGrate(dbname,timeSp=20.0,lenbin=300,T0=0,Tlen=-1,axBG=None, axR2=None):
     c.execute("SELECT value FROM fretData_Var where varName='MeasDesc_Resolution'")
     DelayResolution= c.fetchone()[0] #6.2497500099996e-08
 
-    #print (MeasDesc_GlobalResolution)
-    chs=["DexAem","DexDem","AexAem","All"]
-    
-    
+    if len(chs)==0:
+        chs=["DexAem","DexDem","AexAem","All"]
+
     #bgRateCh = collections.namedtuple('bgRateCh', ['ch', 'bgRate'])
     brcd=dict()
     for ch in chs:
         brcd[ch]=getBG(ch,timeSp,lenbin,c,MeasDesc_GlobalResolution,T0,Tlen,axBG, axR2)
-        #.append(bgRateCh(ch,getBG(ch,timeSp,lenbin,c)))
-
-    
+        #.append(bgRateCh(ch,getBG(ch,timeSp,lenbin,c)))    
     brcd["SyncResolution"]=MeasDesc_GlobalResolution
     brcd["DelayResolution"]=DelayResolution
     brcd["T0"]=T0
@@ -133,7 +130,7 @@ if __name__ == '__main__':
     f, (axBG, axR2) = pl.subplots(1,2)
     axBG.set_prop_cycle(cycler('color', ['red', 'black', 'yellow','blue']))
     axR2.set_prop_cycle(cycler('color', ['red', 'black', 'yellow','blue']))
-    br=calcBGrate('/home/liuk/proj/data/RSV89C224C.sqlite',timeSp=30,lenbin=100,T0=10.0,Tlen=600.0,axBG=axBG,axR2=axR2)
+    br=calcBGrate('/home/liuk/proj/data/LS35_RSV86C224C.sqlite',timeSp=30,lenbin=100,T0=10.0,Tlen=600.0,axBG=axBG,axR2=axR2)
     axBG.legend(loc='best')
     axR2.legend(loc='best')
     pl.show()
