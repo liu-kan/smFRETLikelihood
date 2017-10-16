@@ -272,8 +272,8 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     #plt.subplots_adjust(bottom=0.15)
 
     im=plt.imshow(H.transpose()[::-1], interpolation='bessel',
-                  cmap=cm.jet,extent=[0,1,0,1])
-                  #extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+                  cmap=cm.jet,#extent=[0,1,0,1])
+                  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
     plt.colorbar(im)
     plt.show()
 
