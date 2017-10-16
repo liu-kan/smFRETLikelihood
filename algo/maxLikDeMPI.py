@@ -120,15 +120,15 @@ class GS_MLE():
                 #prod=np.eye(self.n_states)
 
                 for idx_photon in range(lenPhoton):
-                    F=self.matF(self.burst["All"]['chl'][idx_burst].iloc[idx_photon])
+                    F=self.matF(self.burst["All"]['chl'][idx_burst][idx_photon])
                     if F is not None:
                         if t_k_0<0:
-                            t_k_0=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                                +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
+                            t_k_0=self.burst["All"]['timetag'][idx_burst][idx_photon]*self.burst["SyncResolution"] \
+                                +self.burst["All"]['dtime'][idx_burst][idx_photon]*self.burst["DelayResolution"]
                             lnL_j=np.dot(F,p)
                             continue
-                        t_k_1=self.burst["All"]['timetag'][idx_burst].iloc[idx_photon]*self.burst["SyncResolution"] \
-                            +self.burst["All"]['dtime'][idx_burst].iloc[idx_photon]*self.burst["DelayResolution"]
+                        t_k_1=self.burst["All"]['timetag'][idx_burst][idx_photon]*self.burst["SyncResolution"] \
+                            +self.burst["All"]['dtime'][idx_burst][idx_photon]*self.burst["DelayResolution"]
                         tau=t_k_1-t_k_0
                         t_k_0=t_k_1
                         FdotExp=np.dot(F,expm(K*tau))

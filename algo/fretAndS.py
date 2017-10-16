@@ -14,78 +14,80 @@ except ImportError:
     import BurstSearch
     import BGrate
 
+
+import matplotlib as mpl
+mpl.use('Qt5Agg')
 import matplotlib
 from array import array
 
 import matplotlib.cm as cm
-#from PyQt5 import QtWidgets
-#from PyQt5.QtWidgets import QVBoxLayout
-#from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QVBoxLayout
+from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 import sys
-import matplotlib as mpl
-#mpl.use('Qt5Agg')
-#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
-# class ControlMainWindow(QtWidgets.QMainWindow):
-#     def __init__(self,H,xedges,yedges, parent=None):
-#         super(ControlMainWindow, self).__init__(parent)
-#         self.H=H
-#         self.xedges=xedges
-#         self.yedges=yedges
-#         self.main_frame = QtWidgets.QWidget()
-#         self.setupUi()
-#
-#     def setupUi(self):
-#         vbox = QVBoxLayout()
-#         figure = mpl.figure.Figure(figsize=(10, 10))
-#         leftcanvas = MatplotlibWidget(figure,self.H,self.xedges,self.yedges)
-#         #vbox.addWidget(self.mpl_toolbar)
-#         leftcanvas.setParent(self.main_frame)
-#         vbox.addWidget(leftcanvas)
-#         self.mpl_toolbar = NavigationToolbar(leftcanvas, self.main_frame)
-#         vbox.addWidget(self.mpl_toolbar)
-#         self.main_frame.setLayout(vbox)
-#         self.setCentralWidget(self.main_frame)
-#
-# class MatplotlibWidget(FigureCanvasQTAgg):
-#     def __init__(self, fig,H,xedges,yedges):
-#         super(MatplotlibWidget, self).__init__(fig)
-#
-#         #-- set up an axe artist --
-#
-#         self.dax = fig.add_axes([0.05, 0.05, 0.9, 0.9])
-#         im=self.dax.imshow(H.transpose()[::-1], interpolation='bessel',
-#                       cmap=cm.jet,extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-#         fig.colorbar(im)
-#         self.rs=RectSect(self.dax,xedges,yedges)
-#         self.rb=RectBuilder(self.dax,xedges,yedges,self.rs.toggle_selectorRS)
-#         self.draw()
-#         self.updatingLine=True
-#
-#         #---- setup event ----
-#         #self.mpl_connect('key_press_event', self.onkeypress)
-#         self.mpl_connect('motion_notify_event', self.onMouseMove)
-#         self.mpl_connect('button_press_event', self.onclick)
-#     def onkeypress(self, event):
-#         print(' Key pressed.')
-#         if event.key in ['D', 'd'] and self.rs.active:
-#             print(' RectangleSelector deactivated.')
-#             self.rs.set_active(False)
-#         if event.key in ['A', 'a'] and not self.rs.active:
-#             print(' RectangleSelector activated.')
-#             self.rs.set_active(True)
-#     def onMouseMove(self,event):
-#         if not event.inaxes:
-#             return
-#         if self.updatingLine:
-#             self.dax.lines = [self.dax.lines[0]] # keep the first two lines
-#             self.dax.axhline(y=event.ydata, color="k")
-#             self.draw()
-#
-#     def onclick(self, event):
-#         if not event.inaxes:
-#             return
-#         self.updatingLine=not self.updatingLine
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+
+class ControlMainWindow(QtWidgets.QMainWindow):
+    def __init__(self,H,xedges,yedges, parent=None):
+        super(ControlMainWindow, self).__init__(parent)
+        self.H=H
+        self.xedges=xedges
+        self.yedges=yedges
+        self.main_frame = QtWidgets.QWidget()
+        self.setupUi()
+
+    def setupUi(self):
+        vbox = QVBoxLayout()
+        figure = mpl.figure.Figure(figsize=(10, 10))
+        leftcanvas = MatplotlibWidget(figure,self.H,self.xedges,self.yedges)
+        #vbox.addWidget(self.mpl_toolbar)
+        leftcanvas.setParent(self.main_frame)
+        vbox.addWidget(leftcanvas)
+        self.mpl_toolbar = NavigationToolbar(leftcanvas, self.main_frame)
+        vbox.addWidget(self.mpl_toolbar)
+        self.main_frame.setLayout(vbox)
+        self.setCentralWidget(self.main_frame)
+
+class MatplotlibWidget(FigureCanvasQTAgg):
+    def __init__(self, fig,H,xedges,yedges):
+        super(MatplotlibWidget, self).__init__(fig)
+
+        #-- set up an axe artist --
+
+        self.dax = fig.add_axes([0.05, 0.05, 0.9, 0.9])
+        im=self.dax.imshow(H.transpose()[::-1], interpolation='bessel',
+                      cmap=cm.jet,extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+        fig.colorbar(im)
+        self.rs=RectSect(self.dax,xedges,yedges)
+        self.rb=RectBuilder(self.dax,xedges,yedges,self.rs.toggle_selectorRS)
+        self.draw()
+        self.updatingLine=True
+
+        #---- setup event ----
+        #self.mpl_connect('key_press_event', self.onkeypress)
+        self.mpl_connect('motion_notify_event', self.onMouseMove)
+        self.mpl_connect('button_press_event', self.onclick)
+    def onkeypress(self, event):
+        print(' Key pressed.')
+        if event.key in ['D', 'd'] and self.rs.active:
+            print(' RectangleSelector deactivated.')
+            self.rs.set_active(False)
+        if event.key in ['A', 'a'] and not self.rs.active:
+            print(' RectangleSelector activated.')
+            self.rs.set_active(True)
+    def onMouseMove(self,event):
+        if not event.inaxes:
+            return
+        if self.updatingLine:
+            self.dax.lines = [self.dax.lines[0]] # keep the first two lines
+            self.dax.axhline(y=event.ydata, color="k")
+            self.draw()
+
+    def onclick(self, event):
+        if not event.inaxes:
+            return
+        self.updatingLine=not self.updatingLine
 
 
 def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
@@ -276,20 +278,20 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="E:/dbox/sf/oc/data/1min.sqlite"
+    dbname="/home/liuk/proj/data/LS1_150pM_48diUb_NC_488_cy5_32MHz_1.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     burst=BurstSearch.findBurst(br,dbname,["All"])
 
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(dbname,burst,(27,27),br)
 
-    with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
+    # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
 
     # Getting back the objects:
     #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
         #obj0, obj1, obj2 = pickle.load(f)
 
-    #app = QtWidgets.QApplication(sys.argv)
-    #mySW = ControlMainWindow(H,xedges, yedges)
-    #mySW.show()
-    #sys.exit(app.exec_())
+    app = QtWidgets.QApplication(sys.argv)
+    mySW = ControlMainWindow(H,xedges, yedges)
+    mySW.show()
+    sys.exit(app.exec_())

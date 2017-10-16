@@ -110,7 +110,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             if bgrateD==None:
                 tt=burstD["All"]['timetag'][i]
                 #print(tt)
-                backgT=burstD["All"]['burstW'][i]/2+tt.iloc[0]*bgrate["SyncResolution"] #中点时刻
+                backgT=burstD["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
                 bgAA=BurstSearch.getBGrateAtT(bgrateD,"AexAem",backgT)
                 bgDD=BurstSearch.getBGrateAtT(bgrateD,"DexDem",backgT)
                 bgDA=BurstSearch.getBGrateAtT(bgrateD,"DexAem",backgT)            
@@ -121,12 +121,12 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             nad=0#ch4        
             sumdtimed=array("d")
             for idxd in range(w):
-                d=data.iloc[idxd]
+                d=data[idxd]
                 if d==1:
                     nda+=1
                 elif d==2:
                     ndd+=1
-                    sumdtimed.append(burstD["All"]['dtime'][i].iloc[idxd]*burstD["DelayResolution"]*1e9)
+                    sumdtimed.append(burstD["All"]['dtime'][i][idxd]*burstD["DelayResolution"]*1e9)
                 elif d==3:
                     naa+=1
                 elif d==4:
@@ -182,8 +182,8 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     nad=0#ch4
     histdtime=array("d")
     for idxd in range(w):
-        d=data.iloc[idxd]
-        dtime=burst["All"]['dtime'][i].iloc[idxd]*burst["DelayResolution"]
+        d=data[idxd]
+        dtime=burst["All"]['dtime'][i][idxd]*burst["DelayResolution"]
         if d==1:
             nda+=1
         elif d==2:
@@ -211,7 +211,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
         if bgrate!=None:
             tt=burst["All"]['timetag'][i]
             #print(tt)
-            backgT=burst["All"]['burstW'][i]/2+tt.iloc[0]*bgrate["SyncResolution"] #中点时刻
+            backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
@@ -223,12 +223,12 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
         nad=0#ch4
         sumdtimed=array("d")
         for idxd in range(w):
-            d=data.iloc[idxd]            
+            d=data[idxd]            
             if d==1:
                 nda+=1
             elif d==2:
                 ndd+=1
-                detime=burst["All"]['dtime'][i].iloc[idxd]*burst["DelayResolution"]-T0*1e-9
+                detime=burst["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
                 if detime>=0:
                     sumdtimed.append(detime)
             elif d==3:
@@ -244,7 +244,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
                 continue        
         Tau=np.mean(sumdtimed)/(Tau_D)
-        if Tau<=1:
+        if True:#Tau<=1:
             wei.append(w)
             burstTau.append(Tau)
             burst["All"]['lifetime'][i]=Tau        
@@ -391,18 +391,18 @@ class RectBuilder:
 
 if __name__ == '__main__':
     import pickle
-    dbname="/home/liuk/proj/data/RSV89C224C.sqlite"
-    dbname="/home/liuk/proj/data/48diUb_NC_488_cy5.sqlite"
+    dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
+    dbname="/home/liuk/proj/data/LS1_150pM_48diUb_NC_488_cy5_32MHz_1.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
-        return br
+        exit(-1)
 
     burst=BurstSearch.findBurst(br,dbname,["All"])
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(70,70),br,4.1)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(25,25),br,4.1)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

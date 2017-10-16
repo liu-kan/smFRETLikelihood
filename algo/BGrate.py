@@ -6,7 +6,7 @@
 import numpy as np
 #import scipy as sp
 from scipy.optimize import leastsq #这里就是我们要使用的最小二乘的函数
-import matplotlib.pyplot as pl
+
 import sqlite3
 from array import array
 from cycler import cycler
@@ -127,6 +127,7 @@ def calcBGrate(dbname,timeSp=20.0,lenbin=300,T0=0,Tlen=-1,axBG=None, axR2=None, 
     return brcd
 if __name__ == '__main__':
     #calcBGrate('/home/liuk/sf/oc/data/38.sqlite')
+    import matplotlib.pyplot as pl
     f, (axBG, axR2) = pl.subplots(1,2)
     axBG.set_prop_cycle(cycler('color', ['red', 'black', 'yellow','blue']))
     axR2.set_prop_cycle(cycler('color', ['red', 'black', 'yellow','blue']))

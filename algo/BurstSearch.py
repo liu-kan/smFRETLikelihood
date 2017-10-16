@@ -13,7 +13,7 @@ except ImportError:
 import sqlite3
 from array import array
 #import collections
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as pl
 
 
 def getBGrateAtT(bgra, ch, timing):
@@ -38,7 +38,7 @@ def data2Dcol(data,row0,row1,col):
     return r
 
 
-def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
+def findBurst(br,dbname,chs,continuousPhoton=30,F=5):
 #dbname='/home/liuk/prog/ptu/data/30.sqlite'
 #dbname='E:/doc/proj/ptu/data/37.sqlite'
 
@@ -102,7 +102,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
                 bigSNR=False
                 #print(jugeD)
                 while jugeD<lendata-continuousPhoton-i:
-                    ts=(data[i+continuousPhoton+jugeD-1][0]-data[i+jugeD][0])*br["SyncResolution"]
+                    ts=(data[i+jugeD+continuousPhoton-1][0]-data[i+jugeD][0])*br["SyncResolution"]
                     localRate=continuousPhoton/ts
                     timing=data[i+jugeD+(continuousPhoton>>1)][0]*br["SyncResolution"]
                     if localRate<F*getBGrateAtT(br,ch,timing):
