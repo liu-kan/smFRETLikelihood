@@ -105,7 +105,7 @@ def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
         if bgrate!=None:
             tt=burst["All"]['timetag'][i]
             #print(tt)
-            backgT=burst["All"]['burstW'][i]/2+tt.iloc[0]*bgrate["SyncResolution"] #中点时刻
+            backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)

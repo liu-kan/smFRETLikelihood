@@ -14,7 +14,7 @@ import sqlite3
 from array import array
 #import collections
 import matplotlib.pyplot as pl
-from pandas import DataFrame
+
 
 def getBGrateAtT(bgra, ch, timing):
     lent = len(bgra[ch]['time'])
@@ -29,7 +29,6 @@ def getBGrateAtT(bgra, ch, timing):
         return bgra[ch]['bgrate'][ridxt]
     else:
         return 0
-
 def data2Dcol(data,row0,row1,col):
     rows=slice(row0,row1)
     d=data[rows]
@@ -37,8 +36,8 @@ def data2Dcol(data,row0,row1,col):
     for line in d:
         r.append(line[col])
     return r
-data=[(2,4,6),(1,2,3)]
-data2Dcol(data,0,2,2)
+
+
 def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
 #dbname='/home/liuk/prog/ptu/data/30.sqlite'
 #dbname='E:/doc/proj/ptu/data/37.sqlite'
@@ -55,10 +54,16 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
     #chs=["All"]
     burst=dict()
     blockNum=1000000
+    if Tlen<=0:
+        Tlen=-T0-100    
+    tEnd=int((T0+Tlen)/br["SyncResolution"])
     for ch in chs:
         c.execute("select TimeTag from fretData_"+ch+" ORDER BY TimeTag limit 1")
         #c.execute('SELECT * FROM stocks WHERE symbol=?', t)
         t1= c.fetchone()[0]-1
+        
+        T1=int(T0/br["SyncResolution"])
+        tt1=max(t1,T1-1)
         hasData=False
         if t1>=0:
             hasData=True
@@ -75,15 +80,19 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
         chl=[]
         #idxbuf=0
         while hasData:
-            sql="select TimeTag,Dtime,ch from fretData_"+ch+" where TimeTag > ? ORDER BY TimeTag limit ?"
-            c.execute(sql,(t1,blockNum))
+            if tEnd>0:
+                sql="select TimeTag,Dtime,ch from fretData_"+ch+" where TimeTag >= ? and TimeTag < ? ORDER BY TimeTag limit ?"
+                c.execute(sql,(tt1,tEnd,blockNum))
+            else:
+                sql="select TimeTag,Dtime,ch from fretData_"+ch+" where TimeTag >= ?  ORDER BY TimeTag limit ?"
+                c.execute(sql,(tt1,blockNum))                
             data=c.fetchall()
             lendata=len(data)
 
             if lendata<continuousPhoton*2:
                 hasData=False
                 break;
-            df=DataFrame(data=data)
+            #df=DataFrame(data=data)
             #for i in range(lendata-continuousPhoton):
             i=0
             while i <(lendata-continuousPhoton):
@@ -107,10 +116,13 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
                     ntag.append(continuousPhoton+jugeD)
                     #print(data[i:i+continuousPhoton+jugeD][0])
                     #hasData=False
-
-                    timetag.append(df[i:i+continuousPhoton+jugeD][0])
-                    dtime.append(df[i:i+continuousPhoton+jugeD][1])
-                    chl.append(df[i:i+continuousPhoton+jugeD][2])
+                    
+                    timetag.append(data2Dcol(data,i,i+continuousPhoton+jugeD,0))
+                    dtime.append(data2Dcol(data,i,i+continuousPhoton+jugeD,1))
+                    chl.append(data2Dcol(data,i,i+continuousPhoton+jugeD,2))
+                    # timetag.append(df[i:i+continuousPhoton+jugeD][0])
+                    # dtime.append(df[i:i+continuousPhoton+jugeD][1])
+                    # chl.append(df[i:i+continuousPhoton+jugeD][2])
                     etiming=data[i+continuousPhoton+jugeD-1][0]*br["SyncResolution"]
                     stiming=data[i][0]*br["SyncResolution"]
                     aLocalRate=(jugeD+continuousPhoton)/(etiming-stiming)
@@ -124,7 +136,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
                     i=i+continuousPhoton+jugeD
                 else:
                     i=i+1
-            t1=data[-continuousPhoton][0]  #todo 检查数组内是否有重复
+            tt1=data[-continuousPhoton][0]  #todo 检查数组内是否有重复
             #print(("t1",t1))
         #fig = pl.figure()
         #ax = fig.add_subplot(111)
@@ -140,9 +152,12 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=6):
     return burst
 
 if __name__ == '__main__':
-    import timeit
+    import time
+
     dbname='E:/liuk/proj/ptu/data/46.sqlite'
-    dbname='/home/liuk/proj/data/LS35_RSV86C224C.sqlite'
-    br=BGrate.calcBGrate(dbname,20,400,chs=["All"])
-    t = timeit.Timer('findBurst(tbr,tdb,ch)',setup='tbr = br; tdb = dbname; ch=["All"]')
-    t.timeit(1)
+    dbname='/home/liuk/proj/data/86c_224c.sqlite'
+    br=BGrate.calcBGrate(dbname,20,400,chs=["All"],T0=10.0,Tlen=60.0)
+    start = time.time()
+    findBurst(br,dbname,["All"])
+    end = time.time()
+    print(end - start)

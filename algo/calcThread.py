@@ -25,7 +25,7 @@ class e_sHistThread(QtCore.QThread):
         self.count = self.count + 1
         self.update.emit()
     def run(self):
-        self.br=BGrate.calcBGrate(self.dbname,20,400)
+        self.br=BGrate.calcBGrate(self.dbname,20,400,T0=600.0)
         self.burst=BurstSearch.findBurst(self.br,self.dbname,["All"])
         self.burstSeff, self.burstFRET,self.wei,self.H,self.xedges, \
             self.yedges=fretAndS.FretAndS(self.dbname,self.burst,(27,27),self.br)
