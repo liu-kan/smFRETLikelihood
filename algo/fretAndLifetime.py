@@ -395,7 +395,7 @@ class RectBuilder:
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/home/liuk/proj/data/LS1_150pM_48diUb_NC_488_cy5_32MHz_1.sqlite"
+    dbname="/home/liuk/proj/data/ALS9_63diUb_UbN25CK63R_UbG76C_32Mhz.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):

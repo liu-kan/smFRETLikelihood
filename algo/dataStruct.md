@@ -2,7 +2,8 @@
 
 ## calcBGrate <- BGrate
 
-  bgRate = collections.namedtuple('bgRate', ['time', 'bgrate'])
+  bgRate=dict({'time':timeline,'bgrate':buf})
+  brcd[ch]=bgRate
 
 time in sec, bgrate in cps
 
@@ -14,8 +15,12 @@ time in sec, bgrate in cps
 
 ## BurstSearch
 
-  cburst = collections.namedtuple('burst', ['ntag', 'burstW','timetag','dtime','chl','e','s'])
-  burst[ch]=cburst(ntag,burstW,timetag,dtime,chl,fretE,fretS)
+  cburst=dict({'ntag':ntag, 'burstW':burstW,'timetag':timetag,'dtime':dtime,\
+                    'chl':chl,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime})
+  burst[ch]=cburst
 
 ntag burst中有多少光子，burstW 时间跨度，
 timetag、dtime、chl 各个光子的相应属性。
+
+## binRawData
+  binData=
