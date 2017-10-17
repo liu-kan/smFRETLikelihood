@@ -216,6 +216,8 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
         w=len(data)
+        if type(w)!=type(1):
+            break
         #print(w)
         nda=0#ch1
         ndd=0;#ch2
@@ -244,7 +246,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
                 continue        
         Tau=np.mean(sumdtimed)/(Tau_D)
-        if True:#Tau<=1:
+        if Tau<=2:
             wei.append(w)
             burstTau.append(Tau)
             burst["All"]['lifetime'][i]=Tau        
@@ -271,9 +273,10 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     fig, ax = plt.subplots()
     #plt.subplots_adjust(bottom=0.15)
 
-    im=plt.imshow(H.transpose()[::-1], interpolation='bessel',
-                  cmap=cm.jet,#extent=[0,1,0,1])
-                  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+    im=plt.imshow(H.transpose()[::-1], interpolation='bessel', \
+                  cmap=cm.jet, \
+                  extent=[min(0,xedges[0]), max(1,xedges[-1]), min(0,yedges[0]), max(1,yedges[-1])])
+                  #extent=[0,1,0,1])
     plt.colorbar(im)
     plt.show()
 
