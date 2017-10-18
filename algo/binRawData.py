@@ -7,6 +7,7 @@ except ImportError:
 import sqlite3
 import numpy as np
 import time
+from array import array
 
 def findTagLastLessThanIdx(data,lessThan):
     #注意！！！timetag 如果有相同的可能掉数据
@@ -32,6 +33,10 @@ def binRawData(  bgrate, dbname, binMs = 1 ):
         timetag=[]
         dtime=[]
         chl=[]
+        fretE=array("d")
+        fretS=array("d")
+        fretZ=array("d")
+        lifetime=array("d")        
         hasData=False
         c.execute("select TimeTag from fretData_"+ch+" ORDER BY TimeTag limit 1")
         idx= c.fetchone()[0] # Start TimeTag
@@ -68,15 +73,22 @@ def binRawData(  bgrate, dbname, binMs = 1 ):
                     break   
                 timetag.append(BurstSearch.data2Dcol(data,r0,r1,0))
                 dtime.append(BurstSearch.data2Dcol(data,r0,r1,1))
-                chl.append(BurstSearch.data2Dcol(data,r0,r1,2))                
+                chl.append(BurstSearch.data2Dcol(data,r0,r1,2))   
+                lifetime.append(0)
+                fretE.append(0)
+                fretS.append(0)
+                fretZ.append(0)             
                 r0=r1
             idx=data[r0][0]
             # print(data[r00][0],data[r0][0])
             # print("=============")
-        binData[ch]=dict({'timetag':timetag,'dtime':dtime,'chl':chl,'binMs':binMs})
+        binData[ch]=dict({'timetag':timetag,'dtime':dtime,'chl':chl,'binMs':binMs \
+                        ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime})
     if nowpercent<0.95:
         print("!!!!!span的合理范围 >= 7 !!!!!!!!")
     conn.close()
+    binData["SyncResolution"]=bgrate["SyncResolution"]
+    binData["DelayResolution"]=bgrate["DelayResolution"]    
     return binData
 def countBin(binData,chl):
     if chl in binData:

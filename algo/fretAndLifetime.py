@@ -211,8 +211,14 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 #                  (burst["All"].stag[i],burst["All"].etag[i]))
 #        data=c.fetchall()
         data=burst["All"]['chl'][i]
+        w=len(data)
+        if type(w)!=type(1):
+            continue
+        if len(data)<1:
+            continue
         if bgrate!=None:
             tt=burst["All"]['timetag'][i]
+            
             backgT=0
             if isBurst:
                 backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
@@ -221,9 +227,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
-        w=len(data)
-        if type(w)!=type(1):
-            break
+
         #print(w)
         nda=0#ch1
         ndd=0;#ch2
