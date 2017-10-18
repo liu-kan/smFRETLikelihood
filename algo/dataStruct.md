@@ -23,4 +23,4 @@ ntag burst中有多少光子，burstW 时间跨度，
 timetag、dtime、chl 各个光子的相应属性。
 
 ## binRawData
-  binData=
+  binData[ch]=dict({'timetag':timetag,'dtime':dtime,'chl':chl})

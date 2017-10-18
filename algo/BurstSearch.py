@@ -92,8 +92,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=5):
             if lendata<continuousPhoton*2:
                 hasData=False
                 break;
-            #df=DataFrame(data=data)
-            #for i in range(lendata-continuousPhoton):
+            #timetag 如果有相同的可能掉数据
             i=0
             while i <(lendata-continuousPhoton):
                 jugeD = 0

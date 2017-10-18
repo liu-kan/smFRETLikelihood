@@ -10,9 +10,11 @@ import numpy as np
 try:
     import algo.BurstSearch as BurstSearch
     import algo.BGrate as BGrate
+    import algo.binRawData as binRawData
 except ImportError:
     import BurstSearch
     import BGrate
+    import binRawData
 
 import matplotlib
 from array import array
@@ -201,8 +203,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     plt.legend(loc='best')
     plt.show() 
     '''
-    
-
+    isBurst=False
+    if 'burstW' in burst["All"]:
+        isBurst=True
     for i in range(lenburst):
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
 #                  (burst["All"].stag[i],burst["All"].etag[i]))
@@ -210,8 +213,11 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
         data=burst["All"]['chl'][i]
         if bgrate!=None:
             tt=burst["All"]['timetag'][i]
-            #print(tt)
-            backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+            backgT=0
+            if isBurst:
+                backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+            else:
+                backgT=burst['All']['binMs']*0.5e-3++tt[0]*bgrate["SyncResolution"]
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
@@ -240,11 +246,18 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
                 #sumdtimed+=dtime
         
         if bgrate!=None:
-            naa=naa-bgAA*burst["All"]['burstW'][i]
-            ndd=ndd-bgDD*burst["All"]['burstW'][i]
-            nda=nda-bgDA*burst["All"]['burstW'][i]
-            if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
-                continue        
+            if isBurst:
+                naa=naa-bgAA*burst["All"]['burstW'][i]
+                ndd=ndd-bgDD*burst["All"]['burstW'][i]
+                nda=nda-bgDA*burst["All"]['burstW'][i]
+                if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
+                    continue    
+            else:
+                naa=naa-bgAA*burst["All"]['binMs']*1e-3
+                ndd=ndd-bgDD*burst["All"]['binMs']*1e-3
+                nda=nda-bgDA*burst["All"]['binMs']*1e-3
+                if naa< bgAA*burst["All"]['binMs']*1e-3 or ndd<0 or nda<0:
+                    continue                       
         Tau=np.mean(sumdtimed)/(Tau_D)
         if Tau<=2:
             wei.append(w)
@@ -401,7 +414,8 @@ if __name__ == '__main__':
     if type(br)==type(1):
         exit(-1)
 
-    burst=BurstSearch.findBurst(br,dbname,["All"])
+    #burst=BurstSearch.findBurst(br,dbname,["All"])
+    burst=binRawData.binRawData(br,dbname)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
