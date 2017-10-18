@@ -17,16 +17,17 @@ except ImportError:
     import binRawData
 
 import matplotlib
+#import matplotlib as mpl
+matplotlib.use('Qt5Agg')
 from array import array
 from scipy.optimize import leastsq
 
 import matplotlib.cm as cm
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QVBoxLayout
-#from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 import sys
-import matplotlib as mpl
-#mpl.use('Qt5Agg')
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 import pickle
@@ -42,7 +43,7 @@ class ControlMainWindow(QtWidgets.QMainWindow):
 
     def setupUi(self):
         vbox = QVBoxLayout()
-        figure = mpl.figure.Figure(figsize=(10, 10))
+        figure = matplotlib.figure.Figure(figsize=(10, 10))
         leftcanvas = MatplotlibWidget(figure,self.H,self.xedges,self.yedges)
         #vbox.addWidget(self.mpl_toolbar)
         leftcanvas.setParent(self.main_frame)
@@ -109,7 +110,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             
         for i in range(lenburstD):
             data=burstD["All"]['chl'][i]
-            if bgrateD==None:
+            if bgrateD!=None:
                 tt=burstD["All"]['timetag'][i]
                 #print(tt)
                 backgT=burstD["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
@@ -133,7 +134,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
                     naa+=1
                 elif d==4:
                     nad+=1                
-            if bgrateD==None:
+            if bgrateD!=None:
                 naa=naa-bgAA*burstD["All"]['burstW'][i]
                 ndd=ndd-bgDD*burstD["All"]['burstW'][i]
                 nda=nda-bgDA*burstD["All"]['burstW'][i]
@@ -412,7 +413,7 @@ class RectBuilder:
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/home/liuk/proj/data/ALS9_63diUb_UbN25CK63R_UbG76C_32Mhz.sqlite"
+    dbname="/home/liuk/proj/data/LS1_48diUb.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
@@ -423,7 +424,7 @@ if __name__ == '__main__':
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(25,25),br,4.1)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),br,4.1)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
@@ -432,7 +433,7 @@ if __name__ == '__main__':
     #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
         #obj0, obj1, obj2 = pickle.load(f)
 
-    #app = QtWidgets.QApplication(sys.argv)
-    #mySW = ControlMainWindow(H,xedges, yedges)
-    #mySW.show()
-    #sys.exit(app.exec_())
+    app = QtWidgets.QApplication(sys.argv)
+    mySW = ControlMainWindow(H,xedges, yedges)
+    mySW.show()
+    sys.exit(app.exec_())
