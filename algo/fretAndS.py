@@ -8,17 +8,12 @@ Created on Thu Dec 22 10:31:42 2016
 
 import numpy as np
 import sys
-try:
-    import algo.BurstSearch as BurstSearch
-    import algo.BGrate as BGrate
-    import algo.binRawData as binRawData
-    from ui.qtPlot import ControlMainWindow
-except ImportError:
-    import BurstSearch
-    import BGrate
-    import binRawData
-    sys.path.append('../ui')
-    from qtPlot import ControlMainWindow 
+
+import BurstSearch
+import BGrate
+import binRawData
+sys.path.append('./ui')
+from qtPlot import ControlMainWindow 
 
 from array import array
 from PyQt5 import QtWidgets
@@ -136,8 +131,8 @@ if __name__ == '__main__':
     #dbname='E:/sf/oc/data/38.sqlite'
     dbname="/home/liuk/proj/data/RSV89C224C.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
-    #burst=BurstSearch.findBurst(br,dbname,["All"])
-    burst=binRawData.binRawData(br,dbname)
+    burst=BurstSearch.findBurst(br,dbname,["All"])
+    #burst=binRawData.binRawData(br,dbname)
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(dbname,burst,(27,27),br)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')

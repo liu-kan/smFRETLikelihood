@@ -6,10 +6,7 @@ Created on Thu Dec 22 10:31:42 2016
 @author: liuk
 """
 
-try:
-    import algo.BGrate
-except ImportError:
-    import BGrate
+import BGrate
 import sqlite3
 from array import array
 #import collections
