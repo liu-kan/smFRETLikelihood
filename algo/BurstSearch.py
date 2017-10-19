@@ -31,6 +31,8 @@ def getBGrateAtT(bgra, ch, timing):
         return 0
 def data2Dcol(data,row0,row1,col):
     rows=slice(row0,row1)
+    if row1==0:
+        rows=slice(row0,None)
     d=data[rows]
     r=[]
     for line in d:

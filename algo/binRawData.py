@@ -23,7 +23,8 @@ def findTagLastLessThanIdx(data,lessThan):
 
 def binRawData(  bgrate, dbname, binMs = 1 ):
     binTag=(binMs*1e-3)/bgrate["SyncResolution"] #每个bin对应的timetag值
-    span=int(11/binMs)+1
+    print(binTag)
+    span=int(10/binMs)+1
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     chs=["All"] #暂时只处理All通道
@@ -38,28 +39,29 @@ def binRawData(  bgrate, dbname, binMs = 1 ):
         fretZ=array("d")
         lifetime=array("d")        
         hasData=False
-        c.execute("select TimeTag from fretData_"+ch+" ORDER BY TimeTag limit 1")
+        c.execute("select min(TimeTag) from fretData_"+ch)
         idx= c.fetchone()[0] # Start TimeTag
         if idx!=None:
             hasData=True
-        c.execute("select TimeTag from fretData_"+ch+" ORDER BY TimeTag DESC limit 1")
+        c.execute("select max(TimeTag) from fretData_"+ch)
         TimeLast= c.fetchone()[0]
         TimeStart=idx
         percent=0
         start = time.time()
-        while hasData:
-            sql="select TimeTag,dtime,ch from fretData_"+ch+" where TimeTag>=? and TimeTag<? ORDER BY TimeTag"
-            
+        timeIdx=0
+        while hasData:        
             nowpercent= (idx-TimeStart)/(TimeLast-TimeStart)
             if nowpercent>=percent+0.1:
                 now = time.time()
                 print(nowpercent,'% speed =',(idx-TimeStart)/binTag/1e3/(now-start),"s/s")
                 percent=nowpercent
-            
-            if idx+binTag*span>=TimeLast:
+                                     
+            if (idx+binTag*span)>=TimeLast:
+                sql="select TimeTag,dtime,ch from fretData_"+ch+" where TimeTag>=? and TimeTag<=? ORDER BY TimeTag" 
                 c.execute(sql,(idx,TimeLast))
                 hasData=False
             else:
+                sql="select TimeTag,dtime,ch from fretData_"+ch+" where TimeTag>=? and TimeTag<? ORDER BY TimeTag" 
                 c.execute(sql,(idx,idx+binTag*span))
             data=c.fetchall()
             r0=0
@@ -68,20 +70,25 @@ def binRawData(  bgrate, dbname, binMs = 1 ):
             for i in range(span):  
                 # if i==0:
                 #     r00=r0   
-                r1=findTagLastLessThanIdx(data,idx+(i+1)*binTag)    
-                if r1<0:
-                    break   
-                timetag.append(BurstSearch.data2Dcol(data,r0,r1,0))
-                dtime.append(BurstSearch.data2Dcol(data,r0,r1,1))
-                chl.append(BurstSearch.data2Dcol(data,r0,r1,2))   
-                lifetime.append(0)
-                fretE.append(0)
-                fretS.append(0)
-                fretZ.append(0)             
+                r1=findTagLastLessThanIdx(data,TimeStart+timeIdx*binTag*span+(i+1)*binTag)    
+                if r1<0 and i!=span-1:
+                    continue   
+                elif i==span:
+                    r1=0
+                tt=BurstSearch.data2Dcol(data,r0,r1,0)
+                if len(tt)>0:
+                    timetag.append(tt)
+                    dtime.append(BurstSearch.data2Dcol(data,r0,r1,1))
+                    chl.append(BurstSearch.data2Dcol(data,r0,r1,2))   
+                    lifetime.append(0)
+                    fretE.append(0)
+                    fretS.append(0)
+                    fretZ.append(0)             
                 r0=r1
-            idx=data[r0][0]
+            idx=idx+binTag*span
             # print(data[r00][0],data[r0][0])
             # print("=============")
+            timeIdx+=1
         binData[ch]=dict({'timetag':timetag,'dtime':dtime,'chl':chl,'binMs':binMs \
                         ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime})
     if nowpercent<0.95:
@@ -102,10 +109,11 @@ def countBin(binData,chl):
     else:
         return None
 if __name__=='__main__':
-    dbname='/home/liuk/proj/data/86c_224c.sqlite'
+    dbname='/home/liuk/proj/data/RSV89C224C.sqlite'
     br=BGrate.calcBGrate(dbname,20,400,chs=["All"],T0=10.0,Tlen=21.0)
     binData=binRawData(br,dbname)
     bin=countBin(binData,"All")
+    print(np.sum(bin))
     import matplotlib.pyplot as plt
     plt.hist(bin,100,(0,50))
     plt.show()
