@@ -129,10 +129,10 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="/home/liuk/proj/data/RSV89C224C.sqlite"
+    bname="../data/RSV89C224C.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
-    burst=BurstSearch.findBurst(br,dbname,["All"])
-    #burst=binRawData.binRawData(br,dbname)
+    #burst=BurstSearch.findBurst(br,dbname,["All"])
+    burst=binRawData.binRawData(br,dbname)
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(dbname,burst,(27,27),br)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')

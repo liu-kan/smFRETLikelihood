@@ -213,15 +213,15 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
     #print(burstTau[0:100])
     #conn.close()
-    fig, ax = plt.subplots()
-    #plt.subplots_adjust(bottom=0.15)
+    # fig, ax = plt.subplots()
+    # #plt.subplots_adjust(bottom=0.15)
 
-    im=plt.imshow(H.transpose()[::-1], interpolation='bessel', \
-                  cmap=cm.jet, \
-                  extent=[min(0,xedges[0]), max(1,xedges[-1]), min(0,yedges[0]), max(1,yedges[-1])])
-                  #extent=[0,1,0,1])
-    plt.colorbar(im)
-    plt.show()
+    # im=plt.imshow(H.transpose()[::-1], interpolation='bessel', \
+    #               cmap=cm.jet, \
+    #               extent=[min(0,xedges[0]), max(1,xedges[-1]), min(0,yedges[0]), max(1,yedges[-1])])
+    #               #extent=[0,1,0,1])
+    # plt.colorbar(im)
+    # plt.show()
 
 
     #rs=RectSect(ax,xedges,yedges)
@@ -243,14 +243,14 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/home/liuk/proj/data/LS1_48diUb.sqlite"
+    dbname="../data/RSV89C224C.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
         exit(-1)
 
     #burst=BurstSearch.findBurst(br,dbname,["All"])
-    burst=binRawData.binRawData(br,dbname)
+    burst=binRawData.binRawData(br,dbname,chs=['All'])
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
