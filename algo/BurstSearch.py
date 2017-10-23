@@ -52,6 +52,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=5):
     ##滑动窗口寻找相邻的光子
     #chs=["All"]
     burst=dict()
+    burst['chs']=dict()
     blockNum=1000000
     if Tlen<=0:
         Tlen=-T0-100    
@@ -143,7 +144,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=5):
         #burst[ch]=cburst(ntag,burstW,timetag,dtime,chl,fretE,fretS)
         cburst=dict({'ntag':ntag, 'burstW':burstW,'timetag':timetag,'dtime':dtime,\
                     'chl':chl,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime})
-        burst[ch]=cburst
+        burst['chs'][ch]=cburst
     conn.close()
     burst["SyncResolution"]=br["SyncResolution"]
     burst["DelayResolution"]=br["DelayResolution"]

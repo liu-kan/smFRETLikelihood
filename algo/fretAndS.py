@@ -48,7 +48,7 @@ def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
             if isBurst:
                 backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
             else:
-                backgT=burst['All']['binMs']*0.5e-3++tt[0]*bgrate["SyncResolution"]                        
+                backgT=burst['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]                        
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
@@ -129,10 +129,10 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    bname="../data/RSV89C224C.sqlite"
+    dbname="../data/RSV89C224C.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     #burst=BurstSearch.findBurst(br,dbname,["All"])
-    burst=binRawData.binRawData(br,dbname)
+    burst=binRawData.binRawData(br,dbname,3,chs=['All'])
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(dbname,burst,(27,27),br)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')

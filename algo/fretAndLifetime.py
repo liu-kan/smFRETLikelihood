@@ -149,7 +149,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             if isBurst:
                 backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
             else:
-                backgT=burst['All']['binMs']*0.5e-3++tt[0]*bgrate["SyncResolution"]
+                backgT=burst['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
@@ -250,7 +250,7 @@ if __name__ == '__main__':
         exit(-1)
 
     #burst=BurstSearch.findBurst(br,dbname,["All"])
-    burst=binRawData.binRawData(br,dbname,chs=['All'])
+    burst=binRawData.binRawData(br,dbname,2.1,chs=['All'])
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
