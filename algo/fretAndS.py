@@ -23,32 +23,32 @@ from PyQt5 import QtWidgets
 def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
-    lenburst=len(burst["All"]['chl'])
+    lenburst=len(burst['chs']['All']['chl'])
     print("lenburst:",lenburst)
     burstFRET = array("d")#np.zeros(lenburst)
     burstSeff = array("d")#np.zeros(lenburst)
     wei = array("d")#np.zeros(lenburst)
     #fw = np.zeros(lenburst)
     isBurst=False
-    if 'burstW' in burst["All"]:
+    if 'burstW' in burst['chs']['All']:
         isBurst=True
     for i in range(lenburst):
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
-#                  (burst["All"].stag[i],burst["All"].etag[i]))
+#                  (burst['chs']['All'].stag[i],burst['chs']['All'].etag[i]))
 #        data=c.fetchall()
-        data=burst["All"]['chl'][i]
+        data=burst['chs']['All']['chl'][i]
         w=len(data)
         if type(w)!=type(1):
             continue
         if len(data)<1:
             continue        
         if bgrate!=None:
-            tt=burst["All"]['timetag'][i]
+            tt=burst['chs']['All']['timetag'][i]
             backgT=0
             if isBurst:
-                backgT=burst["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+                backgT=burst['chs']['All']['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
             else:
-                backgT=burst['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]                        
+                backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]                        
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
@@ -69,32 +69,32 @@ def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
                 nad+=1
         if bgrate!=None:
             if isBurst:
-                naa=naa-bgAA*burst["All"]['burstW'][i]
-                ndd=ndd-bgDD*burst["All"]['burstW'][i]
-                nda=nda-bgDA*burst["All"]['burstW'][i]
-                if naa< bgAA*burst["All"]['burstW'][i] or ndd<0 or nda<0:
+                naa=naa-bgAA*burst['chs']['All']['burstW'][i]
+                ndd=ndd-bgDD*burst['chs']['All']['burstW'][i]
+                nda=nda-bgDA*burst['chs']['All']['burstW'][i]
+                if naa< bgAA*burst['chs']['All']['burstW'][i] or ndd<0 or nda<0:
                     continue
             else:
-                naa=naa-bgAA*burst["All"]['binMs']*1e-3
-                ndd=ndd-bgDD*burst["All"]['binMs']*1e-3
-                nda=nda-bgDA*burst["All"]['binMs']*1e-3
-                if naa< bgAA*burst["All"]['binMs']*1e-3 or ndd<0 or nda<0:
+                naa=naa-bgAA*burst['chs']['All']['binMs']*1e-3
+                ndd=ndd-bgDD*burst['chs']['All']['binMs']*1e-3
+                nda=nda-bgDA*burst['chs']['All']['binMs']*1e-3
+                if naa< bgAA*burst['chs']['All']['binMs']*1e-3 or ndd<0 or nda<0:
                     continue                                       
         wei.append(w)
         gamma=0.31        
         beta=1.42
         if (nda+ndd)==0:
             burstFRET.append(1)
-            burst["All"]['e'][i]=1
+            burst['chs']['All']['e'][i]=1
         else:
             burstFRET.append((nda)/(nda+gamma*ndd))
-            burst["All"]['e'][i]=(nda)/(nda+gamma*ndd)
+            burst['chs']['All']['e'][i]=(nda)/(nda+gamma*ndd)
         if (nda+ndd+naa)==0:
             burstSeff.append(1)
-            burst["All"]['s'][i]=1
+            burst['chs']['All']['s'][i]=1
         else:
             burstSeff.append((nda+gamma*ndd)/(nda+gamma*ndd+naa/beta))
-            burst["All"]['s'][i]=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+            burst['chs']['All']['s'][i]=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
 
     H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins, weights=wei)
     #conn.close()
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="../data/RSV89C224C.sqlite"
+    dbname="../data/ALS9_63diUb_UbN25CK63R_UbG76C_32Mhz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     #burst=BurstSearch.findBurst(br,dbname,["All"])
     burst=binRawData.binRawData(br,dbname,3,chs=['All'])

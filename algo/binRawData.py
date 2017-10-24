@@ -70,7 +70,7 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
             nowpercent= (idx-TimeStart)/(TimeLast-TimeStart)
             if nowpercent>=percent+0.1:
                 now = time.time()
-                print(nowpercent,'% speed =',(idx-TimeStart)/binTag/1e3/(now-start),"s/s")
+                print(nowpercent,'% speed =',(idx-TimeStart)*bgrate["SyncResolution"]/(now-start),"s/s")
                 percent=nowpercent
                                      
             if (idx+binTag*span)>=TimeLast:
