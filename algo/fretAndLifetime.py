@@ -191,7 +191,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
         if len(sumdtimed)<1:
             continue
         Tau=np.mean(sumdtimed)/(Tau_D)
-        if Tau<=1.5 and w>=binLenT:
+        if Tau<=2 and w>=binLenT:
             wei.append(w)
             burstTau.append(Tau)
             burst['chs']["All"]['lifetime'][i]=Tau        
@@ -256,7 +256,7 @@ if __name__ == '__main__':
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(40,40),br,4.1,binLenT=5)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),br,4.1,binLenT=1)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
