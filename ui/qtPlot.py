@@ -43,7 +43,7 @@ class MatplotlibWidget(FigureCanvasQTAgg):
 
         self.dax = fig.add_axes([0.05, 0.05, 0.9, 0.9])
         im=self.dax.imshow(H.transpose()[::-1], interpolation='bessel',
-                      cmap=cm.jet,extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+                      cmap=cm.jet,extent=[min(0,xedges[0]), max(1,xedges[-1]), min(0,yedges[0]), max(1,yedges[-1])])
         fig.colorbar(im)
         self.rs=RectSect(self.dax,xedges,yedges)
         self.rb=RectBuilder(self.dax,xedges,yedges,self.rs.toggle_selectorRS)

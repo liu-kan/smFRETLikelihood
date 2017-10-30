@@ -20,7 +20,7 @@ from PyQt5 import QtWidgets
 
 
 
-def FretAndS(dbname,burst,bins=(25,25),bgrate=None):
+def FretAndS(burst,bins=(25,25),bgrate=None):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     lenburst=len(burst['chs']['All']['chl'])
@@ -129,11 +129,11 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="../data/ALS9_63diUb_UbN25CK63R_UbG76C_32Mhz.sqlite"
+    dbname="../data/RSV89C224C.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
-    #burst=BurstSearch.findBurst(br,dbname,["All"])
-    burst=binRawData.binRawData(br,dbname,3,chs=['All'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(dbname,burst,(27,27),br)
+    #burst=BurstSearch.findBurst(br,dbname,["All"],9,2.5)
+    burst=binRawData.binRawData(br,dbname,2,chs=['All'])
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),br)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

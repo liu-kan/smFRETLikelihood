@@ -100,9 +100,9 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
                     cha=BurstSearch.data2Dcol(data,r0,r1,2)
                     chl.append(cha)   
                     lifetime.append(0)
-                    fretE.append(0)
-                    fretS.append(0)
-                    fretZ.append(0)             
+                    fretE.append(-1)
+                    fretS.append(-1)
+                    fretZ.append(-1)             
                     ntag.append(numtag)
                     if ch=='All':
                         ndaTag.append(cha.count(1))
