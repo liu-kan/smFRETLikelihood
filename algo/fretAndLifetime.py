@@ -96,16 +96,17 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     print("lenburst:",lenburst)
     if S>0:
         if burst['chs']['All']['s'][0]==-1:
-            fretAndS.FretAndS(burst,(27,27),bgrate)
+            fretAndS.FretAndS(burst,bins,bgrate)
+            print('S calc')
     sumdtimed0=array("d")
     for i in range(lenburst):
-        if burst['chs']['All']['s'][i]>S and burst['chs']['All']['s'][i]<1:
-            w=burst['chs']["All"]['ntag'][i]
-            
+        if burst['chs']['All']['s'][i]>=S and burst['chs']['All']['s'][i]<=1:
+            w=burst['chs']["All"]['ntag'][i]            
             for idxd in range(w):  
                 detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
                 if detime>=0:
                     sumdtimed0.append(detime)    
+    print(len(sumdtimed0))
     Tau_D=np.mean(sumdtimed0)
     print('Tau_D:',Tau_D)
 
@@ -152,7 +153,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
 #                  (burst["All"].stag[i],burst["All"].etag[i]))
 #        data=c.fetchall()
-        if burst['chs']['All']['s'][i]>0.88 or burst['chs']['All']['s'][i]<0.18:
+        if burst['chs']['All']['s'][i]>0.8 or burst['chs']['All']['s'][i]<0.16:
             continue
         data=burst['chs']["All"]['chl'][i]
         w=burst['chs']["All"]['ntag'][i]
@@ -160,6 +161,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             continue
         if len(data)<1:
             continue
+        bgAA=0
+        bgDD=0
+        bgDA=0  
         if bgrate!=None:
             tt=burst['chs']["All"]['timetag'][i]
             
@@ -171,6 +175,10 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
+        elif not isBurst:
+            bgAA= burst['chs']['AexAem']['mean'] + burst['chs']['AexAem']['std']#每个bin中的光子数
+            bgDD=burst['chs']['DexDem']['mean']
+            bgDA=burst['chs']['DexAem']['mean']
 
         #print(w)
         nda=0#ch1
@@ -196,7 +204,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             elif d==4:
                 nad+=1
                 #sumdtimed+=dtime
-        
+        if len(sumdtimed)<1:
+            continue
+        Tau=np.mean(sumdtimed)/(Tau_D)        
         if bgrate!=None:
             if isBurst:
                 naa=naa-bgAA*burst['chs']["All"]['burstW'][i]
@@ -210,9 +220,13 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
                 nda=nda-bgDA*burst['chs']["All"]['binMs']*1e-3
                 if naa< bgAA*burst['chs']["All"]['binMs']*1e-3 or ndd<0 or nda<0:
                     continue                       
-        if len(sumdtimed)<1:
-            continue
-        Tau=np.mean(sumdtimed)/(Tau_D)
+        elif not isBurst:
+            naa=naa-bgAA
+            ndd=ndd-bgDD
+            nda=nda-bgDA
+            if naa< bgAA or ndd<0 or nda<0:
+                continue            
+
         if Tau<=1 and w>=binLenT:
             wei.append(w)
             burstTau.append(Tau)
@@ -274,11 +288,12 @@ if __name__ == '__main__':
         exit(-1)
 
     #burst=BurstSearch.findBurst(br,dbname,["All"],10,2)
-    burst=binRawData.binRawData(br,dbname,1,chs=['All'])
+    burst=binRawData.binRawData(br,dbname,1)
+    binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),br,4.1,binLenT=8,S=0.95,T0=0)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),None,4.1,binLenT=4,S=0.9,T0=0)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

@@ -41,7 +41,10 @@ def FretAndS(burst,bins=(25,25),bgrate=None):
         if type(w)!=type(1):
             continue
         if len(data)<1:
-            continue        
+            continue      
+        bgAA=0
+        bgDD=0
+        bgDA=0  
         if bgrate!=None:
             tt=burst['chs']['All']['timetag'][i]
             backgT=0
@@ -52,6 +55,10 @@ def FretAndS(burst,bins=(25,25),bgrate=None):
             bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
+        elif not isBurst:
+            bgAA= burst['chs']['AexAem']['mean'] + burst['chs']['AexAem']['std']#每个bin中的光子数
+            bgDD=burst['chs']['DexDem']['mean']
+            bgDA=burst['chs']['DexAem']['mean']
 
         nda=0#ch1
         ndd=0;#ch2
@@ -79,7 +86,13 @@ def FretAndS(burst,bins=(25,25),bgrate=None):
                 ndd=ndd-bgDD*burst['chs']['All']['binMs']*1e-3
                 nda=nda-bgDA*burst['chs']['All']['binMs']*1e-3
                 if naa< bgAA*burst['chs']['All']['binMs']*1e-3 or ndd<0 or nda<0:
-                    continue                                       
+                    continue 
+        elif not isBurst:
+            naa=naa-bgAA
+            ndd=ndd-bgDD
+            nda=nda-bgDA
+            if naa< bgAA or ndd<0 or nda<0:
+                continue                                                           
         wei.append(w)
         gamma=0.31        
         beta=1.42
@@ -132,8 +145,9 @@ if __name__ == '__main__':
     dbname="../data/RSV89C224C.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     #burst=BurstSearch.findBurst(br,dbname,["All"],9,2.5)
-    burst=binRawData.binRawData(br,dbname,2,chs=['All'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),br)
+    burst=binRawData.binRawData(br,dbname,2)
+    binRawData.statsBins(burst)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
