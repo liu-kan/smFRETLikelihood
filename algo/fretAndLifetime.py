@@ -96,8 +96,8 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
     print("lenburst:",lenburst)
     if S>0:
         if burst['chs']['All']['s'][0]==-1:
-            fretAndS.FretAndS(burst,bins,bgrate)
-            print('S calc')
+            fretAndS.FretAndS(burst,bins,bgrate,False)
+            print('S calc:',S)
     sumdtimed0=array("d")
     for i in range(lenburst):
         if burst['chs']['All']['s'][i]>=S and burst['chs']['All']['s'][i]<=1:
@@ -186,14 +186,14 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
         naa=0;#ch3
         nad=0#ch4
         sumdtimed=array("d")
-        sumdtimea=array("d")
+        #sumdtimea=array("d")
         for idxd in range(w):
             d=data[idxd]            
             if d==1:
                 nda+=1
-                detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
-                if detime>=0:
-                    sumdtimea.append(detime)                
+                # detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
+                # if detime>=0:
+                #     sumdtimea.append(detime)                
             elif d==2:
                 ndd+=1
                 detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
@@ -281,19 +281,19 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="../data/RSV89C224C.sqlite"
+    dbname="../data/rsv86c224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
         exit(-1)
 
-    #burst=BurstSearch.findBurst(br,dbname,["All"],10,2)
-    burst=binRawData.binRawData(br,dbname,1)
+    #burst=BurstSearch.findBurst(br,dbname,["All"],15,5)
+    burst=binRawData.binRawData(br,dbname,2)
     binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),None,4.1,binLenT=4,S=0.9,T0=0)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),None,4.1,binLenT=8,S=0.9,T0=0)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

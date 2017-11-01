@@ -46,7 +46,7 @@ class MatplotlibWidget(FigureCanvasQTAgg):
                       cmap=cm.jet,extent=[min(0,xedges[0]), max(1,xedges[-1]), min(0,yedges[0]), max(1,yedges[-1])])
         fig.colorbar(im)
         self.rs=RectSect(self.dax,xedges,yedges)
-        self.rb=RectBuilder(self.dax,xedges,yedges,self.rs.toggle_selectorRS)
+        #self.rb=RectBuilder(self.dax,xedges,yedges,self.rs.toggle_selectorRS)
         self.draw()
         self.updatingLine=True
 

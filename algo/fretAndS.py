@@ -20,7 +20,7 @@ from PyQt5 import QtWidgets
 
 
 
-def FretAndS(burst,bins=(25,25),bgrate=None):
+def FretAndS(burst,bins=(25,25),bgrate=None,filter=True):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     lenburst=len(burst['chs']['All']['chl'])
@@ -45,26 +45,26 @@ def FretAndS(burst,bins=(25,25),bgrate=None):
         bgAA=0
         bgDD=0
         bgDA=0  
-        if bgrate!=None:
-            tt=burst['chs']['All']['timetag'][i]
-            backgT=0
-            if isBurst:
-                backgT=burst['chs']['All']['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
-            else:
-                backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]                        
-            bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
-            bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
-            bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
-        elif not isBurst:
-            bgAA= burst['chs']['AexAem']['mean'] + burst['chs']['AexAem']['std']#每个bin中的光子数
-            bgDD=burst['chs']['DexDem']['mean']
-            bgDA=burst['chs']['DexAem']['mean']
+        if filter:
+            if bgrate!=None:
+                tt=burst['chs']['All']['timetag'][i]
+                backgT=0
+                if isBurst:
+                    backgT=burst['chs']['All']['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+                else:
+                    backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]                        
+                bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
+                bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
+                bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
+            elif not isBurst:
+                bgAA= burst['chs']['AexAem']['mean'] + burst['chs']['AexAem']['std']#每个bin中的光子数
+                bgDD=burst['chs']['DexDem']['mean']
+                bgDA=burst['chs']['DexAem']['mean']
 
         nda=0#ch1
         ndd=0;#ch2
         naa=0;#ch3
         nad=0#ch4
-
         for d in data:
             if d==1:
                 nda+=1
@@ -74,25 +74,26 @@ def FretAndS(burst,bins=(25,25),bgrate=None):
                 naa+=1
             elif d==4:
                 nad+=1
-        if bgrate!=None:
-            if isBurst:
-                naa=naa-bgAA*burst['chs']['All']['burstW'][i]
-                ndd=ndd-bgDD*burst['chs']['All']['burstW'][i]
-                nda=nda-bgDA*burst['chs']['All']['burstW'][i]
-                if naa< bgAA*burst['chs']['All']['burstW'][i] or ndd<0 or nda<0:
-                    continue
-            else:
-                naa=naa-bgAA*burst['chs']['All']['binMs']*1e-3
-                ndd=ndd-bgDD*burst['chs']['All']['binMs']*1e-3
-                nda=nda-bgDA*burst['chs']['All']['binMs']*1e-3
-                if naa< bgAA*burst['chs']['All']['binMs']*1e-3 or ndd<0 or nda<0:
-                    continue 
-        elif not isBurst:
-            naa=naa-bgAA
-            ndd=ndd-bgDD
-            nda=nda-bgDA
-            if naa< bgAA or ndd<0 or nda<0:
-                continue                                                           
+        if filter:
+            if bgrate!=None:
+                if isBurst:
+                    naa=naa-bgAA*burst['chs']['All']['burstW'][i]
+                    ndd=ndd-bgDD*burst['chs']['All']['burstW'][i]
+                    nda=nda-bgDA*burst['chs']['All']['burstW'][i]
+                    if naa< bgAA*burst['chs']['All']['burstW'][i] or ndd<0 or nda<0:
+                        continue
+                else:
+                    naa=naa-bgAA*burst['chs']['All']['binMs']*1e-3
+                    ndd=ndd-bgDD*burst['chs']['All']['binMs']*1e-3
+                    nda=nda-bgDA*burst['chs']['All']['binMs']*1e-3
+                    if naa< bgAA*burst['chs']['All']['binMs']*1e-3 or ndd<0 or nda<0:
+                        continue 
+            elif not isBurst:
+                naa=naa-bgAA
+                ndd=ndd-bgDD
+                nda=nda-bgDA
+                if naa< bgAA or ndd<0 or nda<0:
+                    continue                                                           
         wei.append(w)
         gamma=0.31        
         beta=1.42
@@ -142,11 +143,11 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="../data/RSV89C224C.sqlite"
+    dbname="../data/rsv86c224c.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
-    #burst=BurstSearch.findBurst(br,dbname,["All"],9,2.5)
-    burst=binRawData.binRawData(br,dbname,2)
-    binRawData.statsBins(burst)
+    burst=BurstSearch.findBurst(br,dbname,["All"],15,3.5)
+    #burst=binRawData.binRawData(br,dbname,2)
+    #binRawData.statsBins(burst)
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
