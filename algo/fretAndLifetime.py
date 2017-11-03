@@ -22,7 +22,7 @@ import pickle
 
 
 #burstD如果是浮点数，则为Donor only的TauD，否则为Donor only的提取的burst
-def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.8695,binLenT=35,S=0):
+def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.8695,binLenT=30,S=0):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     Tau_D=1e-9
@@ -103,9 +103,11 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
         if burst['chs']['All']['s'][i]>=S and burst['chs']['All']['s'][i]<=1:
             w=burst['chs']["All"]['ntag'][i]            
             for idxd in range(w):  
-                detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
-                if detime>=0:
-                    sumdtimed0.append(detime)    
+                if burst['chs']["All"]['chl'][i][idxd]==2:
+                    detime=burst['chs']["All"]['dtime'][i][idxd]\
+                    *burst["DelayResolution"]-T0*1e-9
+                    if detime>=0:
+                        sumdtimed0.append(detime)   
     print(len(sumdtimed0))
     Tau_D=np.mean(sumdtimed0)
     print('Tau_D:',Tau_D)
@@ -153,7 +155,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
 #                  (burst["All"].stag[i],burst["All"].etag[i]))
 #        data=c.fetchall()
-        if burst['chs']['All']['s'][i]>0.8 or burst['chs']['All']['s'][i]<0.16:
+        if burst['chs']['All']['s'][i]>0.83 or burst['chs']['All']['s'][i]<0.11:
             continue
         data=burst['chs']["All"]['chl'][i]
         w=burst['chs']["All"]['ntag'][i]
@@ -287,13 +289,14 @@ if __name__ == '__main__':
     if type(br)==type(1):
         exit(-1)
 
-    #burst=BurstSearch.findBurst(br,dbname,["All"],15,5)
-    burst=binRawData.binRawData(br,dbname,2)
-    binRawData.statsBins(burst)
+    burst=BurstSearch.findBurst(br,dbname,["All"],15,3.5)
+    #burst=binRawData.binRawData(br,dbname,2)
+    #binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndLifetime(burst,(30,30),None,4.1,binLenT=8,S=0.9,T0=0)
+    burstSeff, burstFRET,wei,H,xedges, yedges=\
+    FretAndLifetime(burst,(30,30),None,4.1,binLenT=8,S=0.84)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

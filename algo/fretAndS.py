@@ -145,10 +145,10 @@ if __name__ == '__main__':
     #dbname='E:/sf/oc/data/38.sqlite'
     dbname="../data/rsv86c224c.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
-    burst=BurstSearch.findBurst(br,dbname,["All"],15,3.5)
+    burst=BurstSearch.findBurst(br,dbname,["All"],15,5)
     #burst=binRawData.binRawData(br,dbname,2)
     #binRawData.statsBins(burst)
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None)
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

@@ -123,8 +123,8 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
     binData["DelayResolution"]=bgrate["DelayResolution"]    
     return binData
 def countBin(binData,chl):
-    if chl in binData:
-        binDataCh=binData[chl]
+    if chl in binData['chs']:
+        binDataCh=binData['chs'][chl]
         lenbin=len(binDataCh['timetag'])
         print("bin#:",lenbin)
         sumBin=np.empty(lenbin)
@@ -142,19 +142,39 @@ def statsBins(binData):
             sumBin[i]=binDataCh['ntag'][i]
         binDataCh['mean']=np.mean(sumBin)
         binDataCh['std']=np.std(sumBin)
-               
+def statsDelayTime(binData):
+    lenBin=len(binData['chs']["All"]['chl'])
+    a=array('d')
+    d=array('d')
+    for i in range(lenBin):
+        w=binData['chs']["All"]['ntag'][i]
+        for idxd in range(w): 
+            if binData['chs']["All"]['chl'][i][idxd]==1 \
+             or binData['chs']["All"]['chl'][i][idxd]==3: #DA or AA
+                a.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                *binData["DelayResolution"])
+            else:
+                d.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                *binData["DelayResolution"])
+    histA,binA= np.histogram(a, 200)                 
+    histD,binD= np.histogram(d, 200)
+    return [histA,histD],[binA,binD]
 if __name__=='__main__':
-    dbname="../data/RSV89C224C.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400,T0=10.0,Tlen=21.0)
-    binData=binRawData(br,dbname,2)
-    
-    bin=countBin(binData,"AexAem")
-    print("STD")
-    print(np.std(bin))
-    print(np.mean(bin))
-    import matplotlib.pyplot as plt
-    plt.hist(bin,100,(0,50))
-    plt.show()
+    dbname="../data/rsv86c224c.sqlite"
+    br=BGrate.calcBGrate(dbname,20,400)#,T0=10.0,Tlen=200)
+    binData=binRawData(br,dbname,2,["All"])
+    h,b=statsDelayTime(binData)
+    import sys
+    sys.path.append('./ui')
+    from histBar_stacked import plotStackedHist
+    plotStackedHist(h,b)
+    # bin=countBin(binData,"All")
+    # print("STD")
+    # print(np.std(bin))
+    # print(np.mean(bin))
+    # import matplotlib.pyplot as plt
+    # plt.hist(bin,100,(0,50))
+    # plt.show()
 
     
     
