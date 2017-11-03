@@ -289,7 +289,7 @@ if __name__ == '__main__':
     if type(br)==type(1):
         exit(-1)
 
-    burst=BurstSearch.findBurst(br,dbname,["All"],15,3.5)
+    burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     #burst=binRawData.binRawData(br,dbname,2)
     #binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
