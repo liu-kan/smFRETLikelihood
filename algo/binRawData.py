@@ -137,11 +137,17 @@ def statsBins(binData):
     for chl in binData['chs'].keys():
         binDataCh=binData['chs'][chl]
         lenbin=len(binDataCh['timetag'])
-        sumBin=np.empty(lenbin)
+        stag=binDataCh['timetag'][0][0]
+        etag=binDataCh['timetag'][lenbin-1][0]
+        sumBin=np.zeros(lenbin)
         for i in range(lenbin):
             sumBin[i]=binDataCh['ntag'][i]
+            if i==lenbin-1 and sumBin[i]>1:
+                etag=binDataCh['timetag'][lenbin-1][binDataCh['ntag'][i]-1]
         binDataCh['mean']=np.mean(sumBin)
         binDataCh['std']=np.std(sumBin)
+        binDataCh['photondiffMean']=(etag-stag)* \
+            binData["SyncResolution"]/np.sum(sumBin)
 def statsDelayTime(binData):
     lenBin=len(binData['chs']["All"]['chl'])
     a=array('d')
@@ -162,19 +168,15 @@ def statsDelayTime(binData):
 if __name__=='__main__':
     dbname="../data/rsv86c224c.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)#,T0=10.0,Tlen=200)
-    binData=binRawData(br,dbname,2,["All"])
-    h,b=statsDelayTime(binData)
-    import sys
-    sys.path.append('./ui')
-    from histBar_stacked import plotStackedHist
-    plotStackedHist(h,b)
-    # bin=countBin(binData,"All")
-    # print("STD")
-    # print(np.std(bin))
-    # print(np.mean(bin))
-    # import matplotlib.pyplot as plt
-    # plt.hist(bin,100,(0,50))
-    # plt.show()
+    binData=binRawData(br,dbname,2,["DexDem"])
+    # h,b=statsDelayTime(binData)
+    # import sys
+    # sys.path.append('./ui')
+    # from histBar_stacked import plotStackedHist
+    # plotStackedHist(h,b)
+    statsBins(binData)
+    print("DexDem photondiffMean(ms)",binData['chs']['DexDem']['photondiffMean']* \
+        1e3)
 
     
     

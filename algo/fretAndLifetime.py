@@ -12,12 +12,8 @@ import BurstSearch
 import BGrate
 import binRawData
 import fretAndS
-sys.path.append('./ui')
-from qtPlot import ControlMainWindow 
-
-
 from array import array
-from PyQt5 import QtWidgets
+
 import pickle
 
 
@@ -295,17 +291,18 @@ if __name__ == '__main__':
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
-    burstSeff, burstFRET,wei,H,xedges, yedges=\
+    burstTau, burstFRET,wei,H,xedges, yedges=\
     FretAndLifetime(burst,(30,30),None,4.1,binLenT=8,S=0.84)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
 
-    # Getting back the objects:
-    #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
-        #obj0, obj1, obj2 = pickle.load(f)
-
-    app = QtWidgets.QApplication(sys.argv)
-    mySW = ControlMainWindow(H,xedges, yedges)
-    mySW.show()
-    sys.exit(app.exec_())
+    # sys.path.append('./ui')
+    # from qtPlot import ControlMainWindow 
+    # app = QtWidgets.QApplication(sys.argv)
+    # mySW = ControlMainWindow(H,xedges, yedges)
+    # mySW.show()
+    # sys.exit(app.exec_())
+    import matplotlib.pyplot as plt
+    plt.hist(burstFRET, bins=40,weights=wei) 
+    plt.show()
