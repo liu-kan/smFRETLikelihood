@@ -15,18 +15,22 @@ import matplotlib.pyplot as plt
 from PyQt5 import QtWidgets
 
 class ControlMainWindow(QtWidgets.QMainWindow):
-    def __init__(self,H,xedges,yedges, parent=None):
+    def __init__(self,H,xedges,yedges, title='',parent=None):
         super(ControlMainWindow, self).__init__(parent)
         self.H=H
         self.xedges=xedges
+        self.title=title
         self.yedges=yedges
         self.main_frame = QtWidgets.QWidget()
         self.setupUi()
+        
 
     def setupUi(self):
         vbox = QVBoxLayout()
         figure = matplotlib.figure.Figure(figsize=(10, 10))
-        leftcanvas = MatplotlibWidget(figure,self.H,self.xedges,self.yedges)
+        figure.title=self.title
+        leftcanvas = MatplotlibWidget(figure,self.H,self.xedges,\
+            self.yedges,self.title)
         #vbox.addWidget(self.mpl_toolbar)
         leftcanvas.setParent(self.main_frame)
         vbox.addWidget(leftcanvas)
@@ -36,7 +40,7 @@ class ControlMainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.main_frame)
 
 class MatplotlibWidget(FigureCanvasQTAgg):
-    def __init__(self, fig,H,xedges,yedges):
+    def __init__(self, fig,H,xedges,yedges,title):
         super(MatplotlibWidget, self).__init__(fig)
 
         #-- set up an axe artist --

@@ -133,6 +133,8 @@ def countBin(binData,chl):
         return sumBin
     else:
         return None
+def burstFilter(binData,fDD,fDA,fAD,fAll):
+    pass
 def statsBins(binData):
     for chl in binData['chs'].keys():
         binDataCh=binData['chs'][chl]
@@ -175,8 +177,8 @@ if __name__=='__main__':
     # from histBar_stacked import plotStackedHist
     # plotStackedHist(h,b)
     statsBins(binData)
-    print("DexDem photondiffMean(ms)",binData['chs']['DexDem']['photondiffMean']* \
-        1e3)
+    print("DexDem photondiffMean(us)",binData['chs']['DexDem']['photondiffMean']* \
+        1e6)
 
     
     

@@ -245,8 +245,10 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
                 theFret=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
                 burstSeff.append(theFret)
                 burst['chs']["All"]['s'][i]=theFret
-
-    H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
+    if isBurst:
+        H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
+    else:
+        H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins)
     #print(burstTau[0:100])
     #conn.close()
     # fig, ax = plt.subplots()
@@ -284,25 +286,42 @@ if __name__ == '__main__':
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
         exit(-1)
-
-    burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
-    #burst=binRawData.binRawData(br,dbname,2)
-    #binRawData.statsBins(burst)
+    binTime=2
+    sp=8
+    if len(sys.argv)>1:
+        binTime=float(sys.argv[1])
+    if len(sys.argv)>2:
+        sp=float(sys.argv[2])        
+    #burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
+    burst=binRawData.binRawData(br,dbname,binTime)
+    binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
-    FretAndLifetime(burst,(30,30),None,4.1,binLenT=8,S=0.84)
-
+    FretAndLifetime(burst,(30,30),None,4.1,binLenT=sp,S=0.84)
+    title= "bin:"+str(binTime)+"ms,photon# threshold:"+str(sp)
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
 
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
+    # from PyQt5 import QtWidgets
     # app = QtWidgets.QApplication(sys.argv)
-    # mySW = ControlMainWindow(H,xedges, yedges)
+    # mySW = ControlMainWindow(H,xedges, yedges,title)
     # mySW.show()
     # sys.exit(app.exec_())
+    
+    import matplotlib.cm as cm
     import matplotlib.pyplot as plt
-    plt.hist(burstFRET, bins=40,weights=wei) 
+    fig,ax=plt.subplots()
+    im=ax.imshow(H.transpose()[::-1], interpolation='sinc', \
+                       cmap=cm.jet,extent=[0,1,0,1])
+    ax.set_title(title)
+    fig.colorbar(im)                       
     plt.show()
+    
+    # import matplotlib.pyplot as plt
+    # plt.hist(burstFRET, bins=50,weights=wei) 
+    # plt.title(title)
+    # plt.show()
