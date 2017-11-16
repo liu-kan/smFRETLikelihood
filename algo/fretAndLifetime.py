@@ -287,7 +287,7 @@ if __name__ == '__main__':
     if type(br)==type(1):
         exit(-1)
     binTime=2
-    sp=8
+    sp=1
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])
     if len(sys.argv)>2:
@@ -295,6 +295,7 @@ if __name__ == '__main__':
     #burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
+    binRawData.burstFilter(burst,5.1,4.1,3.1)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
