@@ -70,7 +70,9 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
             nowpercent= (idx-TimeStart)/(TimeLast-TimeStart)
             if nowpercent>=percent+0.1:
                 now = time.time()
-                print(nowpercent,'% speed =',(idx-TimeStart)*bgrate["SyncResolution"]/(now-start),"s/s")
+                speed=(idx-TimeStart)*bgrate["SyncResolution"]/(now-start)
+                print('\r>>',"%2.5f"%nowpercent,'% speed =',"%3.5f"%speed \
+                    ,"s/s", end='',flush=True)
                 percent=nowpercent
                                      
             if (idx+binTag*span)>=TimeLast:
@@ -117,6 +119,7 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
         binData['chs'][ch]=dict({'timetag':timetag,'dtime':dtime,'chl':chl,\
                     'binMs':binMs ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime,\
                     'ntag':ntag})
+        print("\t readed ch ",ch)
     if nowpercent<0.95:
         print("!!!!!span的合理范围 >= 7 !!!!!!!!")
     conn.close()
@@ -200,10 +203,61 @@ def burstFilter(binData,fDD,fDA,fAA):
             #     else:
             #         winStAD.append((i,j))
             #     adT0=chAll['timetag'][i][j]    
-    delRec(binData,toBeDel)                        
+    addChAllf(binData,toBeDel)      
+
+
+def addChAllf(binData,toBeDel):
+    toBeDel=sorted(toBeDel)    
+    allCh=binData['chs']['All']
+    binMs=allCh['binMs']
+    timetag=[]
+    dtime=[]
+    chl=[]
+    fretE=array("d")
+    fretS=array("d")
+    fretZ=array("d")
+    lifetime=array("d")      
+    ntag=array("l")  
+    lenBins=len(allCh['timetag'])
+    ib=0
+    p100=1
+    for i in range(lenBins):
+        lenbin=allCh['ntag'][i]   
+        wtimetag=[]
+        wdtime=[]
+        wchl=[]         
+        for j in range(lenbin):
+            if(i==toBeDel[ib][0] or j!=toBeDel[ib][1]):
+                wtimetag.append(allCh['timetag'][j])
+                wdtime.append(allCh['dtime'][j])
+                wchl.append(allCh['chl'][j])
+            else:
+                ib=ib+1
+        nntag=len(wchl)
+        if nntag>0:
+            timetag.append(wtimetag)
+            dtime.append(wdtime)
+            chl.append(wchl)
+            fretE.append(allCh['e'][i])
+            fretZ.append(allCh['z'][i])
+            fretS.append(allCh['s'][i])
+            ntag.append(nntag)
+        now=100.0*i/lenBins
+        if now>p100:
+            print("\r>> add finished:","%2.5f" % p100, end='',flush=True)
+            p100=now+5
+    binData['chs']['Allf']=dict({'timetag':timetag,'dtime':dtime,'chl':chl,\
+                    'binMs':binMs ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime,\
+                    'ntag':ntag})
+    binData['chs'].pop('All',None)
+    binData['chs']['All']=binData['chs'].pop('Allf',None)
+
 def delRec(binData,toBeDel):
     toBeDel=sorted(toBeDel,reverse=True)
     lasti=int(toBeDel[0][0])
+    len2beDel=len(toBeDel)
+    i=0.0
+    p100=1;
     for k in toBeDel:
         if len(binData['chs']['All']['timetag'][lasti])==0:
             del binData['chs']['All']['timetag'][lasti]
@@ -218,7 +272,13 @@ def delRec(binData,toBeDel):
         del binData['chs']['All']['dtime'][k[0]][k[1]]
         del binData['chs']['All']['chl'][k[0]][k[1]]
         binData['chs']['All']['ntag'][k[0]]=binData['chs']['All']['ntag'][k[0]]-1
-        lasti=int(k[0])
+        lasti=k[0]
+        i=i+1
+        if i/len2beDel*100>p100:
+            p100=i/len2beDel*100
+            print("\r>> del finished:",p100, end='',flush=True)
+            p100=p100+2
+    print("filtered binData")   
     
 def statsBins(binData):
     for chl in binData['chs'].keys():

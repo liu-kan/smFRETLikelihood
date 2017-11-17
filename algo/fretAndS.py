@@ -95,20 +95,25 @@ def FretAndS(burst,bins=(25,25),bgrate=None,filter=True):
                 if naa< bgAA or ndd<0 or nda<0:
                     continue                                                           
         wei.append(w)
-        gamma=0.31        
+        gamma=0.34
         beta=1.42
+        DexDirAem=0.08
+        Dch2Ach=0.07
         if (nda+ndd)==0:
             burstFRET.append(1)
             burst['chs']['All']['e'][i]=1
         else:
-            burstFRET.append((nda)/(nda+gamma*ndd))
-            burst['chs']['All']['e'][i]=(nda)/(nda+gamma*ndd)
+            e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)
+            burstFRET.append(e)
+            burst['chs']['All']['e'][i]=e
         if (nda+ndd+naa)==0:
             burstSeff.append(1)
             burst['chs']['All']['s'][i]=1
         else:
-            burstSeff.append((nda+gamma*ndd)/(nda+gamma*ndd+naa/beta))
-            burst['chs']['All']['s'][i]=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+            s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
+                    ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
+            burstSeff.append(s)
+            burst['chs']['All']['s'][i]=s
 
     H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins, weights=wei)
     #conn.close()
@@ -143,11 +148,11 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="../data/rsv86c224c.sqlite"
+    dbname="../data/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
-    burst=BurstSearch.findBurst(br,dbname,["All"],15,5)
-    #burst=binRawData.binRawData(br,dbname,2)
-    #binRawData.statsBins(burst)
+    burst=binRawData.binRawData(br,dbname,2)
+    binRawData.statsBins(burst)
+    binRawData.burstFilter(burst,5.1,4.1,3.1)
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False)
 
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
@@ -157,7 +162,15 @@ if __name__ == '__main__':
     #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
         #obj0, obj1, obj2 = pickle.load(f)
 
-    app = QtWidgets.QApplication(sys.argv)
-    mySW = ControlMainWindow(H,xedges, yedges)
-    mySW.show()
-    sys.exit(app.exec_())
+    # app = QtWidgets.QApplication(sys.argv)
+    # mySW = ControlMainWindow(H,xedges, yedges)
+    # mySW.show()
+    # sys.exit(app.exec_())
+    import matplotlib.cm as cm
+    import matplotlib.pyplot as plt
+    fig,ax=plt.subplots()
+    im=ax.imshow(H.transpose()[::-1], interpolation='sinc', \
+                       cmap=cm.jet,extent=[0,1,0,1])
+    # ax.set_title(title)
+    fig.colorbar(im)                       
+    plt.show()

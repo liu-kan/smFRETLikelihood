@@ -231,20 +231,23 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             burst['chs']["All"]['lifetime'][i]=Tau        
             gamma=0.31        
             beta=1.42
+            DexDirAem=0.08
+            Dch2Ach=0.07            
             if (nda+ndd)==0:
                 burstFRET.append(1)
                 burst['chs']["All"]['e'][i]=1
             else:
-                theFret=(nda)/(nda+gamma*ndd)
+                theFret=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)
                 burstFRET.append(theFret)
                 burst['chs']["All"]['e'][i]=theFret
             if (nda+ndd+naa)==0:
                 burstSeff.append(1)
                 burst['chs']["All"]['s'][i]=1
             else:
-                theFret=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
-                burstSeff.append(theFret)
-                burst['chs']["All"]['s'][i]=theFret
+                theSeff=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
+                    ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
+                burstSeff.append(theSeff)
+                burst['chs']["All"]['s'][i]=theSeff
     if isBurst:
         H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
     else:
@@ -281,7 +284,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="../data/rsv86c224c.sqlite"
+    dbname="../data/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
@@ -292,7 +295,7 @@ if __name__ == '__main__':
         binTime=float(sys.argv[1])
     if len(sys.argv)>2:
         sp=float(sys.argv[2])        
-    #burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
+    # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
     binRawData.burstFilter(burst,5.1,4.1,3.1)
