@@ -20,7 +20,7 @@ from PyQt5 import QtWidgets
 
 
 
-def FretAndS(burst,bins=(25,25),bgrate=None,filter=True):
+def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     lenburst=len(burst['chs']['All']['chl'])
@@ -45,7 +45,7 @@ def FretAndS(burst,bins=(25,25),bgrate=None,filter=True):
         bgAA=0
         bgDD=0
         bgDA=0  
-        if filter:
+        if bgfilter:
             if bgrate!=None:
                 tt=burst['chs']['All']['timetag'][i]
                 backgT=0
@@ -74,7 +74,7 @@ def FretAndS(burst,bins=(25,25),bgrate=None,filter=True):
                 naa+=1
             elif d==4:
                 nad+=1
-        if filter:
+        if bgfilter:
             if bgrate!=None:
                 if isBurst:
                     naa=naa-bgAA*burst['chs']['All']['burstW'][i]
