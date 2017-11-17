@@ -32,8 +32,6 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
     Tlen=bgrate["Tlen"]
     c.execute("select min(TimeTag) from fretData_All")
     idx= c.fetchone()[0] # Start TimeTag
-    if idx!=None:
-        hasData=True
     c.execute("select max(TimeTag) from fretData_All")
     TimeLast= c.fetchone()[0]
     tt0=T0/bgrate["SyncResolution"]
@@ -52,17 +50,17 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
         fretZ=array("d")
         lifetime=array("d")      
         ntag=array("l")  
-        if ch=='All':
-            ndaTag=array('l')
-            nddTag=array('l')
-            naaTag=array('l')
-            nadTag=array('l')
+        # if ch=='All':
+        #     ndaTag=array('l')
+        #     nddTag=array('l')
+        #     naaTag=array('l')
+        #     nadTag=array('l')
         hasData=False
         c.execute("select min(TimeTag) from fretData_"+ch)
         idx= c.fetchone()[0] # Start TimeTag
         if idx!=None:
             hasData=True
-            idx=TimeStart
+        idx=TimeStart
         percent=0
         start = time.time()
         timeIdx=0
@@ -76,11 +74,13 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
                 percent=nowpercent
                                      
             if (idx+binTag*span)>=TimeLast:
-                sql="select TimeTag,dtime,ch from fretData_"+ch+" where TimeTag>=? and TimeTag<=? ORDER BY TimeTag" 
+                sql="select TimeTag,dtime,ch from fretData_"+ch+\
+                    " where TimeTag>=? and TimeTag<=? ORDER BY TimeTag" 
                 c.execute(sql,(idx,TimeLast))
                 hasData=False
             else:
-                sql="select TimeTag,dtime,ch from fretData_"+ch+" where TimeTag>=? and TimeTag<? ORDER BY TimeTag" 
+                sql="select TimeTag,dtime,ch from fretData_"+ch+\
+                    " where TimeTag>=? and TimeTag<? ORDER BY TimeTag" 
                 c.execute(sql,(idx,idx+binTag*span))
             data=c.fetchall()
             r0=0
@@ -204,7 +204,8 @@ def burstFilter(binData,fDD,fDA,fAA):
             #         winStAD.append((i,j))
             #     adT0=chAll['timetag'][i][j]    
     addChAllf(binData,toBeDel)      
-
+    binData['chs'].pop('All',None)
+    binData['chs']['All']=binData['chs'].pop('Allf',None)
 
 def addChAllf(binData,toBeDel):
     toBeDel=sorted(toBeDel)    
@@ -221,18 +222,21 @@ def addChAllf(binData,toBeDel):
     lenBins=len(allCh['timetag'])
     ib=0
     p100=1
+    lendel=len(toBeDel)
+    print(lendel)
     for i in range(lenBins):
         lenbin=allCh['ntag'][i]   
         wtimetag=[]
         wdtime=[]
         wchl=[]         
         for j in range(lenbin):
-            if(i==toBeDel[ib][0] or j!=toBeDel[ib][1]):
+            if(i!=toBeDel[ib][0] or j!=toBeDel[ib][1]):
                 wtimetag.append(allCh['timetag'][j])
                 wdtime.append(allCh['dtime'][j])
                 wchl.append(allCh['chl'][j])
             else:
-                ib=ib+1
+                if ib<lendel-1:
+                    ib=ib+1
         nntag=len(wchl)
         if nntag>0:
             timetag.append(wtimetag)
@@ -249,8 +253,7 @@ def addChAllf(binData,toBeDel):
     binData['chs']['Allf']=dict({'timetag':timetag,'dtime':dtime,'chl':chl,\
                     'binMs':binMs ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime,\
                     'ntag':ntag})
-    binData['chs'].pop('All',None)
-    binData['chs']['All']=binData['chs'].pop('Allf',None)
+
 
 def delRec(binData,toBeDel):
     toBeDel=sorted(toBeDel,reverse=True)

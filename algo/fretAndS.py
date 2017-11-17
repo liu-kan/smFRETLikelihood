@@ -150,6 +150,7 @@ if __name__ == '__main__':
     #dbname='E:/sf/oc/data/38.sqlite'
     dbname="../data/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
+    # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,2)
     binRawData.statsBins(burst)
     binRawData.burstFilter(burst,5.1,4.1,3.1)
