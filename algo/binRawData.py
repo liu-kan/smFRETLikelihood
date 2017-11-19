@@ -283,21 +283,35 @@ def delRec(binData,toBeDel):
             p100=p100+2
     print("filtered binData")   
     
-def statsBins(binData):
-    for chl in binData['chs'].keys():
-        print(chl)
-        binDataCh=binData['chs'][chl]
-        lenbin=len(binDataCh['timetag'])
-        stag=binDataCh['timetag'][0][0]
-        etag=binDataCh['timetag'][lenbin-1][0]
+def statsBins(binData,chs=[]):
+    if len(chs)<1:
+        for chl in binData['chs'].keys():
+            realStatsBins(binData,chl)
+    else:
+        for chl in chs:
+            realStatsBins(binData,chl)
+
+def realStatsBins(binData,chl):
+    binDataCh=binData['chs'][chl]
+    lenbin=len(binDataCh['timetag'])
+    stag=binDataCh['timetag'][0][0]
+    etag=binDataCh['timetag'][lenbin-1][0]
+    sumBin=np.ndarray(1)
+    if chl=="All":
+        sumBin=np.zeros((3,lenbin))
+    else:
         sumBin=np.zeros(lenbin)
-        for i in range(lenbin):
+    for i in range(lenbin):
+        if chl=="All":
+            pass
+        else:
             sumBin[i]=binDataCh['ntag'][i]
-            if i==lenbin-1 and sumBin[i]>1:
-                etag=binDataCh['timetag'][lenbin-1][binDataCh['ntag'][i]-1]
-        binDataCh['mean']=np.mean(sumBin)
-        binDataCh['std']=np.std(sumBin)
-        binDataCh['photondiffMean']=(etag-stag)/np.sum(sumBin)
+        if i==lenbin-1 and sumBin[i]>1:
+            etag=binDataCh['timetag'][lenbin-1][binDataCh['ntag'][i]-1]
+    binDataCh['mean']=np.mean(sumBin)
+    binDataCh['std']=np.std(sumBin)
+    binDataCh['photondiffMean']=(etag-stag)/np.sum(sumBin)
+    
 def statsDelayTime(binData):
     lenBin=len(binData['chs']["All"]['chl'])
     a=array('d')
