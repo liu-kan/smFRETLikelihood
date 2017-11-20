@@ -18,9 +18,15 @@ import pickle
 
 
 #burstD如果是浮点数，则为Donor only的TauD，否则为Donor only的提取的burst
-def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.8695,binLenT=30,S=0):
-    #conn = sqlite3.connect(dbname)
-    #c = conn.cursor()
+def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
+        T0=6.8695,binLenT=30,S=0,ESm='k'):
+
+    rESm=0
+    if ESm=='K' or ESm=='k':
+        rESm=0
+    else:
+        rESm=1
+
     Tau_D=1e-9
     if type(burstD) is float:
         Tau_D=burstD*1e-9
@@ -174,9 +180,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
             bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
         elif not isBurst:
-            bgAA= burst['chs']['AexAem']['mean'] + burst['chs']['AexAem']['std']#每个bin中的光子数
-            bgDD=burst['chs']['DexDem']['mean']
-            bgDA=burst['chs']['DexAem']['mean']
+            bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+            bgDD=burst['chs']['All']['DDmean']
+            bgDA=burst['chs']['All']['DAmean']
 
         #print(w)
         nda=0#ch1
@@ -232,22 +238,30 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
             gamma=0.31        
             beta=1.42
             DexDirAem=0.08
-            Dch2Ach=0.07            
+            Dch2Ach=0.07 
+            e=0;s=0           
             if (nda+ndd)==0:
                 burstFRET.append(1)
                 burst['chs']["All"]['e'][i]=1
             else:
-                theFret=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)
-                burstFRET.append(theFret)
-                burst['chs']["All"]['e'][i]=theFret
+                if rESm==0:
+                    e=(nda)/(nda+gamma*ndd)
+                else:                
+                    e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-\
+                        Dch2Ach)*ndd)                
+                burstFRET.append(e)
+                burst['chs']["All"]['e'][i]=e
             if (nda+ndd+naa)==0:
                 burstSeff.append(1)
                 burst['chs']["All"]['s'][i]=1
             else:
-                theSeff=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
-                    ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
-                burstSeff.append(theSeff)
-                burst['chs']["All"]['s'][i]=theSeff
+                if rESm==0:
+                    s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+                else:
+                    s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
+                        ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
+                burstSeff.append(s)
+                burst['chs']["All"]['s'][i]=s
     if isBurst:
         H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
     else:
@@ -284,7 +298,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,T0=6.
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="../data/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+    dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     if type(br)==type(1):
@@ -298,12 +312,13 @@ if __name__ == '__main__':
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
-    binRawData.burstFilter(burst,5.1,4.1,3.1)
+    binRawData.burstFilter(burst,[5.1,4.1,3.1])
+    binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
-    FretAndLifetime(burst,(30,30),None,4.1,binLenT=sp,S=0.84)
+    FretAndLifetime(burst,(30,30),None,4.1,binLenT=sp,S=0.84,ESm='k')
     title= "bin:"+str(binTime)+"ms,photon# threshold:"+str(sp)
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)

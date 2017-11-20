@@ -20,9 +20,14 @@ from PyQt5 import QtWidgets
 
 
 
-def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True):
+def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
+    rESm=0
+    if ESm=='K' or ESm=='k':
+        rESm=0
+    else:
+        rESm=1
     lenburst=len(burst['chs']['All']['chl'])
     print("lenburst:",lenburst)
     burstFRET = array("d")#np.zeros(lenburst)
@@ -57,9 +62,9 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True):
                 bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
                 bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
             elif not isBurst:
-                bgAA= burst['chs']['AexAem']['mean'] + burst['chs']['AexAem']['std']#每个bin中的光子数
-                bgDD=burst['chs']['DexDem']['mean']
-                bgDA=burst['chs']['DexAem']['mean']
+                bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+                bgDD=burst['chs']['All']['DDmean']
+                bgDA=burst['chs']['All']['DAmean']
 
         nda=0#ch1
         ndd=0;#ch2
@@ -99,18 +104,25 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True):
         beta=1.42
         DexDirAem=0.08
         Dch2Ach=0.07
+        e=0;s=0
         if (nda+ndd)==0:
             burstFRET.append(1)
             burst['chs']['All']['e'][i]=1
         else:
-            e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)
+            if rESm==0:
+                e=(nda)/(nda+gamma*ndd)
+            else:                
+                e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)
             burstFRET.append(e)
             burst['chs']['All']['e'][i]=e
         if (nda+ndd+naa)==0:
             burstSeff.append(1)
             burst['chs']['All']['s'][i]=1
         else:
-            s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
+            if rESm==0:
+                s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+            else:
+                s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
                     ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
             burstSeff.append(s)
             burst['chs']['All']['s'][i]=s
@@ -148,20 +160,23 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="../data/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+    dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
-    burst=binRawData.binRawData(br,dbname,2)
-    binRawData.statsBins(burst)
-    binRawData.burstFilter(burst,5.1,4.1,3.1)
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False)
-
-    # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
-
-    # Getting back the objects:
-    #with open('objs.pickle') as f:  # Python 3: open(..., 'rb')
-        #obj0, obj1, obj2 = pickle.load(f)
+    binTime=2
+    dddaaaT=[5.1,4.1,3.1]
+    if len(sys.argv)>1:
+        binTime=float(sys.argv[1])      
+    burst=binRawData.binRawData(br,dbname,binTime)
+    binRawData.statsBins(burst,['All'])
+    binRawData.burstFilter(burst,dddaaaT)
+    binRawData.statsBins(burst,['All'])
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z')
+    savefn='/dataZ1/tmp/lineardiub/'+\
+        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+        str(dddaaaT)+".pickle"
+    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burstSeff, burstFRET,wei,H,burst], f,protocol=-1)
 
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
@@ -170,8 +185,17 @@ if __name__ == '__main__':
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
     fig,ax=plt.subplots()
+    title= "bin:"+str(binTime)+"ms"
     im=ax.imshow(H.transpose()[::-1], interpolation='sinc', \
-                       cmap=cm.jet,extent=[0,1,0,1])
-    # ax.set_title(title)
+                       cmap=cm.jet,\
+                       extent=[0,1,0,1])
+                    #    extent=[xedges[0],xedges[-1], yedges[0],yedges[-1]])
+    ax.set_title(title)
     fig.colorbar(im)                       
     plt.show()
+
+    # import seaborn as sns
+    # g = sns.JointGrid(x=burstFRET, y=burstSeff)
+
+    # g.plot_marginals(sns.distplot)
+    # g.plot_joint(plt.hist2d)    
