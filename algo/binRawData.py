@@ -360,15 +360,39 @@ def statsDelayTime(binData):
     histD,binD= np.histogram(d, 200)
     return [histA,histD],[binA,binD]
 def statsPhotonDiff(binData,chs=[]):
-    if len(chs)<1:
+    hist=[];bin=[]
+    if len(chs)<1:        
         for chl in binData['chs'].keys():
-            realStatsBins(binData,chl)
+            realStatsPhotonTagDiff(binData,chl)
+            histA,binA= np.histogram(binData['chs'][chl]['photonTagDiff'], 2000)                 
+            hist.append(histA);bin.append(binA)
     else:
         for chl in chs:
-            realStatsBins(binData,chl)
+            realStatsPhotonTagDiff(binData,chl)
+            histA,binA= np.histogram(binData['chs'][chl]['photonTagDiff'], 2000)                 
+            hist.append(histA);bin.append(binA)            
+    return hist,bin
+def realStatsPhotonTagDiff(binData,chl):
+    lenBins=len(binData['chs'][chl]['timetag'])
+    lastpt=0;lastA=np.zeros(1)#;rA=np.zeros(1)
+    rA=[]
+    for i in range(lenBins):
+        cpd=np.diff(binData['chs'][chl]['timetag'][i])
+        if len(binData['chs'][chl]['timetag'][i])>0:
+            if len(cpd)>0:
+                if lastpt>0 and i>0:
+                    lastA[0]=binData['chs'][chl]['timetag'][i][0]-lastpt
+                    cpd=np.concatenate((lastA,cpd),axis=0)
+            else:
+                cpd=np.zeros(1);cpd[0]=binData['chs'][chl]['timetag'][i][0]-lastpt
+            lastpt=binData['chs'][chl]['timetag'][i][-1]
+            # rA=np.concatenate(( rA,cpd),axis=0)
+            rA.extend(cpd.tolist() )
+    binData['chs'][chl]['photonTagDiff']=rA
 
 if __name__=='__main__':
     dbname="../data/rsv86c224c.sqlite"
+    dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400,T0=10.0,Tlen=200)
     binData=binRawData(br,dbname,2)
     # h,b=statsDelayTime(binData)
@@ -377,10 +401,17 @@ if __name__=='__main__':
     # from histBar_stacked import plotStackedHist
     # plotStackedHist(h,b)
     statsBins(binData)
-    burstFilter(binData,5.1,4.1,3.1)
+    burstFilter(binData,[5.1,4.1,3.1])
     print("DexDem photondiffMean(us)",\
     binData['chs']['DexDem']['photondiffMean']*\
             binData["SyncResolution"]*1e6)
+    
+    h,b=statsPhotonDiff(binData,['All','DexDem','DexAem','AexAem'])
+    import sys
+    sys.path.append('./ui')
+    from histBar_stacked import plotSubHist
+    plotSubHist(h,b)    
+    
 
     
     

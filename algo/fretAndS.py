@@ -163,20 +163,21 @@ if __name__ == '__main__':
     dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
-    binTime=2
-    dddaaaT=[5.1,4.1,3.1]
+    binTime=1
+    dddaaaT=[7.1,4.1,3.1,9.1]
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])      
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst,['All'])
-    binRawData.burstFilter(burst,dddaaaT)
-    binRawData.statsBins(burst,['All'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z')
     savefn='/dataZ1/tmp/lineardiub/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
         str(dddaaaT)+".pickle"
-    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-    #     pickle.dump([burstSeff, burstFRET,wei,H,burst], f,protocol=-1)
+    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([burst], f,protocol=-1)
+    
+    binRawData.burstFilter(burst,dddaaaT)
+    binRawData.statsBins(burst,['All'])
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z')
 
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
