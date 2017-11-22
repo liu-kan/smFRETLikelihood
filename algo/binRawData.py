@@ -390,18 +390,38 @@ def realStatsPhotonTagDiff(binData,chl):
             rA.extend(cpd.tolist() )
     binData['chs'][chl]['photonTagDiff']=rA
 
+def exportBin2PQdotDat(binData,path):
+    lenBins=len(binData['chs']['All']['timetag']);f=[]
+    if lenBins>0:
+        for i in range(1,5):
+            f.append(open(path+str(binData['chs']['All']['binMs'])+"_"+str(i)+".dat",'w'))
+    for i in range(lenBins):
+        time=i*(1e-3)*binData['chs']['All']['binMs']
+        unique, counts = np.unique(binData['chs']['All']['chl'][i], return_counts=True)
+        rchdict=dict(zip(unique, counts))
+        chdict=dict({1:0,2:0,3:0,4:0})
+        for k in rchdict.keys():
+            chdict[k]=rchdict[k]
+        for chk in range(1,4):
+            f[chk-1].write('%.3f\t%d'%(time,chdict[chk])+'\r\n')
+        f[3].write('%.3f\t%d'%(time,chdict[1]+chdict[2])+'\r\n')
+    for fi in f:
+        fi.close()
+
+
+
 if __name__=='__main__':
     dbname="../data/rsv86c224c.sqlite"
     dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400,T0=10.0,Tlen=200)
-    binData=binRawData(br,dbname,2)
+    br=BGrate.calcBGrate(dbname,20,400)#,T0=0.0,Tlen=200)
+    binData=binRawData(br,dbname,1)
     # h,b=statsDelayTime(binData)
     # import sys
     # sys.path.append('./ui')
     # from histBar_stacked import plotStackedHist
     # plotStackedHist(h,b)
     statsBins(binData)
-    burstFilter(binData,[5.1,4.1,3.1])
+    # burstFilter(binData,[5.1,4.1,3.1])
     print("DexDem photondiffMean(us)",\
     binData['chs']['DexDem']['photondiffMean']*\
             binData["SyncResolution"]*1e6)
@@ -411,6 +431,9 @@ if __name__=='__main__':
     sys.path.append('./ui')
     from histBar_stacked import plotSubHist
     plotSubHist(h,b)    
+    # savePath='/dataZ1/tmp/lineardiub/'+\
+    #     dbname.split('/')[-1].split('.')[-2]+'_'    
+    # exportBin2PQdotDat(binData,savePath)
     
 
     
