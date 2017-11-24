@@ -204,9 +204,65 @@ def burstFilter(binData,dddaaaT):
             #     else:
             #         winStAD.append((i,j))
             #     adT0=chAll['timetag'][i][j]    
+    groupDel(binData,toBeDel)
     addChAllf(binData,toBeDel)      
     binData['chs'].pop('All',None)
     binData['chs']['All']=binData['chs'].pop('Allf',None)
+def formBurst(binData,toBeDel):
+    toBeDel=sorted(toBeDel)   
+    allCh=binData['chs']['All']
+    lenBins=len(allCh['timetag'])
+    idxs=allCh['timetag'][0][0]
+    idxe=0;ib=0
+    allCh['burst']=[]
+    for i in range(lenBins):
+        if i!=toBeDel[ib][0]:
+            continue
+        lenbin=allCh['ntag'][i] 
+        for j in range(lenbin):     
+            if j==toBeDel[ib][1]:
+                if idxe<idxs:
+                    allCh['burst'].append(idxs)
+
+def groupDel(binData,toBeDel):
+    toBeDel=sorted(toBeDel) 
+    allCh=binData['chs']['All']
+    lenBins=len(allCh['timetag'])
+    ib=0;idx=[0,0]
+    group=[]
+    groupDel=[]
+    lendel=len(toBeDel)    
+    groupNum=[]
+    for i in range(lenBins):
+        lenbin=allCh['ntag'][i]      
+        if i!=toBeDel[ib][0]:
+            idx[0]=i
+            idx[1]=lenbin-1
+            continue
+        for j in range(lenbin):
+            if j!=toBeDel[ib][1]:
+                idx[0]=i
+                idx[1]=j
+            else:
+                if ib<lendel-1:
+                    ib=ib+1  
+                if len(groupDel)>0:
+                    if (groupDel[-1][0]==i and groupDel[-1][1]+1==j) or (groupDel[-1][0] \
+                        ==i-1 and groupDel[-1][1]==allCh['ntag'][i-1]-1 and j==0):
+                        groupDel.append((i,j))
+                    else:
+                        group.append(groupDel[0])
+                        group.append(groupDel[-1])
+                        groupNum.append(len(groupDel))
+                        groupDel=[(i,j)]
+                else:
+                    groupDel=[(i,j)]
+    print("groupDel#",len(group),"max g#",max(groupNum))
+
+               
+
+
+
 
 def addChAllf(binData,toBeDel):
     toBeDel=sorted(toBeDel)    
@@ -233,7 +289,7 @@ def addChAllf(binData,toBeDel):
         if i!=toBeDel[ib][0]:
             wtimetag=allCh['timetag'][i]
             wdtime=allCh['dtime'][i]
-            wchl=allCh['chl'][i]    
+            wchl=allCh['chl'][i] 
         else:        
             for j in range(lenbin):
                 if j!=toBeDel[ib][1]:
@@ -413,7 +469,7 @@ def exportBin2PQdotDat(binData,path):
 if __name__=='__main__':
     dbname="../data/rsv86c224c.sqlite"
     dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400)#,T0=0.0,Tlen=200)
+    br=BGrate.calcBGrate(dbname,20,400)#,T0=0.0,Tlen=600)
     binData=binRawData(br,dbname,1)
     # h,b=statsDelayTime(binData)
     # import sys
@@ -421,16 +477,20 @@ if __name__=='__main__':
     # from histBar_stacked import plotStackedHist
     # plotStackedHist(h,b)
     statsBins(binData)
-    # burstFilter(binData,[5.1,4.1,3.1])
+    burstFilter(binData,[5.1,4.1,3.1])
     print("DexDem photondiffMean(us)",\
     binData['chs']['DexDem']['photondiffMean']*\
             binData["SyncResolution"]*1e6)
-    
-    h,b=statsPhotonDiff(binData,['All','DexDem','DexAem','AexAem'])
-    import sys
-    sys.path.append('./ui')
-    from histBar_stacked import plotSubHist
-    plotSubHist(h,b)    
+    savefn='/dataZ1/tmp/lineardiub/'+\
+        dbname.split('/')[-1].split('.')[-2]+'_gd'+".pickle"
+    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burst], f,protocol=-1)
+
+    # h,b=statsPhotonDiff(binData,['All','DexDem','DexAem','AexAem'])
+    # import sys
+    # sys.path.append('./ui')
+    # from histBar_stacked import plotSubHist
+    # plotSubHist(h,b)    
     # savePath='/dataZ1/tmp/lineardiub/'+\
     #     dbname.split('/')[-1].split('.')[-2]+'_'    
     # exportBin2PQdotDat(binData,savePath)
