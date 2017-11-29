@@ -70,7 +70,7 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
                 now = time.time()
                 speed=(idx-TimeStart)*bgrate["SyncResolution"]/(now-start)
                 print('\r>>',"%2.5f"%(nowpercent*100),'% speed =',"%3.5f"%speed \
-                    ,"s/s", end='',flush=True)
+                    ,"s/s\t", end='',flush=True)
                 percent=nowpercent
                                      
             if (idx+binTag*span)>=TimeLast:
@@ -119,7 +119,7 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
         binData['chs'][ch]=dict({'timetag':timetag,'dtime':dtime,'chl':chl,\
                     'binMs':binMs ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime,\
                     'ntag':ntag})
-        print("\t readed ch ",ch)
+        print(" readed ch ",ch)
     if nowpercent<0.95:
         print("!!!!!span的合理范围 >= 7 !!!!!!!!")
     conn.close()
@@ -204,25 +204,71 @@ def burstFilter(binData,dddaaaT):
             #     else:
             #         winStAD.append((i,j))
             #     adT0=chAll['timetag'][i][j]    
-    groupDel(binData,toBeDel)
+    formBurst(binData,toBeDel)
     addChAllf(binData,toBeDel)      
     binData['chs'].pop('All',None)
     binData['chs']['All']=binData['chs'].pop('Allf',None)
 def formBurst(binData,toBeDel):
-    toBeDel=sorted(toBeDel)   
+    toBeDel=sorted(toBeDel)    
     allCh=binData['chs']['All']
+    binMs=allCh['binMs']
+    timetag=[]
+    dtime=[]
+    chl=[]
+    fretE=array("d")
+    fretS=array("d")
+    fretZ=array("d")
+    lifetime=array("d")      
+    ntag=array("l")  
     lenBins=len(allCh['timetag'])
-    idxs=allCh['timetag'][0][0]
-    idxe=0;ib=0
-    allCh['burst']=[]
+    ib=0
+    p100=1
+    lendel=len(toBeDel)
+    print(lendel)
+    wtimetag=[]
+    wdtime=[]
+    wchl=[]   
+    burstTag=[]   
+    i=0
     for i in range(lenBins):
+        lenbin=allCh['ntag'][i]   
         if i!=toBeDel[ib][0]:
-            continue
-        lenbin=allCh['ntag'][i] 
-        for j in range(lenbin):     
-            if j==toBeDel[ib][1]:
-                if idxe<idxs:
-                    allCh['burst'].append(idxs)
+            wtimetag.extend( allCh['timetag'][i])
+            wdtime.extend(allCh['dtime'][i])
+            wchl.extend(allCh['chl'][i]) 
+        else:    
+            for j in range(lenbin):
+                if j!=toBeDel[ib][1]:
+                    wtimetag.append(allCh['timetag'][i][j])
+                    wdtime.append(allCh['dtime'][i][j])
+                    wchl.append(allCh['chl'][i][j])
+                else:
+                    if ib<lendel-1:
+                        ib=ib+1    
+                        nntag=len(wtimetag)
+                        if nntag>0:
+                            timetag.append(wtimetag)
+                            dtime.append(wdtime)
+                            chl.append(wchl)
+                            fretE.append(allCh['e'][i])
+                            fretZ.append(allCh['z'][i])
+                            fretS.append(allCh['s'][i])
+                            ntag.append(nntag)
+                            lifetime.append(allCh['lifetime'][i])   
+                            burstTag.append((wtimetag[0],wtimetag[-1]))  
+                            wtimetag=[]
+                            wdtime=[]
+                            wchl=[]                                                   
+                            
+        now=100.0*i/lenBins
+        if now>p100:
+            print("\r>> add finished:","%2.5f" % p100,'%', end='',flush=True)
+            p100=now+5
+    binData['chs']['AllBurst']=dict({'timetag':timetag,'dtime':dtime,'chl':chl,\
+                    'binMs':binMs ,'e':fretE,'s':fretS,'z':fretZ,'lifetime':lifetime,\
+                    'ntag':ntag,'burstTag':burstTag})
+    print()
+
 
 def groupDel(binData,toBeDel):
     toBeDel=sorted(toBeDel) 
@@ -259,11 +305,6 @@ def groupDel(binData,toBeDel):
                     groupDel=[(i,j)]
     print("groupDel#",len(group),"max g#",max(groupNum))
 
-               
-
-
-
-
 def addChAllf(binData,toBeDel):
     toBeDel=sorted(toBeDel)    
     allCh=binData['chs']['All']
@@ -298,7 +339,7 @@ def addChAllf(binData,toBeDel):
                     wchl.append(allCh['chl'][i][j])
                 else:
                     if ib<lendel-1:
-                        ib=ib+1                
+                        ib=ib+1            
         nntag=len(wchl)
         if nntag>0:
             timetag.append(wtimetag)

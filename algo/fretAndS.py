@@ -20,7 +20,7 @@ from PyQt5 import QtWidgets
 
 
 
-def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
+def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k',chl='All'):
     #conn = sqlite3.connect(dbname)
     #c = conn.cursor()
     rESm=0
@@ -28,20 +28,20 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
         rESm=0
     else:
         rESm=1
-    lenburst=len(burst['chs']['All']['chl'])
+    lenburst=len(burst['chs'][chl]['chl'])
     print("lenburst:",lenburst)
     burstFRET = array("d")#np.zeros(lenburst)
     burstSeff = array("d")#np.zeros(lenburst)
     wei = array("d")#np.zeros(lenburst)
     #fw = np.zeros(lenburst)
     isBurst=False
-    if 'burstW' in burst['chs']['All']:
+    if 'burstW' in burst['chs'][chl]:
         isBurst=True
     for i in range(lenburst):
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
 #                  (burst['chs']['All'].stag[i],burst['chs']['All'].etag[i]))
 #        data=c.fetchall()
-        data=burst['chs']['All']['chl'][i]
+        data=burst['chs'][chl]['chl'][i]
         w=len(data)
         if type(w)!=type(1):
             continue
@@ -52,19 +52,21 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
         bgDA=0  
         if bgfilter:
             if bgrate!=None:
-                tt=burst['chs']['All']['timetag'][i]
+                tt=burst['chs'][chl]['timetag'][i]
                 backgT=0
                 if isBurst:
-                    backgT=burst['chs']['All']['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+                    backgT=burst['chs'][chl]['burstW'][i]/2+tt[0]*\
+                        bgrate["SyncResolution"] #中点时刻
                 else:
-                    backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]                        
+                    backgT=burst['chs'][chl]['binMs']*0.5e-3+tt[0]*\
+                        bgrate["SyncResolution"]                        
                 bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
                 bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
                 bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
             elif not isBurst:
-                bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-                bgDD=burst['chs']['All']['DDmean']
-                bgDA=burst['chs']['All']['DAmean']
+                bgAA= burst['chs'][chl]['AAmean'] + burst['chs'][chl]['AAstd']#每个bin中的光子数
+                bgDD=burst['chs'][chl]['DDmean']
+                bgDA=burst['chs'][chl]['DAmean']
 
         nda=0#ch1
         ndd=0;#ch2
@@ -82,16 +84,16 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
         if bgfilter:
             if bgrate!=None:
                 if isBurst:
-                    naa=naa-bgAA*burst['chs']['All']['burstW'][i]
-                    ndd=ndd-bgDD*burst['chs']['All']['burstW'][i]
-                    nda=nda-bgDA*burst['chs']['All']['burstW'][i]
-                    if naa< bgAA*burst['chs']['All']['burstW'][i] or ndd<0 or nda<0:
+                    naa=naa-bgAA*burst['chs'][chl]['burstW'][i]
+                    ndd=ndd-bgDD*burst['chs'][chl]['burstW'][i]
+                    nda=nda-bgDA*burst['chs'][chl]['burstW'][i]
+                    if naa< bgAA*burst['chs'][chl]['burstW'][i] or ndd<0 or nda<0:
                         continue
                 else:
-                    naa=naa-bgAA*burst['chs']['All']['binMs']*1e-3
-                    ndd=ndd-bgDD*burst['chs']['All']['binMs']*1e-3
-                    nda=nda-bgDA*burst['chs']['All']['binMs']*1e-3
-                    if naa< bgAA*burst['chs']['All']['binMs']*1e-3 or ndd<0 or nda<0:
+                    naa=naa-bgAA*burst['chs'][chl]['binMs']*1e-3
+                    ndd=ndd-bgDD*burst['chs'][chl]['binMs']*1e-3
+                    nda=nda-bgDA*burst['chs'][chl]['binMs']*1e-3
+                    if naa< bgAA*burst['chs'][chl]['binMs']*1e-3 or ndd<0 or nda<0:
                         continue 
             elif not isBurst:
                 naa=naa-bgAA
@@ -107,17 +109,17 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
         e=0;s=0
         if (nda+ndd)==0:
             burstFRET.append(1)
-            burst['chs']['All']['e'][i]=1
+            burst['chs'][chl]['e'][i]=1
         else:
             if rESm==0:
                 e=(nda)/(nda+gamma*ndd)
             else:                
                 e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)
             burstFRET.append(e)
-            burst['chs']['All']['e'][i]=e
+            burst['chs'][chl]['e'][i]=e
         if (nda+ndd+naa)==0:
             burstSeff.append(1)
-            burst['chs']['All']['s'][i]=1
+            burst['chs'][chl]['s'][i]=1
         else:
             if rESm==0:
                 s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
@@ -125,7 +127,7 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k'):
                 s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
                     ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
             burstSeff.append(s)
-            burst['chs']['All']['s'][i]=s
+            burst['chs'][chl]['s'][i]=s
 
     H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins, weights=wei)
     #conn.close()
@@ -176,8 +178,9 @@ if __name__ == '__main__':
         pickle.dump([burst], f,protocol=-1)
     
     binRawData.burstFilter(burst,dddaaaT)
-    binRawData.statsBins(burst,['All'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z')
+    binRawData.statsBins(burst,['AllBurst'])
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
+                ,"AllBurst")
 
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
