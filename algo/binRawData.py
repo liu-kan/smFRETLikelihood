@@ -165,8 +165,7 @@ def burstFilter(binData,dddaaaT):
                     如果下一个点的间隔也大于均值这个点就会被删除，如果不大于就继续判断
                     '''
                     if lenWin>0 and lenWin<fDA:
-                        for k in winStDA:
-                            toBeDel.append(k)
+                        toBeDel.extend(winStDA)
                     winStDA=[(i,j)]
                 else:
                     winStDA.append((i,j))
@@ -176,8 +175,7 @@ def burstFilter(binData,dddaaaT):
                 if ddDetaT>=binData['chs']['All']['photonDDdiffMean']:
                     lenWin=len(winStDD)
                     if lenWin>0 and lenWin<fDD:
-                        for k in winStDD:
-                            toBeDel.append(k)
+                        toBeDel.extend(winStDD)
                     winStDD=[(i,j)]
                 else:
                     winStDD.append((i,j))
@@ -187,8 +185,7 @@ def burstFilter(binData,dddaaaT):
                 if aaDetaT>=binData['chs']['All']['photonAAdiffMean']:
                     lenWin=len(winStAA)
                     if lenWin>0 and lenWin<fAA:
-                        for k in winStAA:
-                            toBeDel.append(k)
+                        toBeDel.extend(winStAA)
                     winStAA=[(i,j)]
                 else:
                     winStAA.append((i,j))
@@ -437,6 +434,7 @@ def realStatsBins(binData,chl):
         binDataCh['photonDDdiffMean']=dm[1]
         binDataCh['photonAAdiffMean']=dm[2]
         binDataCh['photonADdiffMean']=dm[3]        
+        print("AAmean",binDataCh['AAmean'])
     binDataCh['photondiffMean']=(etag-stag)/np.sum(sumBin)
     
 def statsDelayTime(binData):
@@ -518,7 +516,7 @@ if __name__=='__main__':
     # from histBar_stacked import plotStackedHist
     # plotStackedHist(h,b)
     statsBins(binData)
-    burstFilter(binData,[5.1,4.1,3.1])
+    # burstFilter(binData,[5.1,4.1,3.1])
     print("DexDem photondiffMean(us)",\
     binData['chs']['DexDem']['photondiffMean']*\
             binData["SyncResolution"]*1e6)
