@@ -177,10 +177,10 @@ if __name__ == '__main__':
     with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
         pickle.dump([burst], f,protocol=-1)
     
-    binRawData.burstFilter(burst,dddaaaT)
-    binRawData.statsBins(burst,['AllBurst'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
-                ,"AllBurst")
+    # binRawData.burstFilter(burst,dddaaaT)
+    # binRawData.statsBins(burst,['AllBurst'])
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z'\
+                ,"All")
 
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
