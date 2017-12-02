@@ -34,6 +34,9 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k',chl='All'):
     burstSeff = array("d")#np.zeros(lenburst)
     wei = array("d")#np.zeros(lenburst)
     #fw = np.zeros(lenburst)
+    markDel=False
+    if 'markDel' in burst['chs']["All"]:
+            markDel=True    
     isBurst=False
     if 'burstW' in burst['chs'][chl]:
         isBurst=True
@@ -41,6 +44,9 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k',chl='All'):
 #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
 #                  (burst['chs']['All'].stag[i],burst['chs']['All'].etag[i]))
 #        data=c.fetchall()
+        if markDel:
+            if burst['chs']['All']['markDel'][i]:
+                continue
         data=burst['chs'][chl]['chl'][i]
         w=len(data)
         if type(w)!=type(1):
@@ -129,7 +135,7 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k',chl='All'):
             burstSeff.append(s)
             burst['chs'][chl]['s'][i]=s
 
-    H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins, weights=wei)
+    H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins)#, weights=wei)
     #conn.close()
     #fig, ax = plt.subplots()
     #plt.subplots_adjust(bottom=0.15)
@@ -162,7 +168,7 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+    dbname="/Users/lp1/liuk/proj/data/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     binTime=1
@@ -174,28 +180,30 @@ if __name__ == '__main__':
     savefn='/dataZ1/tmp/lineardiub/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
         str(dddaaaT)+".pickle"
-    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([burst], f,protocol=-1)
+    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burst], f,protocol=-1)
     
-    # binRawData.burstFilter(burst,dddaaaT)
+    binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst,['AllBurst'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z'\
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
                 ,"All")
 
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
     # mySW.show()
     # sys.exit(app.exec_())
+    title= "bin:"+str(binTime)+"ms"
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
-    fig,ax=plt.subplots()
-    title= "bin:"+str(binTime)+"ms"
-    im=ax.imshow(H.transpose()[::-1], interpolation='sinc', \
-                       cmap=cm.jet,\
-                       extent=[0,1,0,1])
-                    #    extent=[xedges[0],xedges[-1], yedges[0],yedges[-1]])
-    ax.set_title(title)
+    fig,ax=plt.subplots(2,1)
+    im=ax[1].imshow(H.transpose()[::-1], interpolation='sinc', \
+                       cmap=cm.jet,extent=[0,1,0,1])
+    # ax[1].set_title(title)
     fig.colorbar(im)                       
+    
+    # import matplotlib.pyplot as plt
+    ax[0].hist(burstFRET, bins=40)#,weights=wei) 
+    plt.title(title)
     plt.show()
 
     # import seaborn as sns

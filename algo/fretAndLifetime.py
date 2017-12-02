@@ -19,7 +19,7 @@ import pickle
 
 #burstD如果是浮点数，则为Donor only的TauD，否则为Donor only的提取的burst
 def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
-        T0=6.8695,binLenT=30,S=0,ESm='k'):
+        T0=6.8695,binLenT=30,S=0,ESm='k',byBurst=False):
 
     rESm=0
     if ESm=='K' or ESm=='k':
@@ -118,153 +118,190 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
     burstSeff = array("d")#np.zeros(lenburst)
     burstTau = array("d")#np.zeros(lenburst)
     wei = array("d")#np.zeros(lenburst)
-    #fw = np.zeros(lenburst)
-
-    '''     
-    i=1000
-    data=burst["All"]['chl'][i]
-    w=len(data)
-    print(w)
-    nda=0#ch1
-    ndd=0;#ch2
-    naa=0;#ch3
-    nad=0#ch4
-    histdtime=array("d")
-    for idxd in range(w):
-        d=data[idxd]
-        dtime=burst["All"]['dtime'][i][idxd]*burst["DelayResolution"]
-        if d==1:
-            nda+=1
-        elif d==2:
-            ndd+=1
-            histdtime.append(dtime)
-        elif d==3:
-            naa+=1
-        elif d==4:
-            nad+=1
-            #sumdtimed+=dtime
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    n, bins, patches = plt.hist(histdtime, 100,  facecolor='g', alpha=0.75)
-    print(len(histdtime))
-    plt.legend(loc='best')
-    plt.show() 
-    '''
+    markDel=False
+    if 'markDel' in burst['chs']["All"]:
+            markDel=True
+            print("markDel")
     isBurst=False
     if 'burstW' in burst['chs']["All"]:
         isBurst=True
-    for i in range(lenburst):
-#        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
-#                  (burst["All"].stag[i],burst["All"].etag[i]))
-#        data=c.fetchall()
-        if burst['chs']['All']['s'][i]>0.83 or burst['chs']['All']['s'][i]<0.11:
-            continue
-        data=burst['chs']["All"]['chl'][i]
-        w=burst['chs']["All"]['ntag'][i]
-        if type(w)!=type(1):
-            continue
-        if len(data)<1:
-            continue
-        bgAA=0
-        bgDD=0
-        bgDA=0  
-        if bgrate!=None:
-            tt=burst['chs']["All"]['timetag'][i]
-            
-            backgT=0
-            if isBurst:
-                backgT=burst['chs']["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
-            else:
-                backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]
-            bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
-            bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
-            bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
-        elif not isBurst:
-            bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-            bgDD=burst['chs']['All']['DDmean']
-            bgDA=burst['chs']['All']['DAmean']
-
-        #print(w)
-        nda=0#ch1
-        ndd=0;#ch2
-        naa=0;#ch3
-        nad=0#ch4
-        sumdtimed=array("d")
-        #sumdtimea=array("d")
-        for idxd in range(w):
-            d=data[idxd]            
-            if d==1:
-                nda+=1
-                # detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
-                # if detime>=0:
-                #     sumdtimea.append(detime)                
-            elif d==2:
-                ndd+=1
-                detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
-                if detime>=0:
-                    sumdtimed.append(detime)
-            elif d==3:
-                naa+=1
-            elif d==4:
-                nad+=1
-                #sumdtimed+=dtime
-        if len(sumdtimed)<1:
-            continue
-        Tau=np.mean(sumdtimed)/(Tau_D)        
-        if bgrate!=None:
-            if isBurst:
-                naa=naa-bgAA*burst['chs']["All"]['burstW'][i]
-                ndd=ndd-bgDD*burst['chs']["All"]['burstW'][i]
-                nda=nda-bgDA*burst['chs']["All"]['burstW'][i]
-                if naa< bgAA*burst['chs']["All"]['burstW'][i] or ndd<0 or nda<0:
-                    continue    
-            else:
-                naa=naa-bgAA*burst['chs']["All"]['binMs']*1e-3
-                ndd=ndd-bgDD*burst['chs']["All"]['binMs']*1e-3
-                nda=nda-bgDA*burst['chs']["All"]['binMs']*1e-3
-                if naa< bgAA*burst['chs']["All"]['binMs']*1e-3 or ndd<0 or nda<0:
-                    continue                       
-        elif not isBurst:
-            naa=naa-bgAA
-            ndd=ndd-bgDD
-            nda=nda-bgDA
-            if naa< bgAA or ndd<0 or nda<0:
-                continue            
-
-        if Tau<=1 and w>=binLenT:
-            wei.append(w)
-            burstTau.append(Tau)
-            burst['chs']["All"]['lifetime'][i]=Tau        
-            gamma=0.31        
-            beta=1.42
-            DexDirAem=0.08
-            Dch2Ach=0.07 
-            e=0;s=0           
-            if (nda+ndd)==0:
-                burstFRET.append(1)
-                burst['chs']["All"]['e'][i]=1
-            else:
-                if rESm==0:
-                    e=(nda)/(nda+gamma*ndd)
-                else:                
-                    e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-\
-                        Dch2Ach)*ndd)                
-                burstFRET.append(e)
-                burst['chs']["All"]['e'][i]=e
-            if (nda+ndd+naa)==0:
-                burstSeff.append(1)
-                burst['chs']["All"]['s'][i]=1
-            else:
-                if rESm==0:
-                    s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+        print("isBurst")
+    if not byBurst:
+        for i in range(lenburst):
+    #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
+    #                  (burst["All"].stag[i],burst["All"].etag[i]))
+    #        data=c.fetchall()
+            if markDel:
+                if burst['chs']['All']['markDel'][i]:
+                    continue
+            # if burst['chs']['All']['s'][i]>0.83 or burst['chs']['All']['s'][i]<0.11:
+            #     continue
+            data=burst['chs']["All"]['chl'][i]
+            w=burst['chs']["All"]['ntag'][i]
+            if type(w)!=type(1):
+                continue
+            if len(data)<1:
+                continue
+            bgAA=0
+            bgDD=0
+            bgDA=0  
+            if bgrate!=None:
+                tt=burst['chs']["All"]['timetag'][i]
+                
+                backgT=0
+                if isBurst:
+                    backgT=burst['chs']["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
                 else:
-                    s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
-                        ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
-                burstSeff.append(s)
-                burst['chs']["All"]['s'][i]=s
+                    backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]
+                bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
+                bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
+                bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
+            elif not isBurst:
+                bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+                bgDD=burst['chs']['All']['DDmean']
+                bgDA=burst['chs']['All']['DAmean']
+
+            #print(w)
+            nda=0#ch1
+            ndd=0;#ch2
+            naa=0;#ch3
+            nad=0#ch4
+            sumdtimed=array("d")
+            #sumdtimea=array("d")
+            for idxd in range(w):
+                d=data[idxd]            
+                if d==1:
+                    nda+=1
+                    # detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
+                    # if detime>=0:
+                    #     sumdtimea.append(detime)                
+                elif d==2:
+                    ndd+=1
+                    detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
+                    if detime>=0:
+                        sumdtimed.append(detime)
+                elif d==3:
+                    naa+=1
+                elif d==4:
+                    nad+=1
+                    #sumdtimed+=dtime
+            if len(sumdtimed)<1:
+                continue
+            Tau=np.mean(sumdtimed)/(Tau_D)        
+            if bgrate!=None:
+                if isBurst:
+                    naa=naa-bgAA*burst['chs']["All"]['burstW'][i]
+                    ndd=ndd-bgDD*burst['chs']["All"]['burstW'][i]
+                    nda=nda-bgDA*burst['chs']["All"]['burstW'][i]
+                    if naa< bgAA*burst['chs']["All"]['burstW'][i] or ndd<0 or nda<0:
+                        continue    
+                else:
+                    naa=naa-bgAA*burst['chs']["All"]['binMs']*1e-3
+                    ndd=ndd-bgDD*burst['chs']["All"]['binMs']*1e-3
+                    nda=nda-bgDA*burst['chs']["All"]['binMs']*1e-3
+                    if naa< bgAA*burst['chs']["All"]['binMs']*1e-3 or ndd<0 or nda<0:
+                        continue                       
+            elif not isBurst:
+                naa=naa-bgAA
+                ndd=ndd-bgDD
+                nda=nda-bgDA
+                if naa< bgAA or ndd<0 or nda<0:
+                    continue            
+
+            if Tau<=1 and w>=binLenT:
+                wei.append(w)
+                burstTau.append(Tau)
+                burst['chs']["All"]['lifetime'][i]=Tau        
+                gamma=0.31        
+                beta=1.42
+                DexDirAem=0.08
+                Dch2Ach=0.07 
+                e=0;s=0           
+                if (nda+ndd)==0:
+                    burstFRET.append(1)
+                    burst['chs']["All"]['e'][i]=1
+                else:
+                    if rESm==0:
+                        e=(nda)/(nda+gamma*ndd)
+                    else:                
+                        e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-\
+                            Dch2Ach)*ndd)                
+                    burstFRET.append(e)
+                    burst['chs']["All"]['e'][i]=e
+                if (nda+ndd+naa)==0:
+                    burstSeff.append(1)
+                    burst['chs']["All"]['s'][i]=1
+                else:
+                    if rESm==0:
+                        s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+                    else:
+                        s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
+                            ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
+                    burstSeff.append(s)
+                    burst['chs']["All"]['s'][i]=s
+    else:
+        lenburst=len(burst['chs']['All']['burst'])
+        for j in range(lenburst):
+            burstNumTh=burst['chs']['All']['burst'][j]
+            data=[]
+            sumw==array("l")   
+            nda=0#ch1
+            ndd=0;#ch2
+            naa=0;#ch3
+            nad=0#ch4
+            sumdtimed=array("d")            
+            for i in range(burstNumTh[0],burstNumTh[1]+1):
+                w=burst['chs']["All"]['ntag'][i]
+                sumw.append(w)
+                for idxd in range(w):
+                    d=burst['chs']["All"]['chl'][idxd]        
+                    if d==1:
+                        nda+=1            
+                    elif d==2:
+                        ndd+=1
+                        detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
+                        if detime>=0:
+                            sumdtimed.append(detime)
+                    elif d==3:
+                        naa+=1
+                    elif d==4:
+                        nad+=1
+                        #sumdtimed+=dtime
+            if len(sumdtimed)<1:
+                continue
+            Tau=np.mean(sumdtimed)/(Tau_D)        
+            if True:#Tau<=1 and w>=binLenT:
+                wei.append(np.sum(sumw))
+                burstTau.append(Tau)
+                burst['chs']["All"]['lifetime'][i]=Tau        
+                gamma=0.31        
+                beta=1.42
+                DexDirAem=0.08
+                Dch2Ach=0.07 
+                e=0;s=0           
+                if (nda+ndd)==0:
+                    burstFRET.append(1)             
+                else:
+                    if rESm==0:
+                        e=(nda)/(nda+gamma*ndd)
+                    else:                
+                        e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-\
+                            Dch2Ach)*ndd)                
+                    burstFRET.append(e)
+                if (nda+ndd+naa)==0:
+                    burstSeff.append(1)                
+                else:
+                    if rESm==0:
+                        s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
+                    else:
+                        s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
+                            ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
+                    burstSeff.append(s)
+                                      
     if isBurst:
         H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins, weights=wei)
     else:
+        print("no wei")
         H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins)
     #print(burstTau[0:100])
     #conn.close()
@@ -298,12 +335,13 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+    dbname="/Users/lp1/liuk/proj/data/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400)
+    br=BGrate.calcBGrate(dbname,20,400)#,30,500)
     if type(br)==type(1):
         exit(-1)
     binTime=2
+    dddaaaT=[7.1,4.1,3.1,9.1]
     sp=1
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])
@@ -312,13 +350,13 @@ if __name__ == '__main__':
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
-    binRawData.burstFilter(burst,[5.1,4.1,3.1])
-    binRawData.statsBins(burst)
+    binRawData.burstFilterByBin(burst,dddaaaT)
+    # binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
-    FretAndLifetime(burst,(30,30),None,4.1,binLenT=sp,S=0.84,ESm='k')
+    FretAndLifetime(burst,(30,30),None,4.1,binLenT=sp,S=0.84,ESm='z',byBurst=True)
     title= "bin:"+str(binTime)+"ms,photon# threshold:"+str(sp)
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
@@ -333,14 +371,13 @@ if __name__ == '__main__':
     
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
-    fig,ax=plt.subplots()
-    im=ax.imshow(H.transpose()[::-1], interpolation='sinc', \
-                       cmap=cm.jet,extent=[0,1,0,1])
-    ax.set_title(title)
+    fig,ax=plt.subplots(2,1)
+    im=ax[1].imshow(H.transpose()[::-1], interpolation='sinc', \
+                       cmap=cm.jet,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]])
+    # ax[1].set_title(title)
     fig.colorbar(im)                       
-    plt.show()
     
     # import matplotlib.pyplot as plt
-    # plt.hist(burstFRET, bins=50,weights=wei) 
-    # plt.title(title)
-    # plt.show()
+    ax[0].hist(burstFRET, bins=40) 
+    plt.title(title)
+    plt.show()
