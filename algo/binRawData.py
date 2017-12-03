@@ -141,9 +141,9 @@ def burstFilterByBin(binData,dddaaaT,burstPhotonNum=30):
     fDD=dddaaaT[0];fDA=dddaaaT[1];fAA=dddaaaT[2]
     T0=0
     fDex=dddaaaT[3]
-    daT0=0;winStDA=[]
-    ddT0=0;winStDD=[]
-    aaT0=0;winStAA=[]
+    winStDA=[]
+    winStDD=[]
+    winStAA=[]
     chAll=binData['chs']['All']
     lenbin=len(chAll['ntag'])
     toBeDel=np.ndarray(lenbin,dtype=np.int32)
@@ -167,6 +167,9 @@ def burstFilterByBin(binData,dddaaaT,burstPhotonNum=30):
             toBeDel[i]=True
         else:
             toBeDel[i]=False
+        winStDA=[]
+        winStDD=[]
+        winStAA=[]
     burst=[]
     burstData=[]
     for i in range(lenbin):
@@ -179,6 +182,7 @@ def burstFilterByBin(binData,dddaaaT,burstPhotonNum=30):
                 else:
                     burstData.append((burst[0],burst[-1]))
             burst=[]
+    print("toBeDel",np.sum(toBeDel))
     chAll['markDel']=toBeDel
     chAll['burst']=burstData
 

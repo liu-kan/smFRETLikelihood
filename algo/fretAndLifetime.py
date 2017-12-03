@@ -243,8 +243,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
         lenburst=len(burst['chs']['All']['burst'])
         for j in range(lenburst):
             burstNumTh=burst['chs']['All']['burst'][j]
+            # print(burstNumTh)
             data=[]
-            sumw==array("l")   
+            sumw=array("l")   
             nda=0#ch1
             ndd=0;#ch2
             naa=0;#ch3
@@ -273,7 +274,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             if True:#Tau<=1 and w>=binLenT:
                 wei.append(np.sum(sumw))
                 burstTau.append(Tau)
-                burst['chs']["All"]['lifetime'][i]=Tau        
+                # burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.31        
                 beta=1.42
                 DexDirAem=0.08
@@ -340,7 +341,7 @@ if __name__ == '__main__':
     br=BGrate.calcBGrate(dbname,20,400)#,30,500)
     if type(br)==type(1):
         exit(-1)
-    binTime=2
+    binTime=1
     dddaaaT=[7.1,4.1,3.1,9.1]
     sp=1
     if len(sys.argv)>1:
@@ -356,8 +357,8 @@ if __name__ == '__main__':
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
-    FretAndLifetime(burst,(30,30),None,4.1,binLenT=sp,S=0.84,ESm='z',byBurst=True)
-    title= "bin:"+str(binTime)+"ms,photon# threshold:"+str(sp)
+    FretAndLifetime(burst,(37,37),None,4.1,binLenT=sp,S=0.84,ESm='z',byBurst=False)
+    title= "bin:"+str(binTime)+"ms,E-Lifetime"
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
 

@@ -134,7 +134,6 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k',chl='All'):
                     ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
             burstSeff.append(s)
             burst['chs'][chl]['s'][i]=s
-
     H, xedges, yedges = np.histogram2d(burstFRET,burstSeff, bins=bins)#, weights=wei)
     #conn.close()
     #fig, ax = plt.subplots()
@@ -169,7 +168,7 @@ if __name__ == '__main__':
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
     dbname="/Users/lp1/liuk/proj/data/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400)
+    br=BGrate.calcBGrate(dbname,20,400,30,60)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     binTime=1
     dddaaaT=[7.1,4.1,3.1,9.1]
@@ -185,25 +184,25 @@ if __name__ == '__main__':
     
     binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst,['AllBurst'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z'\
                 ,"All")
 
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
     # mySW.show()
     # sys.exit(app.exec_())
-    title= "bin:"+str(binTime)+"ms"
+    title= "bin:"+str(binTime)+"ms,E-S"
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
     fig,ax=plt.subplots(2,1)
     im=ax[1].imshow(H.transpose()[::-1], interpolation='sinc', \
-                       cmap=cm.jet,extent=[0,1,0,1])
+                       cmap=cm.jet,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]])
     # ax[1].set_title(title)
     fig.colorbar(im)                       
     
     # import matplotlib.pyplot as plt
     ax[0].hist(burstFRET, bins=40)#,weights=wei) 
-    plt.title(title)
+    ax[0].set_title(title)
     plt.show()
 
     # import seaborn as sns
