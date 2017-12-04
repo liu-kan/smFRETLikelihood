@@ -45,7 +45,7 @@ def FretAndS(burst,bins=(25,25),bgrate=None,bgfilter=True,ESm='k',chl='All'):
 #                  (burst['chs']['All'].stag[i],burst['chs']['All'].etag[i]))
 #        data=c.fetchall()
         if markDel:
-            if burst['chs']['All']['markDel'][i]:
+            if burst['chs'][chl]['markDel'][i]:
                 continue
         data=burst['chs'][chl]['chl'][i]
         w=len(data)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
     dbname="/Users/lp1/liuk/proj/data/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400,30,60)
+    br=BGrate.calcBGrate(dbname,20,400)#,30,60)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     binTime=1
     dddaaaT=[7.1,4.1,3.1,9.1]
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     
     binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst,['AllBurst'])
-    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,True,'z'\
+    burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
                 ,"All")
 
     # app = QtWidgets.QApplication(sys.argv)

@@ -98,7 +98,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
     print("lenburst:",lenburst)
     if S>0:
         if burst['chs']['All']['s'][0]==-1:
-            fretAndS.FretAndS(burst,bins,bgrate,False)
+            fretAndS.FretAndS(burst,bins,bgrate,False,ESm)
             print('S calc:',S)
     sumdtimed0=array("d")
     for i in range(lenburst):
@@ -112,6 +112,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                         sumdtimed0.append(detime)   
     print(len(sumdtimed0))
     Tau_D=np.mean(sumdtimed0)
+    Tau_D=4.3e-9
     print('Tau_D:',Tau_D)
 
     burstFRET = array("d")#np.zeros(lenburst)
@@ -127,6 +128,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
         isBurst=True
         print("isBurst")
     if not byBurst:
+        print('no byBurst')
         for i in range(lenburst):
     #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
     #                  (burst["All"].stag[i],burst["All"].etag[i]))
@@ -137,7 +139,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             # if burst['chs']['All']['s'][i]>0.83 or burst['chs']['All']['s'][i]<0.11:
             #     continue
             data=burst['chs']["All"]['chl'][i]
-            w=burst['chs']["All"]['ntag'][i]
+            w=len(data)
             if type(w)!=type(1):
                 continue
             if len(data)<1:
@@ -178,7 +180,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 elif d==2:
                     ndd+=1
                     detime=burst['chs']["All"]['dtime'][i][idxd]*burst["DelayResolution"]-T0*1e-9
-                    if detime>=0:
+                    if True:#detime>=0:
                         sumdtimed.append(detime)
                 elif d==3:
                     naa+=1
@@ -186,8 +188,9 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nad+=1
                     #sumdtimed+=dtime
             if len(sumdtimed)<1:
-                continue
-            Tau=np.mean(sumdtimed)/(Tau_D)        
+                Tau=0
+            else:            
+                Tau=np.mean(sumdtimed)/(Tau_D)        
             if bgrate!=None:
                 if isBurst:
                     naa=naa-bgAA*burst['chs']["All"]['burstW'][i]
@@ -212,7 +215,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 wei.append(w)
                 burstTau.append(Tau)
                 burst['chs']["All"]['lifetime'][i]=Tau        
-                gamma=0.31        
+                gamma=0.34   
                 beta=1.42
                 DexDirAem=0.08
                 Dch2Ach=0.07 
@@ -343,7 +346,7 @@ if __name__ == '__main__':
         exit(-1)
     binTime=1
     dddaaaT=[7.1,4.1,3.1,9.1]
-    sp=1
+    sp=0
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])
     if len(sys.argv)>2:
@@ -357,7 +360,7 @@ if __name__ == '__main__':
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
-    FretAndLifetime(burst,(37,37),None,4.1,binLenT=sp,S=0.84,ESm='z',byBurst=False)
+    FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
