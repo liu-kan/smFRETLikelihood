@@ -19,7 +19,7 @@ import pickle
 
 #burstD如果是浮点数，则为Donor only的TauD，否则为Donor only的提取的burst
 def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
-        T0=6.8695,binLenT=30,S=0,ESm='k',byBurst=False):
+        T0=6.8695,binLenT=30,S=0,ESm='k',byBurst=False,bgfilter=True):
 
     rESm=0
     if ESm=='K' or ESm=='k':
@@ -112,7 +112,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                         sumdtimed0.append(detime)   
     print(len(sumdtimed0))
     Tau_D=np.mean(sumdtimed0)
-    Tau_D=4.3e-9
+    Tau_D=4.2e-9
     print('Tau_D:',Tau_D)
 
     burstFRET = array("d")#np.zeros(lenburst)
@@ -147,21 +147,22 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             bgAA=0
             bgDD=0
             bgDA=0  
-            if bgrate!=None:
-                tt=burst['chs']["All"]['timetag'][i]
-                
-                backgT=0
-                if isBurst:
-                    backgT=burst['chs']["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
-                else:
-                    backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]
-                bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
-                bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
-                bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
-            elif not isBurst:
-                bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-                bgDD=burst['chs']['All']['DDmean']
-                bgDA=burst['chs']['All']['DAmean']
+            if bgfilter:
+                if bgrate!=None:
+                    tt=burst['chs']["All"]['timetag'][i]
+                    
+                    backgT=0
+                    if isBurst:
+                        backgT=burst['chs']["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+                    else:
+                        backgT=burst['chs']['All']['binMs']*0.5e-3+tt[0]*bgrate["SyncResolution"]
+                    bgAA=BurstSearch.getBGrateAtT(bgrate,"AexAem",backgT)
+                    bgDD=BurstSearch.getBGrateAtT(bgrate,"DexDem",backgT)
+                    bgDA=BurstSearch.getBGrateAtT(bgrate,"DexAem",backgT)            
+                elif not isBurst:
+                    bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+                    bgDD=burst['chs']['All']['DDmean']
+                    bgDA=burst['chs']['All']['DAmean']
 
             #print(w)
             nda=0#ch1
@@ -190,26 +191,27 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             if len(sumdtimed)<1:
                 Tau=0
             else:            
-                Tau=np.mean(sumdtimed)/(Tau_D)        
-            if bgrate!=None:
-                if isBurst:
-                    naa=naa-bgAA*burst['chs']["All"]['burstW'][i]
-                    ndd=ndd-bgDD*burst['chs']["All"]['burstW'][i]
-                    nda=nda-bgDA*burst['chs']["All"]['burstW'][i]
-                    if naa< bgAA*burst['chs']["All"]['burstW'][i] or ndd<0 or nda<0:
-                        continue    
-                else:
-                    naa=naa-bgAA*burst['chs']["All"]['binMs']*1e-3
-                    ndd=ndd-bgDD*burst['chs']["All"]['binMs']*1e-3
-                    nda=nda-bgDA*burst['chs']["All"]['binMs']*1e-3
-                    if naa< bgAA*burst['chs']["All"]['binMs']*1e-3 or ndd<0 or nda<0:
-                        continue                       
-            elif not isBurst:
-                naa=naa-bgAA
-                ndd=ndd-bgDD
-                nda=nda-bgDA
-                if naa< bgAA or ndd<0 or nda<0:
-                    continue            
+                Tau=np.mean(sumdtimed)/(Tau_D)  
+            if bgfilter:      
+                if bgrate!=None:
+                    if isBurst:
+                        naa=naa-bgAA*burst['chs']["All"]['burstW'][i]
+                        ndd=ndd-bgDD*burst['chs']["All"]['burstW'][i]
+                        nda=nda-bgDA*burst['chs']["All"]['burstW'][i]
+                        if naa< bgAA*burst['chs']["All"]['burstW'][i] or ndd<0 or nda<0:
+                            continue    
+                    else:
+                        naa=naa-bgAA*burst['chs']["All"]['binMs']*1e-3
+                        ndd=ndd-bgDD*burst['chs']["All"]['binMs']*1e-3
+                        nda=nda-bgDA*burst['chs']["All"]['binMs']*1e-3
+                        if naa< bgAA*burst['chs']["All"]['binMs']*1e-3 or ndd<0 or nda<0:
+                            continue                       
+                elif not isBurst:
+                    naa=naa-bgAA
+                    ndd=ndd-bgDD
+                    nda=nda-bgDA
+                    if naa< bgAA or ndd<0 or nda<0:
+                        continue            
 
             if Tau<=1 and w>=binLenT:
                 wei.append(w)
@@ -339,18 +341,18 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/Users/lp1/liuk/proj/data/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+    dbname="/dataZ1/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400)#,30,500)
-    if type(br)==type(1):
-        exit(-1)
     binTime=1
     dddaaaT=[7.1,4.1,3.1,9.1]
     sp=0
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])
     if len(sys.argv)>2:
-        sp=float(sys.argv[2])        
+        dbname=sys.argv[2]
+    br=BGrate.calcBGrate(dbname,20,400)#,30,500)
+    if type(br)==type(1):
+        exit(-1)        
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
@@ -360,7 +362,8 @@ if __name__ == '__main__':
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
-    FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False)
+    FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
+            ,bgfilter=False)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
     # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
