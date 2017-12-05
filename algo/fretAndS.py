@@ -167,26 +167,28 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="/Users/lp1/liuk/proj/data/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+    dbname="/dataZ1/smfretData/21c_224c.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)#,30,60)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     binTime=1
-    dddaaaT=[7.1,4.1,3.1,9.1]
+    
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])      
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst,['All'])
-    savefn='/dataZ1/tmp/lineardiub/'+\
-        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
-        str(dddaaaT)+".pickle"
-    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-    #     pickle.dump([burst], f,protocol=-1)
-    
+    bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+    bgDD=burst['chs']['All']['DDmean']
+    bgDA=burst['chs']['All']['DAmean']    
+    dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]        
     binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst,['AllBurst'])
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
                 ,"All")
-
+    savefn='/dataZ1/smfretRes/rawRes/rsv/'+\
+        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+        str(dddaaaT)+"_ES.pickle"
+    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([burstSeff, burstFRET,burst], f,protocol=-1)        
     # app = QtWidgets.QApplication(sys.argv)
     # mySW = ControlMainWindow(H,xedges, yedges)
     # mySW.show()

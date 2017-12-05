@@ -341,10 +341,10 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/dataZ1/smfretData/21c_224c.sqlite"
+    dbname="/dataZ1/smfretData/lineardiub/LS3_lineardiUbN25C_N101C_alex488cy5_32MHz.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     binTime=1
-    dddaaaT=[7.1,4.1,3.1,9.1]
+    
     sp=0
     if len(sys.argv)>1:
         binTime=float(sys.argv[1])
@@ -356,6 +356,10 @@ if __name__ == '__main__':
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
+    bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+    bgDD=burst['chs']['All']['DDmean']
+    bgDA=burst['chs']['All']['DAmean']    
+    dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
     binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
@@ -365,9 +369,11 @@ if __name__ == '__main__':
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
             ,bgfilter=False)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    # with open('E:/tmp/objs.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    #     pickle.dump([burstSeff, burstFRET,wei,H,xedges], f)
-
+    savefn='/dataZ1/smfretRes/rawRes/rsv/'+\
+        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+        str(dddaaaT)+".pickle"
+    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
     # from PyQt5 import QtWidgets
