@@ -212,10 +212,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-
-            if Tau<=1 and w>=binLenT:
-                wei.append(w)
-                burstTau.append(Tau)
+            if Tau<=1 and Tau>=0:                                
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -223,28 +220,30 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 Dch2Ach=0.07 
                 e=0;s=0           
                 if (nda+ndd)==0:
-                    burstFRET.append(1)
-                    burst['chs']["All"]['e'][i]=1
+                    burstFRET.append(1)                    
+                    e=1
                 else:
                     if rESm==0:
                         e=(nda)/(nda+gamma*ndd)
                     else:                
                         e=(nda*(1-DexDirAem)-Dch2Ach*ndd)/((1-DexDirAem)*nda+(gamma-\
-                            Dch2Ach)*ndd)                
-                    burstFRET.append(e)
-                    burst['chs']["All"]['e'][i]=e
+                            Dch2Ach)*ndd)                                                        
                 if (nda+ndd+naa)==0:
-                    burstSeff.append(1)
-                    burst['chs']["All"]['s'][i]=1
+                    s=1
                 else:
                     if rESm==0:
                         s=(nda+gamma*ndd)/(nda+gamma*ndd+naa/beta)
                     else:
                         s=((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd)/ \
                             ((1-DexDirAem)*nda+(gamma-Dch2Ach)*ndd+naa/beta)
-                    burstSeff.append(s)
+                if s>=0 and s<=1 and e>=0 and e<=1:
                     burst['chs']["All"]['s'][i]=s
-    else:
+                    burst['chs']["All"]['e'][i]=e
+                    burstFRET.append(e)
+                    burstSeff.append(s)
+                    burstTau.append(Tau)
+                    wei.append(w)
+    else:  #byBurst
         lenburst=len(burst['chs']['All']['burst'])
         for j in range(lenburst):
             burstNumTh=burst['chs']['All']['burst'][j]
@@ -341,7 +340,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
 if __name__ == '__main__':
     import pickle
     dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
-    dbname="/dataZ1/smfretData/lineardiub/LS3_lineardiUbN25C_N101C_alex488cy5_32MHz.sqlite"
+    dbname="/home/liuk/dataZ1/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     binTime=1
     
@@ -357,8 +356,9 @@ if __name__ == '__main__':
     burst=binRawData.binRawData(br,dbname,binTime)
     binRawData.statsBins(burst)
     bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-    bgDD=burst['chs']['All']['DDmean']
-    bgDA=burst['chs']['All']['DAmean']    
+    bgDD=burst['chs']['All']['DDmean']    
+    bgDA=burst['chs']['All']['DAmean']
+    print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
     dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
     binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst)
@@ -369,7 +369,7 @@ if __name__ == '__main__':
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
             ,bgfilter=False)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    savefn='/dataZ1/smfretRes/rawRes/rsv/'+\
+    savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
         str(dddaaaT)+".pickle"
     with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')

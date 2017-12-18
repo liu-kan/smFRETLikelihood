@@ -8,4 +8,4 @@
 
 # 安装
     # Install conda python3 version    
-    conda install numpy scipy matplotlib pandas mpi4py sklearn
+    pip3 install numpy scipy matplotlib pandas mpi4py sklearn PyQt5
