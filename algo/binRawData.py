@@ -481,11 +481,19 @@ def realStatsBins(binData,chl):
         print("AAmean",binDataCh['AAmean'])
     binDataCh['photondiffMean']=(etag-stag)/np.sum(sumBin)
     
-def statsDelayTime(binData):
+def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1):
     lenBin=len(binData['chs']["All"]['chl'])
     a=array('d')
     d=array('d')
-    for i in range(lenBin):
+    if bin0<0:
+        bin0=0
+    if binLen<0 or binLen+bin0>=lenBin:
+        binEnd=lenBin
+    else:
+        binEnd=binLen+bin0
+    print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],99))
+    print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],90))
+    for i in range(bin0,binEnd):
         w=binData['chs']["All"]['ntag'][i]
         for idxd in range(w): 
             if binData['chs']["All"]['chl'][i][idxd]==1 \
@@ -495,9 +503,14 @@ def statsDelayTime(binData):
             else:
                 d.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
                 *binData["DelayResolution"])
-    histA,binA= np.histogram(a, 200)                 
-    histD,binD= np.histogram(d, 200)
-    return [histA,histD],[binA,binD]
+    histA,binA= np.histogram(a, binNum)                 
+    histD,binD= np.histogram(d, binNum)
+    if chl=="Both":
+        return [histA,histD],[binA,binD]
+    elif chl=="A":
+        return [histA],[binA]
+    else:
+        return [histD],[binD]
 def statsPhotonDiff(binData,chs=[]):
     hist=[];bin=[]
     if len(chs)<1:        
@@ -549,16 +562,17 @@ def exportBin2PQdotDat(binData,path):
 
 
 
-if __name__=='__main__':
-    dbname="../data/rsv86c224c.sqlite"
-    dbname="/dataZ1/smfretData/lineardiub/LS9_150pM_poslineardiUb25c101c_alex488cy5_32MHz.sqlite"
+if __name__=='__main__':    
+    dbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
+    dbname="/dataB/smfretData/rsv86c224c.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)#,T0=0.0,Tlen=600)
     binData=binRawData(br,dbname,1)
-    # h,b=statsDelayTime(binData)
-    # import sys
-    # sys.path.append('./ui')
-    # from histBar_stacked import plotStackedHist
-    # plotStackedHist(h,b)
+    h,b=statsDelayTime(binData,1000,"D",bin0=100,binLen=2)
+    #print(h)
+    import sys
+    sys.path.append('./ui')
+    from histBar_stacked import plotStackedHist
+    plotStackedHist(h,b,log=True)
     statsBins(binData)
     # burstFilter(binData,[5.1,4.1,3.1])
     print("DexDem photondiffMean(us)",\
