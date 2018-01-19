@@ -5,6 +5,10 @@ import numpy as np
 from lmfit import Model
 
 def prepareData(irfdbname,binData,sampleNum=1000):
+    '''
+    TOFIX: sa.searchsorted(bins[-1], 'right')]
+    两组数据的 sampleNum,b 需要兼容
+    '''
     h,b=binRawData.statsDelayTime(binData,sampleNum,"D")#,bin0=100,binLen=2)
     irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
     irfbinData=binRawData.binRawData(br,irfdbname,binData['binMs'])
@@ -65,7 +69,7 @@ def fitIRF(decayData,irf,delayT):
 if __name__=='__main__':
     irfdbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
     dbname="/dataB/smfretData/rsv86c224c.sqlite"
-    br=BGrate.calcBGrate(dbname,20,400)#,T0=0.0,Tlen=600)
+    br=BGrate.calcBGrate(dbname,20,400,T0=6,Tlen=615.56797)
     binData=binRawData.binRawData(br,dbname,1)
     binRawData.statsBins(binData)
     print("Data photonEffTime:",binData['chs']['DexDem']["photonEffTime"])

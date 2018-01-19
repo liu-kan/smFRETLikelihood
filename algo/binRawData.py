@@ -125,6 +125,7 @@ def binRawData(  bgrate, dbname, binMs = 1,chs=["DexAem","DexDem","AexAem","All"
     conn.close()
     binData["SyncResolution"]=bgrate["SyncResolution"]
     binData["DelayResolution"]=bgrate["DelayResolution"]
+    binData['binMs']=binMs
     return binData
 def countBin(binData,chl):
     if chl in binData['chs']:
