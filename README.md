@@ -7,5 +7,5 @@
 ![正常ES图](algo/minusBG.png)
 
 # 安装
-    # Install conda python3 version    
-    pip3 install numpy scipy matplotlib pandas mpi4py sklearn PyQt5
+ 
+    pip3 install --user numpy scipy matplotlib pandas sklearn PyQt5 #mpi4py 

@@ -239,9 +239,11 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 if s>=0 and s<=1 and e>=0 and e<=1:
                     burst['chs']["All"]['s'][i]=s
                     burst['chs']["All"]['e'][i]=e
-                    burstFRET.append(e)
-                    burstSeff.append(s)
-                    burstTau.append(Tau)
+                    weis=[s]*w;weie=[e]*w
+                    wTau=[Tau]*w
+                    burstFRET.extend(weie)
+                    burstSeff.extend(weis)
+                    burstTau.extend(wTau)
                     wei.append(w)
     else:  #byBurst
         lenburst=len(burst['chs']['All']['burst'])
@@ -338,10 +340,10 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
     return burstTau, burstFRET,wei,H,xedges, yedges
 
 if __name__ == '__main__':
-    import pickle
-    dbname="/home/liuk/proj/data/LS35_RSV86C224C.sqlite"
+    import pickle    
     dbname="/home/liuk/dataZ1/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
+    dbname="data/rsv86c224c.sqlite"
     binTime=1
     
     sp=0
@@ -369,11 +371,11 @@ if __name__ == '__main__':
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
             ,bgfilter=False)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
-        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
-        str(dddaaaT)+".pickle"
-    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
+    # savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
+    #     dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+    #     str(dddaaaT)+".pickle"
+    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
     # from PyQt5 import QtWidgets
