@@ -343,7 +343,7 @@ if __name__ == '__main__':
     import pickle    
     dbname="/home/liuk/dataZ1/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
-    dbname="data/rsv86c224c.sqlite"
+    dbname="data/21c_224c.sqlite"
     binTime=1
     
     sp=0

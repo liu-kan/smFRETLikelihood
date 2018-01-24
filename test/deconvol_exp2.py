@@ -8,7 +8,7 @@ from lmfit import Model
 import matplotlib.pyplot as plt
 plt.close('all')
 # read data from file
-x,decay1,irf=np.loadtxt(r"../data/tcspcdatashifted.csv",delimiter=',',unpack=True,dtype='float')
+x,decay1,irf=np.loadtxt(r"data/tcspcdatashifted.csv",delimiter=',',unpack=True,dtype='float')
 # plot the raw data file ( irf and decay1)
 plt.figure(1)
 plt.semilogy(x,decay1,x,irf)
