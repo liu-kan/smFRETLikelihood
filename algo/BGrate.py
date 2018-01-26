@@ -116,9 +116,10 @@ def calcBGrate(dbname,timeSp=20.0,lenbin=300,T0=0,Tlen=-1,axBG=None, axR2=None, 
 
     #bgRateCh = collections.namedtuple('bgRateCh', ['ch', 'bgRate'])
     brcd=dict()
-    for ch in chs:
-        brcd[ch]=getBG(ch,timeSp,lenbin,c,MeasDesc_GlobalResolution,T0,Tlen,axBG, axR2)
-        #.append(bgRateCh(ch,getBG(ch,timeSp,lenbin,c)))    
+    if timeSp>0:
+        for ch in chs:
+            brcd[ch]=getBG(ch,timeSp,lenbin,c,MeasDesc_GlobalResolution,T0,Tlen,axBG, axR2)
+            #.append(bgRateCh(ch,getBG(ch,timeSp,lenbin,c)))    
     brcd["SyncResolution"]=MeasDesc_GlobalResolution
     brcd["DelayResolution"]=DelayResolution
     brcd["T0"]=T0

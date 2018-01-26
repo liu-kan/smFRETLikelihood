@@ -12,6 +12,7 @@ import BurstSearch
 import BGrate
 import binRawData
 import fretAndS
+import irf_decov
 from array import array
 
 import pickle
@@ -19,7 +20,7 @@ import pickle
 
 #burstD如果是浮点数，则为Donor only的TauD，否则为Donor only的提取的burst
 def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
-        T0=6.8695,binLenT=30,S=0,ESm='k',byBurst=False,bgfilter=True):
+        T0=6.8695,binLenT=30,S=0,ESm='k',byBurst=False,bgfilter=True,histIRF=None,sampleNum=20):
 
     rESm=0
     if ESm=='K' or ESm=='k':
@@ -129,10 +130,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
         print("isBurst")
     if not byBurst:
         print('no byBurst')
-        for i in range(lenburst):
-    #        c.execute("select Dtime,ch from fretData_All where TimeTag>=? and TimeTag<= ?",
-    #                  (burst["All"].stag[i],burst["All"].etag[i]))
-    #        data=c.fetchall()
+        for i in range(lenburst):    
             if markDel:
                 if burst['chs']['All']['markDel'][i]:
                     continue
@@ -188,10 +186,16 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 elif d==4:
                     nad+=1
                     #sumdtimed+=dtime
-            if len(sumdtimed)<1:
-                Tau=0
+            lensumdtimed=len(sumdtimed)                                
+            if lensumdtimed<1:
+                Tau=0            
             else:            
                 Tau=np.mean(sumdtimed)/(Tau_D)  
+            if lensumdtimed>20 and histIRF!=None:
+                cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0)
+                if rchi>=1 and rchi<5000:
+                    Tau=cTau/(Tau_D)
+                    print(cTau,rchi)
             if bgfilter:      
                 if bgrate!=None:
                     if isBurst:
@@ -341,7 +345,8 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
 
 if __name__ == '__main__':
     import pickle    
-    dbname="/home/liuk/dataZ1/smfretData/21c_224c.sqlite"
+    irfdbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
+    dbname="/dataB/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     dbname="data/21c_224c.sqlite"
     binTime=1
@@ -366,10 +371,14 @@ if __name__ == '__main__':
     # binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
+    sampleNum=20
+    irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
+    irfbinData=binRawData.binRawData(irfbr,irfdbname,binTime)        
+    hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
-            ,bgfilter=False)
+            ,bgfilter=False,histIRF=hi,sampleNum=sampleNum)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
     # savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
     #     dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\

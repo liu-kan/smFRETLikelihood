@@ -498,15 +498,18 @@ def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1):
     for i in range(bin0,binEnd):
         w=binData['chs']["All"]['ntag'][i]
         for idxd in range(w):
-            if binData['chs']["All"]['chl'][i][idxd]==1 \
-             or binData['chs']["All"]['chl'][i][idxd]==3: #DA or AA
+            if (binData['chs']["All"]['chl'][i][idxd]==1 \
+                or binData['chs']["All"]['chl'][i][idxd]==3) \
+                and (chl=="Both" or chl=="A"): #DA or AA
                 a.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
                 *binData["DelayResolution"])
-            else:
+            if (chl=="Both" or chl=="D"): #DA or AA
                 d.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
                 *binData["DelayResolution"])
-    histA,binA= np.histogram(a, binNum)
-    histD,binD= np.histogram(d, binNum)
+    if (chl=="Both" or chl=="A"):
+        histA,binA= np.histogram(a, binNum)
+    if (chl=="Both" or chl=="D"):
+        histD,binD= np.histogram(d, binNum)
     if chl=="Both":
         return [histA,histD],[binA,binD]
     elif chl=="A":
