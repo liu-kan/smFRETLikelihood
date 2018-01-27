@@ -192,10 +192,10 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             else:            
                 Tau=np.mean(sumdtimed)/(Tau_D)  
             if lensumdtimed>20 and histIRF!=None:
-                cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0)
+                cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0,'leastsq')
                 if rchi>=1 and rchi<5000:
                     Tau=cTau/(Tau_D)
-                    print(cTau,rchi)
+                    print("cTau:",cTau,"rchi",rchi)
             if bgfilter:      
                 if bgrate!=None:
                     if isBurst:

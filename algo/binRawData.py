@@ -493,8 +493,8 @@ def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1):
         binEnd=lenBin
     else:
         binEnd=binLen+bin0
-    print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],99))
-    print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],90))
+    # print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],99))
+    # print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],90))
     for i in range(bin0,binEnd):
         w=binData['chs']["All"]['ntag'][i]
         for idxd in range(w):

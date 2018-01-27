@@ -15,7 +15,7 @@ def prepareData(histIRF,binData,binIdx=-1,sampleNum=1000,T0=0,fft=True):
     histlen=int(sampleNum/2)    
     # binRawData.statsBins(irfbinData)
     # print("IRF photonEffTime:",irfbinData['chs']['DexDem']["photonEffTime"])
-    print("Data Max PIE delay(ns):",b[0][-1])       
+    # print("Data Max PIE delay(ns):",b[0][-1])       
     startt=max(0,int(T0/64*sampleNum)-1)
     if fft:
         return h[0][startt:histlen],histIRF[0][startt:histlen],np.linspace(0,histlen-startt-1,histlen-startt)
