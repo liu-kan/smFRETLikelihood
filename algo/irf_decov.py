@@ -25,7 +25,7 @@ def prepareData(histIRF,binData,binIdx=-1,sampleNum=1000,T0=0,fft=True):
 
 # define the single exponential model
 #jumpexpmodel(t,irf,paras):
-def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
+def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4):#,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
     ymodel=np.zeros(t.size)
     # c=paras['x0']
     # y0=paras['y0']
@@ -45,8 +45,8 @@ def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4,tau5,am
     ymodel+= ampl2*np.exp(-(t)/tau2)        
     ymodel+= ampl3*np.exp(-(t)/tau3)        
     ymodel+= ampl4*np.exp(-(t)/tau4)        
-    ymodel+= ampl5*np.exp(-(t)/tau5)        
-    ymodel+= ampl6*np.exp(-(t)/tau6)        
+    # ymodel+= ampl5*np.exp(-(t)/tau5)        
+    # ymodel+= ampl6*np.exp(-(t)/tau6)        
     z=Convol(ymodel,irf_reshaped_norm)
     z+=y0
     return z
@@ -158,39 +158,51 @@ if __name__=='__main__':
     params = Parameters()
     params.add('x0', value=0,min=-sampleNum/2,max=sampleNum/2)#, vary=False)
     params.add('y0', value=minI,min=minI/4,max=maxI**0.5)#, vary=False)
-    params.add('tau1', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    params.add('tau1', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
     params.add('ampl1', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau2', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    params.add('tau2', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
     params.add('ampl2', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau3', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    params.add('tau3', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
     params.add('ampl3', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau4', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    params.add('tau4', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
     params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
-    params.add('ampl5', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau6', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
-    params.add('ampl6', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)    
+    # params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    # params.add('ampl5', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
+    # params.add('tau6', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    # params.add('ampl6', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)    
+    
 
     result=fitIRF(decay1,irf1,x,params,jumpexpmodel,'leastsq')  
     print(result.fit_report()) 
     print(result.params['tau1'].value*64/sampleNum) 
     print(result.redchi) 
-    numcom=int((len(result.params)-2)/2)
-    ap=0
-    rtau=0
-    for i in range(numcom):
-        idx=str(i+1)
-        ap+=result.params['ampl'+idx].value
-    for i in range(numcom):
-        idx=str(i+1)
-        rtau+=result.params['ampl'+idx].value/ap*result.params['tau'+idx].value
-    print(rtau*64/sampleNum) 
 
     plt.figure(1)
     plt.subplot(2,1,1)
     plt.semilogy(x,decay1,'r-',x,result.best_fit,'b')
     plt.subplot(2,1,2)
     plt.plot(x,result.residual)
+
+    numcom=int((len(result.params)-2)/2)
+    y0=result.params['y0'].value
+    x0=result.params['x0'].value
+    ap=0
+    eall=np.zeros(len(x))
+    ev=np.zeros(numcom)
+    plt.subplot(2,1,1)
+    for i in range(numcom):
+        idx=str(i+1)
+        e1=exp1model(x,irf1,y0,x0,result.params['tau'+idx].value,result.params['ampl'+idx].value)-y0
+        eall+=e1
+        ev[i]=sum(e1)
+    #plt.semilogy(x,eall+y0,'bo-')
+    for i in range(numcom):
+        idx=str(i+1)
+        print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
+        print("p:",ev[i]/sum(eall))
+
+
+
     
     # plt.figure(2)
     # decay1,irf1,x=prepareData(hi,binData,sampleNum=sampleNum,T0=6,fft=False)
