@@ -483,7 +483,7 @@ def realStatsBins(binData,chl):
     binDataCh['photondiffMean']=(etag-stag)/np.sum(sumBin)
     binDataCh['photonEffTime']=(etag-stag)*binData["SyncResolution"]
 
-def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1):
+def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1,byBin=False):
     lenBin=len(binData['chs']["All"]['chl'])
     a=array('d')
     d=array('d')
@@ -497,15 +497,32 @@ def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1):
     # print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],90))
     for i in range(bin0,binEnd):
         w=binData['chs']["All"]['ntag'][i]
+        aa=array('d')
+        dd=array('d')        
         for idxd in range(w):
             if (binData['chs']["All"]['chl'][i][idxd]==1 \
                 or binData['chs']["All"]['chl'][i][idxd]==3) \
                 and (chl=="Both" or chl=="A"): #DA or AA
-                a.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
-                *binData["DelayResolution"])
-            if (chl=="Both" or chl=="D"): #DA or AA
-                d.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
-                *binData["DelayResolution"])
+                if byBin:
+                    aa.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                        *binData["DelayResolution"])
+                else:
+                    a.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                        *binData["DelayResolution"])
+            elif (binData['chs']["All"]['chl'][i][idxd]==2 \
+                or binData['chs']["All"]['chl'][i][idxd]==4) \
+                and (chl=="Both" or chl=="D"): #DA or AA
+                if byBin:
+                    dd.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                        *binData["DelayResolution"])
+                else:            
+                    d.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                        *binData["DelayResolution"])
+        if byBin:
+            if len(aa)>0:
+                a.append(np.mean(aa))
+            if len(dd)>0:
+                d.append(np.mean(dd))                
     if (chl=="Both" or chl=="A"):
         histA,binA= np.histogram(a, binNum)
     if (chl=="Both" or chl=="D"):

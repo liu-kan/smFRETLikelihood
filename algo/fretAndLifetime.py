@@ -33,16 +33,16 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
         Tau_D=burstD*1e-9
         print('已经制定TauD')
     else:
-        lenburstD=len(burstD["All"]['chl'])
+        lenburstD=len(burstD['chs']["All"]['chl'])
         burstTauD = array("d")#np.zeros(lenburst)
         weiD = array("d")#np.zeros(lenburst)
             
         for i in range(lenburstD):
-            data=burstD["All"]['chl'][i]
+            data=burstD['chs']["All"]['chl'][i]
             if bgrateD!=None:
-                tt=burstD["All"]['timetag'][i]
+                tt=burstD['chs']["All"]['timetag'][i]
                 #print(tt)
-                backgT=burstD["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
+                backgT=burstD['chs']["All"]['burstW'][i]/2+tt[0]*bgrate["SyncResolution"] #中点时刻
                 bgAA=BurstSearch.getBGrateAtT(bgrateD,"AexAem",backgT)
                 bgDD=BurstSearch.getBGrateAtT(bgrateD,"DexDem",backgT)
                 bgDA=BurstSearch.getBGrateAtT(bgrateD,"DexAem",backgT)            
@@ -58,16 +58,16 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda+=1
                 elif d==2:
                     ndd+=1
-                    sumdtimed.append(burstD["All"]['dtime'][i][idxd]*burstD["DelayResolution"]*1e9)
+                    sumdtimed.append(burstD['chs']["All"]['dtime'][i][idxd]*burstD["DelayResolution"]*1e9)
                 elif d==3:
                     naa+=1
                 elif d==4:
                     nad+=1                
             if bgrateD!=None:
-                naa=naa-bgAA*burstD["All"]['burstW'][i]
-                ndd=ndd-bgDD*burstD["All"]['burstW'][i]
-                nda=nda-bgDA*burstD["All"]['burstW'][i]
-                if naa< bgAA*burstD["All"]['burstW'][i] or ndd<0 or nda<0:
+                naa=naa-bgAA*burstD['chs']["All"]['burstW'][i]
+                ndd=ndd-bgDD*burstD['chs']["All"]['burstW'][i]
+                nda=nda-bgDA*burstD['chs']["All"]['burstW'][i]
+                if naa< bgAA*burstD['chs']["All"]['burstW'][i] or ndd<0 or nda<0:
                     continue
             weiD.append(w)
             Tau=np.mean(sumdtimed)
@@ -191,11 +191,13 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 Tau=0            
             else:            
                 Tau=np.mean(sumdtimed)/(Tau_D)  
+            goodTau=False
             if lensumdtimed>20 and histIRF!=None:
                 cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0,'leastsq')
                 if rchi>=1 and rchi<5000:
                     Tau=cTau/(Tau_D)
-                    print("cTau:",cTau,"rchi",rchi)
+                    goodTau=True
+                    # print("cTau:",cTau,"rchi",rchi)
             if bgfilter:      
                 if bgrate!=None:
                     if isBurst:
@@ -216,7 +218,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-            if Tau<=1 and Tau>=0:                                
+            if goodTau:#and Tau<=1 and Tau>=0                                  
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -380,11 +382,11 @@ if __name__ == '__main__':
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
             ,bgfilter=False,histIRF=hi,sampleNum=sampleNum)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    # savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
-    #     dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
-    #     str(dddaaaT)+".pickle"
-    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-    #     pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
+    savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
+        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+        str(dddaaaT)+".pickle"
+    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
     # from PyQt5 import QtWidgets

@@ -53,7 +53,7 @@ def findBurst(br,dbname,chs,continuousPhoton=30,F=5):
     #chs=["All"]
     burst=dict()
     burst['chs']=dict()
-    blockNum=1000000
+    blockNum=10000
     if Tlen<=0:
         Tlen=-T0-100    
     tEnd=int((T0+Tlen)/br["SyncResolution"])

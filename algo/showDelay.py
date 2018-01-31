@@ -2,17 +2,35 @@
 import binRawData
 import BGrate
 import numpy as np
-
+from array import array
+import irf_decov
 import matplotlib.pyplot as plt
 
 def prepareData(binData,sampleNum=1000,startt=0,fft=True):
 
-    h,b=binRawData.statsDelayTime(binData,sampleNum,"D")#,bin0=100,binLen=2)    
+    h,b=binRawData.statsDelayTime(binData,sampleNum,"D",byBin=True)#,bin0=100,binLen=2)    
     histlen=int(sampleNum/2)    
     if fft:
         return h[0][startt:histlen],np.linspace(0,histlen-startt-1,histlen-startt)
     else:
         return h[0][startt:histlen],b[0][startt:histlen]
+
+def prepareCalcData(binData,histIRF,sampleNum=1000,fft=True,startt=0):
+    lenbin=len(binData['chs']["All"]['chl'])
+    lf=array('d')
+    for i in range(0,lenbin):
+        if binData['chs']["All"]['ntag'][i]>20:
+            l,chi=irf_decov.calcTauOf1Bin(histIRF,binData,i,20,6.8695,'leastsq')
+            if chi>=1 and chi<5000:
+                lf.append(l)
+    
+    h,b=np.histogram(lf, sampleNum)            
+    histlen=int(sampleNum/2)    
+    if fft:
+        return h[startt:histlen],np.linspace(0,histlen-startt-1,histlen-startt)
+    else:
+        return h[startt:histlen],b[startt:histlen]
+
 
 if __name__=='__main__':
     import pickle,sys,getopt
@@ -40,17 +58,21 @@ if __name__=='__main__':
     if fromdb:
         br=BGrate.calcBGrate(dbname,0,400,T0=6,Tlen=167.97)
         binData=binRawData.binRawData(br,dbname,binMs)
-
+        irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
+        irfbinData=binRawData.binRawData(irfbr,irfdbname,binMs)                
         with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-            pickle.dump(binData, f,protocol=-1)
+            pickle.dump([binData,irfbinData], f,protocol=-1)
     else:
-        binData=pickle.load(open(savefn,'rb'))    
+        binData,irfbinData=pickle.load(open(savefn,'rb'))    
+        
     # x,decay1,irf1=np.lo oadtxt(r"data/tcspcdatashifted.csv",delimiter=',',unpack=True,dtype='float')
-    decay1,x=prepareData(binData,sampleNum)    
+    hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)    
   
     plt.figure()
-    decay1,x=prepareData(binData,sampleNum,fft=False)
-    plt.semilogy(x,decay1)
+    # decay1,x=prepareData(binData,sampleNum,fft=False)
+    decay1,x=prepareCalcData(binData,hi,sampleNum)
+    x=x*64/sampleNum
+    plt.plot(x,decay1)
     plt.show()    
 
 
