@@ -66,7 +66,7 @@ if __name__=='__main__':
     im=ax.imshow(Hp.transpose()[::-1], interpolation='sinc', \
                        cmap=cm.jet,extent=[xedgesp[0],xedgesp[-1],yedgesp[0],yedgesp[-1]])
     # ax[1].set_title(title)
-    ax.plot(xedges[1:],lfy)
+    ax.plot(lfx,lfy)
     fig.colorbar(im)                       
     
 
