@@ -5,7 +5,7 @@ import numpy as np
 from array import array
 
 import matplotlib.pyplot as plt
-
+from array import array
 
 if __name__=='__main__':
     import pickle,sys,getopt
@@ -43,7 +43,8 @@ if __name__=='__main__':
     H=H.transpose()[::-1]
     #H[1]=np.zeros(binw27)
     gzw=1#/binw
-    lfy=np.zeros(binw)
+    lfy=array('d')
+	lfx=array('d')
     for idx in range(binw):
         y=H[:,idx]
         toty=0
@@ -51,11 +52,13 @@ if __name__=='__main__':
         yv=0
         for idy in range(binw):
             toty+=H[idy,idx]*gzw
-        for idy in range(binw):
-            ynow+=H[idy,idx]*gzw
-            if ynow>=toty/2:
-                lfy[idx]=yedges[idy]
-                break
+		if toty>4000:
+			for idy in range(binw):
+				ynow+=H[idy,idx]*gzw
+				if ynow>=toty/2:
+					lfy.append(yedges[idy])
+					lfx.append(xedges[idx])
+					break
         #lfy[idx]=yedges[14]
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
