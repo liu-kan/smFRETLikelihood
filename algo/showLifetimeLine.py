@@ -36,12 +36,13 @@ if __name__=='__main__':
             pickle.dump(burst, f,protocol=-1)
     else:
         burstTau, burstFRET,burst=pickle.load(open(savefn,'rb'))   
-    binw=27 
+    binw=270
     bins=(binw,binw)    
+    Hp, xedgesp, yedgesp = np.histogram2d(burstFRET,burstTau, bins=(27,27))              
     H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins)              
     H=H.transpose()[::-1]
-    H[1]=np.zeros(binw27)
-    gzw=1/binw
+    #H[1]=np.zeros(binw27)
+    gzw=1#/binw
     lfy=np.zeros(binw)
     for idx in range(binw):
         y=H[:,idx]
@@ -49,20 +50,20 @@ if __name__=='__main__':
         ynow=0
         yv=0
         for idy in range(binw):
-            toty+=H[idy,idx]
+            toty+=H[idy,idx]*gzw
         for idy in range(binw):
-            ynow+=H[idy,idx]
-            if ynow>=toty:
+            ynow+=H[idy,idx]*gzw
+            if ynow>=toty/2:
                 lfy[idx]=yedges[idy]
                 break
-
+        #lfy[idx]=yedges[14]
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
     fig,ax=plt.subplots(1,1)
-    im=ax.imshow(H.transpose()[::-1], interpolation='sinc', \
-                       cmap=cm.RdYlGn,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]])
+    im=ax.imshow(Hp.transpose()[::-1], interpolation='sinc', \
+                       cmap=cm.jet,extent=[xedgesp[0],xedgesp[-1],yedgesp[0],yedgesp[-1]])
     # ax[1].set_title(title)
-    ax.plot(xedges,lfy)
+    ax.plot(xedges[1:],lfy)
     fig.colorbar(im)                       
     
 
