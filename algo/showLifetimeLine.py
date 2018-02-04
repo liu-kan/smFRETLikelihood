@@ -57,10 +57,10 @@ if __name__=='__main__':
             for idy in range(binw):
                 ynow+=H[idy,idx]*gzw
                 if ynow>=toty/2:
-                    lfy.append(yedges[idy])
-                    lfx.append(xedges[idx])
+                    # lfy.append(yedges[idy])
+                    # lfx.append(xedges[idx])
                     break
-        lfy[idx]=yedges[4]
+        lfy.append(yedges[4])
     xnew = np.linspace(min(lfx),max(lfx),300) 
     _smooth = spline(lfx,lfy,xnew)
     import matplotlib.cm as cm
