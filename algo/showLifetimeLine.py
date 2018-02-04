@@ -6,6 +6,7 @@ from array import array
 
 import matplotlib.pyplot as plt
 from array import array
+from scipy.interpolate import spline 
 
 if __name__=='__main__':
     import pickle,sys,getopt
@@ -36,7 +37,7 @@ if __name__=='__main__':
             pickle.dump(burst, f,protocol=-1)
     else:
         burstTau, burstFRET,burst=pickle.load(open(savefn,'rb'))   
-    binw=270
+    binw=27
     bins=(binw,binw)    
     Hp, xedgesp, yedgesp = np.histogram2d(burstFRET,burstTau, bins=(27,27))              
     H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins)              
@@ -60,13 +61,15 @@ if __name__=='__main__':
                     lfx.append(xedges[idx])
                     break
         #lfy[idx]=yedges[14]
+    xnew = np.linspace(lfx.min(),lfx.max(),300) 
+    _smooth = spline(lfx,lfy,xnew)
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
     fig,ax=plt.subplots(1,1)
     im=ax.imshow(Hp.transpose()[::-1], interpolation='sinc', \
                        cmap=cm.jet,extent=[xedgesp[0],xedgesp[-1],yedgesp[0],yedgesp[-1]])
     # ax[1].set_title(title)
-    ax.plot(lfx,lfy)
+    ax.plot(xnew,_smooth)  
     fig.colorbar(im)                       
     
 
