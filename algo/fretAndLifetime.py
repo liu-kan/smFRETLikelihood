@@ -218,7 +218,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-            if goodTau:#and Tau<=1 and Tau>=0                                  
+            if goodTau and Tau<=1 and Tau>=0.06:                                  
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -382,7 +382,7 @@ if __name__ == '__main__':
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
             ,bgfilter=False,histIRF=hi,sampleNum=sampleNum)
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
+    savefn='data/rawRes/rsv/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
         str(dddaaaT)+".pickle"
     with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
