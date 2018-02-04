@@ -347,7 +347,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
 
 if __name__ == '__main__':
     import pickle    
-    irfdbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
+    irfdbname="data/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
     dbname="/dataB/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     dbname="data/21c_224c.sqlite"
