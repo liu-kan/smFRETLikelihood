@@ -218,7 +218,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-            if goodTau and Tau<=1 and Tau>=0.06:                                  
+            if (goodTau or histIRF==None) and Tau<=1 and Tau>=0.0:                                  
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -374,13 +374,13 @@ if __name__ == '__main__':
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
     sampleNum=20
-    irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
-    irfbinData=binRawData.binRawData(irfbr,irfdbname,binTime)        
-    hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
+    # irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
+    # irfbinData=binRawData.binRawData(irfbr,irfdbname,binTime)        
+    # hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
-            ,bgfilter=False,histIRF=hi,sampleNum=sampleNum)
+            ,bgfilter=False,sampleNum=sampleNum) #,histIRF=hi
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
     savefn='data/rawRes/rsv/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
