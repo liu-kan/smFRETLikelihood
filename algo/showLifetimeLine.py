@@ -7,13 +7,14 @@ from array import array
 import matplotlib.pyplot as plt
 from array import array
 from scipy.interpolate import spline 
+import scipy as sp
 
 if __name__=='__main__':
     import pickle,sys,getopt
 
     dbname="/dataB/smfretData/21c_224c.sqlite"
     savefn='data/'+\
-        "21c_224c_0.5_[2.3509349643187933, 1.1838989238159361, 3.3364004127243341, 3.5348338881347292].pickle"
+        "21c_224c_0.5.pickle"
     fromdb=True
     sampleNum=1000
     burst=None
@@ -37,41 +38,48 @@ if __name__=='__main__':
             pickle.dump(burst, f,protocol=-1)
     else:
         burstTau, burstFRET,burst=pickle.load(open(savefn,'rb'))   
-    binw=27
-    bins=(binw,binw)    
-    Hp, xedgesp, yedgesp = np.histogram2d(burstFRET,burstTau, bins=(27,27))              
-    H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=bins)              
+    binw=30
+    bins=(27,27)    
+    binss=(binw,binw) 
+    Hp, xedgesp, yedgesp = np.histogram2d(burstFRET,burstTau, bins=bins)   
+    Hp=Hp.transpose()[::-1]
+    #Hp[y,x] y从上向下增长，x从左向右增长
+    # Hp[19,4]           =40000
+    # Hp[19,13]           =40000
+    # Hp[19,15]           =40000
+    H, xedges, yedges = np.histogram2d(burstFRET,burstTau, bins=binss)            
+    # print(xedges)  
+    # print(yedges)  
     H=H.transpose()[::-1]
     #H[1]=np.zeros(binw27)
-    gzw=1#/binw
+    gzw=1/binw
     lfy=array('d')
     lfx=array('d')
     for idx in range(binw):
-        y=H[:,idx]
-        toty=0
+        y=H[:,idx]       
         ynow=0
         yv=0
-        for idy in range(binw):
-            toty+=H[idy,idx]*gzw
-        if toty>4000:
+        toty=np.sum(y)*gzw
+        if toty>2000:
             for idy in range(binw):
                 ynow+=H[idy,idx]*gzw
                 if ynow>=toty/2:
-                    # lfy.append(yedges[idy])
-                    # lfx.append(xedges[idx])
+                    lfy.append(yedges[binw-1-idy])
+                    lfx.append(xedges[idx])
                     break
-        lfy.append(yedges[4])
-        lfx.append(xedges[idx])
-    xnew = np.linspace(min(lfx),max(lfx),300) 
+    f2 = sp.interpolate.interp1d(lfx, lfy, kind='cubic')
+    xnew = np.linspace(min(lfx),max(lfx),3) 
     _smooth = spline(lfx,lfy,xnew)
+    # _smooth=sp.interpolate.interp1d(lfx,lfy, kind='cubic')(xnew)
+    # _smooth =f2(xnew)
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
     fig,ax=plt.subplots(1,1)
-    im=ax.imshow(Hp.transpose()[::-1], interpolation='sinc', \
+    im=ax.imshow(Hp, interpolation='sinc', \
                        cmap=cm.jet,extent=[xedgesp[0],xedgesp[-1],yedgesp[0],yedgesp[-1]])
     # ax[1].set_title(title)
-    # ax.plot(xnew,_smooth)  
-    ax.plot(lfx,lfy)  
+    ax.plot(xnew,_smooth)  
+    # ax.plot(lfx,lfy)  
     fig.colorbar(im)                       
     
 
