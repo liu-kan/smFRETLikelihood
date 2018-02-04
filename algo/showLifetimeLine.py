@@ -61,7 +61,7 @@ if __name__=='__main__':
                     lfx.append(xedges[idx])
                     break
         #lfy[idx]=yedges[14]
-    xnew = np.linspace(lfx.min(),lfx.max(),300) 
+    xnew = np.linspace(min(lfx),max(lfx),300) 
     _smooth = spline(lfx,lfy,xnew)
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
