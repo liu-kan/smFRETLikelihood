@@ -245,12 +245,18 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 if s>=0 and s<=1 and e>=0 and e<=1:
                     burst['chs']["All"]['s'][i]=s
                     burst['chs']["All"]['e'][i]=e
-                    weis=[s]*w;weie=[e]*w
-                    wTau=[Tau]*w
-                    burstFRET.extend(weie)
-                    burstSeff.extend(weis)
-                    burstTau.extend(wTau)
-                    wei.append(w)
+                    if isBurst:
+                        wei.append(w)
+                        burstFRET.append(e)
+                        burstSeff.append(s)
+                        burstTau.append(Tau)                        
+                    else:
+                        weis=[s]*w;weie=[e]*w
+                        wTau=[Tau]*w
+                        burstFRET.extend(weie)
+                        burstSeff.extend(weis)
+                        burstTau.extend(wTau)
+                    
     else:  #byBurst
         lenburst=len(burst['chs']['All']['burst'])
         for j in range(lenburst):
@@ -361,15 +367,15 @@ if __name__ == '__main__':
     br=BGrate.calcBGrate(dbname,20,400)#,30,500)
     if type(br)==type(1):
         exit(-1)        
-    # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
-    burst=binRawData.binRawData(br,dbname,binTime)
-    binRawData.statsBins(burst)
-    bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-    bgDD=burst['chs']['All']['DDmean']    
-    bgDA=burst['chs']['All']['DAmean']
-    print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
-    dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
-    binRawData.burstFilterByBin(burst,dddaaaT)
+    burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
+    # burst=binRawData.binRawData(br,dbname,binTime)
+    # binRawData.statsBins(burst)
+    # bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+    # bgDD=burst['chs']['All']['DDmean']    
+    # bgDA=burst['chs']['All']['DAmean']
+    # print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
+    # dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
+    # binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
@@ -381,12 +387,12 @@ if __name__ == '__main__':
     burstTau, burstFRET,wei,H,xedges, yedges=\
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
             ,bgfilter=False,sampleNum=sampleNum) #,histIRF=hi
-    title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    savefn='data/rawRes/rsv/'+\
-        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
-        str(dddaaaT)+".pickle"
-    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
+    # title= "bin:"+str(binTime)+"ms,E-Lifetime"
+    # savefn='data/rawRes/rsv/'+\
+    #     dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+    #     str(dddaaaT)+".pickle"
+    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
     # from PyQt5 import QtWidgets
@@ -405,5 +411,5 @@ if __name__ == '__main__':
     
     # import matplotlib.pyplot as plt
     ax[0].hist(burstFRET, bins=40) 
-    plt.title(title)
+    # plt.title(title)
     plt.show()
