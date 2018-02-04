@@ -60,7 +60,7 @@ if __name__=='__main__':
                     lfy.append(yedges[idy])
                     lfx.append(xedges[idx])
                     break
-        #lfy[idx]=yedges[14]
+        lfy[idx]=yedges[4]
     xnew = np.linspace(min(lfx),max(lfx),300) 
     _smooth = spline(lfx,lfy,xnew)
     import matplotlib.cm as cm
@@ -69,7 +69,8 @@ if __name__=='__main__':
     im=ax.imshow(Hp.transpose()[::-1], interpolation='sinc', \
                        cmap=cm.jet,extent=[xedgesp[0],xedgesp[-1],yedgesp[0],yedgesp[-1]])
     # ax[1].set_title(title)
-    ax.plot(xnew,_smooth)  
+    # ax.plot(xnew,_smooth)  
+    ax.plot(lfx,lfy)  
     fig.colorbar(im)                       
     
 
