@@ -195,7 +195,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             if lensumdtimed>20 and histIRF!=None:
                 cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0,'leastsq')
                 if rchi>=1 and rchi<5000:
-                    Tau=cTau/(Tau_D)
+                    Tau=cTau*1e-9/(Tau_D)
                     goodTau=True
                     # print("cTau:",cTau,"rchi",rchi)
             if bgfilter:      
