@@ -195,7 +195,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             if lensumdtimed>20 and histIRF!=None:
                 cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0,'leastsq')
                 if rchi>=1 and rchi<5000:
-                    Tau=cTau/(Tau_D*1e9)
+                    Tau=cTau*1e-9/(Tau_D)
                     goodTau=True
                     # print("cTau:",cTau,"rchi",rchi)
             if bgfilter:      
@@ -218,7 +218,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-            if goodTau and Tau<=1 and Tau>0.06:
+            if (goodTau or histIRF==None) and Tau<=1 and Tau>=0.0:                                  
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -245,12 +245,18 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                 if s>=0 and s<=1 and e>=0 and e<=1:
                     burst['chs']["All"]['s'][i]=s
                     burst['chs']["All"]['e'][i]=e
-                    weis=[s]*w;weie=[e]*w
-                    wTau=[Tau]*w
-                    burstFRET.extend(weie)
-                    burstSeff.extend(weis)
-                    burstTau.extend(wTau)
-                    wei.append(w)
+                    if isBurst:
+                        wei.append(w)
+                        burstFRET.append(e)
+                        burstSeff.append(s)
+                        burstTau.append(Tau)                        
+                    else:
+                        weis=[s]*w;weie=[e]*w
+                        wTau=[Tau]*w
+                        burstFRET.extend(weie)
+                        burstSeff.extend(weis)
+                        burstTau.extend(wTau)
+                    
     else:  #byBurst
         lenburst=len(burst['chs']['All']['burst'])
         for j in range(lenburst):
@@ -346,8 +352,8 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
     return burstTau, burstFRET,wei,H,xedges, yedges
 
 if __name__ == '__main__':
-    import pickle,os  
-    irfdbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
+    import pickle    
+    irfdbname="data/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
     dbname="/dataB/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     dbname="data/21c_224c.sqlite"
@@ -361,32 +367,32 @@ if __name__ == '__main__':
     br=BGrate.calcBGrate(dbname,20,400)#,30,500)
     if type(br)==type(1):
         exit(-1)        
-    # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
-    burst=binRawData.binRawData(br,dbname,binTime)
-    binRawData.statsBins(burst)
-    bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-    bgDD=burst['chs']['All']['DDmean']    
-    bgDA=burst['chs']['All']['DAmean']
-    print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
-    dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
-    binRawData.burstFilterByBin(burst,dddaaaT)
+    burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
+    # burst=binRawData.binRawData(br,dbname,binTime)
+    # binRawData.statsBins(burst)
+    # bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+    # bgDD=burst['chs']['All']['DDmean']    
+    # bgDA=burst['chs']['All']['DAmean']
+    # print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
+    # dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
+    # binRawData.burstFilterByBin(burst,dddaaaT)
     # binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
     sampleNum=20
-    irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
-    irfbinData=binRawData.binRawData(irfbr,irfdbname,binTime)        
-    hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
+    # irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
+    # irfbinData=binRawData.binRawData(irfbr,irfdbname,binTime)        
+    # hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
 
     burstTau, burstFRET,wei,H,xedges, yedges=\
     FretAndLifetime(burst,(27,27),None,4.1,binLenT=sp,S=0.86,ESm='z',byBurst=False\
-            ,bgfilter=False,histIRF=hi,sampleNum=sampleNum)
-    title= "bin:"+str(binTime)+"ms,E-Lifetime"
-    savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
-        dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
-        str(dddaaaT)+os.path.basename(sys.argv[0])+".pickle"
-    with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
+            ,bgfilter=False,sampleNum=sampleNum) #,histIRF=hi
+    # title= "bin:"+str(binTime)+"ms,E-Lifetime"
+    # savefn='data/rawRes/rsv/'+\
+    #     dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
+    #     str(dddaaaT)+".pickle"
+    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+    #     pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
     # from PyQt5 import QtWidgets
@@ -405,5 +411,5 @@ if __name__ == '__main__':
     
     # import matplotlib.pyplot as plt
     ax[0].hist(burstFRET, bins=40) 
-    plt.title(title)
+    # plt.title(title)
     plt.show()

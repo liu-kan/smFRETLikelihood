@@ -25,7 +25,7 @@ def prepareData(histIRF,binData,binIdx=-1,sampleNum=1000,T0=0,fft=True):
 
 # define the single exponential model
 #jumpexpmodel(t,irf,paras):
-def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2):#,tau3,ampl3,tau4,ampl4):#,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
+def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2):#,tau3,ampl3):#,tau4,ampl4):#,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
     ymodel=np.zeros(t.size)
     # c=paras['x0']
     # y0=paras['y0']
@@ -120,9 +120,9 @@ def calcTauOf1Bin(histIRF,binData,binIdx,sampleNum,T0,method='differential_evolu
 
 if __name__=='__main__':
     import pickle,sys,getopt
-    irfdbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
-    dbname="/dataB/smfretData/21c_224c.sqlite"
-    savefn='/dataB/tmp/'+\
+    irfdbname="data/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
+    dbname="data/21c_224c.sqlite"
+    savefn='data/'+\
         dbname.split('/')[-1].split('.')[-2]+'_gd'+".pickle"
     fromdb=True
     binMs=1
@@ -142,7 +142,7 @@ if __name__=='__main__':
         print("getopt error!")        
         sys.exit(1); 
     if fromdb:
-        br=BGrate.calcBGrate(dbname,0,400,T0=6,Tlen=167.97)
+        br=BGrate.calcBGrate(dbname,0,400,T0=6,Tlen=267.97)
         binData=binRawData.binRawData(br,dbname,binMs)
         irfbr=BGrate.calcBGrate(irfdbname,20,400)#,T0=0.0,Tlen=600)
         irfbinData=binRawData.binRawData(irfbr,irfdbname,binMs)    
@@ -206,11 +206,11 @@ if __name__=='__main__':
 
 
     
-    # plt.figure(2)
-    # decay1,irf1,x=prepareData(hi,binData,sampleNum=sampleNum,T0=6,fft=False)
-    # # plot_fit(x,irf1, decay1, result.params)    
-    # plt.semilogy(x,irf1)
-    # plt.semilogy(x,decay1)
+    plt.figure(2)
+    decay1,irf1,x=prepareData(hi,binData,sampleNum=sampleNum,T0=6,fft=False)
+    # plot_fit(x,irf1, decay1, result.params)    
+    plt.semilogy(x,irf1)
+    plt.semilogy(x,decay1)
     plt.show()    
 
 

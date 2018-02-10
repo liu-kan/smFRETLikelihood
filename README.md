@@ -7,5 +7,7 @@
 ![正常ES图](algo/minusBG.png)
 
 # 安装
- 
+
+    # fedroa
+    sudo dnf install python3-tkinter
     pip3 install --user numpy scipy matplotlib pandas sklearn PyQt5 #mpi4py 
