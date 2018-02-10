@@ -1,6 +1,6 @@
 import pickle
-TauD = pickle.load( open( "../data/TauDraw.pickle", "rb" ) )
-burstTauD = TauD[0]
+TauD = pickle.load( open( "/home/liuk/dataZ1/smfretRes/rawRes/rsv/21c_224c_0.5_[2.3509349643187933, 1.1838989238159361, 3.3364004127243341, 3.5348338881347292].pickle", "rb" ) )
+
 import scipy.io as sio
 from array import array
 n=len(TauD[0])

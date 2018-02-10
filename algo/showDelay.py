@@ -66,7 +66,7 @@ if __name__=='__main__':
         binData,irfbinData=pickle.load(open(savefn,'rb'))    
         
     # x,decay1,irf1=np.lo oadtxt(r"data/tcspcdatashifted.csv",delimiter=',',unpack=True,dtype='float')
-    hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)    
+    hi,bi,_dt=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)    
   
     plt.figure()
     # decay1,x=prepareData(binData,sampleNum,fft=False)

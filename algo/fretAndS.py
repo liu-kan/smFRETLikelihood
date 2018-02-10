@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     dbname='E:/liuk/proj/ptu/data/55.sqlite'
     #dbname='E:/sf/oc/data/38.sqlite'
-    dbname="/dataZ1/smfretData/21c_224c.sqlite"
+    dbname="/dataB/smfretData/21c_224c.sqlite"
     br=BGrate.calcBGrate(dbname,20,400)#,30,60)
     # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
     binTime=1
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     # binRawData.statsBins(burst,['AllBurst'])
     burstSeff, burstFRET,wei,H,xedges, yedges=FretAndS(burst,(27,27),None,False,'z'\
                 ,"All")
-    savefn='/dataZ1/smfretRes/rawRes/rsv/'+\
+    savefn='/dataB/smfretRes/rawRes/rsv/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
         str(dddaaaT)+"_ES.pickle"
     with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')

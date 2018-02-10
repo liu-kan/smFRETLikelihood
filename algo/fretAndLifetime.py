@@ -195,7 +195,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
             if lensumdtimed>20 and histIRF!=None:
                 cTau,rchi=irf_decov.calcTauOf1Bin(histIRF,burst,i,sampleNum,T0,'leastsq')
                 if rchi>=1 and rchi<5000:
-                    Tau=cTau/(Tau_D)
+                    Tau=cTau/(Tau_D*1e9)
                     goodTau=True
                     # print("cTau:",cTau,"rchi",rchi)
             if bgfilter:      
@@ -218,7 +218,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-            if goodTau:#and Tau<=1 and Tau>=0                                  
+            if goodTau and Tau<=1 and Tau>0.06:
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -346,7 +346,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
     return burstTau, burstFRET,wei,H,xedges, yedges
 
 if __name__ == '__main__':
-    import pickle    
+    import pickle,os  
     irfdbname="/dataB/smfretData/irf/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
     dbname="/dataB/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
@@ -384,7 +384,7 @@ if __name__ == '__main__':
     title= "bin:"+str(binTime)+"ms,E-Lifetime"
     savefn='/home/liuk/dataZ1/smfretRes/rawRes/rsv/'+\
         dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
-        str(dddaaaT)+".pickle"
+        str(dddaaaT)+os.path.basename(sys.argv[0])+".pickle"
     with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
         pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')

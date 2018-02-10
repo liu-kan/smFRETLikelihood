@@ -9,23 +9,23 @@ def prepareData(histIRF,binData,binIdx=-1,sampleNum=1000,T0=0,fft=True):
     h=None
     b=None
     if binIdx==-1:
-        h,b=binRawData.statsDelayTime(binData,sampleNum,"D")#,bin0=100,binLen=2)    
+        h,b,sdt=binRawData.statsDelayTime(binData,sampleNum,"D")#,bin0=100,binLen=2)    
     else:
-        h,b=binRawData.statsDelayTime(binData,sampleNum,"D",binIdx,1)
+        h,b,sdt=binRawData.statsDelayTime(binData,sampleNum,"D",binIdx,1)
     histlen=int(sampleNum/2)    
     # binRawData.statsBins(irfbinData)
     # print("IRF photonEffTime:",irfbinData['chs']['DexDem']["photonEffTime"])
     # print("Data Max PIE delay(ns):",b[0][-1])       
     startt=max(0,int(T0/64*sampleNum)-1)
     if fft:
-        return h[0][startt:histlen],histIRF[0][startt:histlen],np.linspace(0,histlen-startt-1,histlen-startt)
+        return h[0][startt:histlen],histIRF[0][startt:histlen],np.linspace(0,histlen-startt-1,histlen-startt),sdt
     else:
-        return h[0][startt:histlen],histIRF[0][startt:histlen],b[0][startt:histlen]
+        return h[0][startt:histlen],histIRF[0][startt:histlen],b[0][startt:histlen],sdt
 
 
 # define the single exponential model
 #jumpexpmodel(t,irf,paras):
-def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4):#,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
+def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2):#,tau3,ampl3,tau4,ampl4):#,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
     ymodel=np.zeros(t.size)
     # c=paras['x0']
     # y0=paras['y0']
@@ -43,8 +43,8 @@ def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4):#,tau5
     #     ymodel+ =paras['ampl'+idx]*np.exp(-(t)/paras['tau'+idx])    
     ymodel+= ampl1*np.exp(-(t)/tau1)        
     ymodel+= ampl2*np.exp(-(t)/tau2)        
-    ymodel+= ampl3*np.exp(-(t)/tau3)        
-    ymodel+= ampl4*np.exp(-(t)/tau4)        
+    # ymodel+= ampl3*np.exp(-(t)/tau3)        
+    # ymodel+= ampl4*np.exp(-(t)/tau4)        
     # ymodel+= ampl5*np.exp(-(t)/tau5)        
     # ymodel+= ampl6*np.exp(-(t)/tau6)        
     z=Convol(ymodel,irf_reshaped_norm)
@@ -103,7 +103,7 @@ def fitIRF(decayData,irf,delayT,pars,model,method='differential_evolution'):
     return result
 
 def calcTauOf1Bin(histIRF,binData,binIdx,sampleNum,T0,method='differential_evolution'):    
-    decay1,irf1,x=prepareData(histIRF,binData,binIdx,sampleNum=sampleNum,T0=T0)
+    decay1,irf1,x,_dt=prepareData(histIRF,binData,binIdx,sampleNum=sampleNum,T0=T0)
     maxI=max(decay1)*max(irf1)
     minI=min(min(decay1),min(irf1))
     params = Parameters()
@@ -151,8 +151,8 @@ if __name__=='__main__':
     else:
         irfbinData,binData=pickle.load(open(savefn,'rb'))    
     # x,decay1,irf1=np.lo oadtxt(r"data/tcspcdatashifted.csv",delimiter=',',unpack=True,dtype='float')
-    hi,bi=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
-    decay1,irf1,x=prepareData(hi,binData,sampleNum=sampleNum,T0=6)
+    hi,bi,meandt=binRawData.statsDelayTime(irfbinData,sampleNum,"D")#,bin0=100,binLen=2)
+    decay1,irf1,x,sdt=prepareData(hi,binData,sampleNum=sampleNum,T0=6)
     maxI=max(decay1)*max(irf1)
     minI=min(min(decay1),min(irf1))
     params = Parameters()
@@ -162,10 +162,10 @@ if __name__=='__main__':
     params.add('ampl1', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
     params.add('tau2', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
     params.add('ampl2', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau3', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
-    params.add('ampl3', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau4', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
-    params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
+    # params.add('tau3', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
+    # params.add('ampl3', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
+    # params.add('tau4', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
+    # params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
     # params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
     # params.add('ampl5', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
     # params.add('tau6', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
@@ -200,6 +200,8 @@ if __name__=='__main__':
         idx=str(i+1)
         print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
         print("p:",ev[i]/sum(eall))
+    
+    print(sdt)
 
 
 

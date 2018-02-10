@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 
 if __name__=='__main__':
     import pickle,sys,getopt
-
     dbname="/dataB/smfretData/21c_224c.sqlite"
     savefn='/dataB/tmp/'+\
         dbname.split('/')[-1].split('.')[-2]+'_burstwhist'+".pickle"
@@ -47,7 +46,3 @@ if __name__=='__main__':
     size=sampleNum/10
     plt.plot(b[0:size],h[0:size])
     plt.show()    
-
-
-
-

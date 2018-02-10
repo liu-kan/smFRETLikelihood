@@ -495,29 +495,31 @@ def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1,byBin=False):
         binEnd=binLen+bin0
     # print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],99))
     # print((bin0,binEnd),np.percentile(binData['chs']["All"]['ntag'],90))
+    dta=array('d')   
+    dtd=array('d')   
     for i in range(bin0,binEnd):
         w=binData['chs']["All"]['ntag'][i]
         aa=array('d')
         dd=array('d')        
         for idxd in range(w):
+            t=1e9*binData['chs']["All"]['dtime'][i][idxd]\
+                    *binData["DelayResolution"]            
             if (binData['chs']["All"]['chl'][i][idxd]==1 \
                 or binData['chs']["All"]['chl'][i][idxd]==3) \
                 and (chl=="Both" or chl=="A"): #DA or AA
-                if byBin:
-                    aa.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
-                        *binData["DelayResolution"])
+                dta.append(t)
+                if byBin:                    
+                    aa.append(t)
                 else:
-                    a.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
-                        *binData["DelayResolution"])
+                    a.append(t)
             elif (binData['chs']["All"]['chl'][i][idxd]==2 \
                 or binData['chs']["All"]['chl'][i][idxd]==4) \
                 and (chl=="Both" or chl=="D"): #DA or AA
+                dtd.append(t)
                 if byBin:
-                    dd.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
-                        *binData["DelayResolution"])
+                    dd.append(t)
                 else:            
-                    d.append(1e9*binData['chs']["All"]['dtime'][i][idxd]\
-                        *binData["DelayResolution"])
+                    d.append(t)
         if byBin:
             if len(aa)>0:
                 a.append(np.mean(aa))
@@ -528,11 +530,11 @@ def statsDelayTime(binData,binNum=200,chl="Both",bin0=0,binLen=-1,byBin=False):
     if (chl=="Both" or chl=="D"):
         histD,binD= np.histogram(d, binNum)
     if chl=="Both":
-        return [histA,histD],[binA,binD]
+        return [histA,histD],[binA,binD],[np.mean(dta),np.mean(dtd)]
     elif chl=="A":
-        return [histA],[binA]
+        return [histA],[binA],[np.mean(dta)]
     else:
-        return [histD],[binD]
+        return [histD],[binD],[np.mean(dtd)]
 def statsPhotonDiff(binData,chs=[]):
     hist=[];bin=[]
     if len(chs)<1:
