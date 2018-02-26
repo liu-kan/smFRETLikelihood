@@ -14,6 +14,9 @@
 
 # Lifetime 使用说明
 
+    #不做bin
+    python3 algo/fretAndLifetimeBurst.py -i /home/jwx/data/sqlite/rsc21c.sqlite -o /home/jwx/data/t.pickle
+    #bin
     python3 algo/fretAndLifetimeBin.py -i /home/jwx/data/sqlite/rsc21c.sqlite -o /home/jwx/data/t.pickle -b 2
     python3 untils/exportF2mat.py -i /home/jwx/data/t.pickle -o /home/jwx/data/fret.mat
     # use matlab to fit
