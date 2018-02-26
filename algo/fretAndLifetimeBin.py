@@ -351,32 +351,46 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
     #g.plot_joint(plt.hist2d)
     return burstTau, burstFRET,wei,H,xedges, yedges
 
+def usage():  
+    print("Usage:%s -i|--sqlite inputfilename.sqlite -o|--pickle outputfilename.pickle -b|--binms bintimeinMs" % sys.argv[0])
+
 if __name__ == '__main__':
-    import pickle    
+    import pickle,sys,getopt
     irfdbname="data/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
     dbname="/dataB/smfretData/21c_224c.sqlite"
     dbTau_D="/home/liuk/proj/data/Tau_D.sqlite"
     dbname="data/21c_224c.sqlite"
-    binTime=1
-    
+    binTime=1    
     sp=0
-    if len(sys.argv)>1:
-        binTime=float(sys.argv[1])
-    if len(sys.argv)>2:
-        dbname=sys.argv[2]
+    savefn=''
+    try:  
+        opts, args = getopt.getopt(sys.argv[1:], "i:o:b:", ["sqlite=", "pickle=", "binms="])  
+        for o, v in opts: 
+            if o in ("-i", "--sqlite"):
+                dbname=v
+            if o in ("-o", "--pickle"):
+                savefn = v
+            if o in ("-b", "--binms"):
+                binMs = float(v)
+    except getopt.GetoptError:  
+        # print help information and exit:  
+        print("getopt error!")    
+        usage()    
+        sys.exit(1)
+
     br=BGrate.calcBGrate(dbname,20,400)#,30,500)
     if type(br)==type(1):
         exit(-1)        
-    burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
-    # burst=binRawData.binRawData(br,dbname,binTime)
-    # binRawData.statsBins(burst)
-    # bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
-    # bgDD=burst['chs']['All']['DDmean']    
-    # bgDA=burst['chs']['All']['DAmean']
-    # print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
-    # dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
-    # binRawData.burstFilterByBin(burst,dddaaaT)
-    # binRawData.statsBins(burst)
+    # burst=BurstSearch.findBurst(br,dbname,["All"],30,6)
+    burst=binRawData.binRawData(br,dbname,binTime)
+    binRawData.statsBins(burst)
+    bgAA= burst['chs']['All']['AAmean'] + burst['chs']['All']['AAstd']#每个bin中的光子数
+    bgDD=burst['chs']['All']['DDmean']    
+    bgDA=burst['chs']['All']['DAmean']
+    print("bgDD",bgDD,"bgDA",bgDA,"e",bgDA/(bgDA+bgDD))
+    dddaaaT=[bgDD,bgDA,bgAA,bgDD+bgDA]
+    binRawData.burstFilterByBin(burst,dddaaaT)
+    binRawData.statsBins(burst)
     #brD=BGrate.calcBGrate(dbTau_D,20,400)
     #burstD=BurstSearch.findBurst(br,dbTau_D,["All"])
     sampleNum=20
@@ -391,8 +405,9 @@ if __name__ == '__main__':
     # savefn='data/rawRes/rsv/'+\
     #     dbname.split('/')[-1].split('.')[-2]+'_'+str(binTime)+'_'+\
     #     str(dddaaaT)+".pickle"
-    # with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
-    #     pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
+    if len(savefn)>0:
+        with open(savefn, 'wb') as f:  # Python 3: open(..., 'wb')
+            pickle.dump([burstTau, burstFRET,burst], f,protocol=-1)
     # sys.path.append('./ui')
     # from qtPlot import ControlMainWindow 
     # from PyQt5 import QtWidgets
