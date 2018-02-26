@@ -11,3 +11,9 @@
     # fedroa
     sudo dnf install python3-tkinter
     pip3 install --user numpy scipy matplotlib pandas sklearn PyQt5 #mpi4py 
+
+# Lifetime 使用说明
+
+    python3 algo/fretAndLifetimeBin.py -i /home/jwx/data/sqlite/rsc21c.sqlite -o /home/jwx/data/t.pickle -b 2
+    python3 untils/exportF2mat.py -i /home/jwx/data/t.pickle -o /home/jwx/data/fret.mat
+    # use matlab to fit
