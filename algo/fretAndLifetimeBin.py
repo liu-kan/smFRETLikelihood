@@ -218,7 +218,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                     nda=nda-bgDA
                     if naa< bgAA or ndd<0 or nda<0:
                         continue            
-            if (goodTau or histIRF==None) and Tau<=1 and Tau>=0.0:                                  
+            if (goodTau or histIRF==None) :#and Tau<=1 and Tau>=0.0:                                  
                 burst['chs']["All"]['lifetime'][i]=Tau        
                 gamma=0.34   
                 beta=1.42
@@ -251,6 +251,7 @@ def FretAndLifetime(burst,bins=(25,25),bgrate=None,burstD=4.1,bgrateD=None,\
                         burstSeff.append(s)
                         burstTau.append(Tau)                        
                     else:
+                        w=1
                         weis=[s]*w;weie=[e]*w
                         wTau=[Tau]*w
                         burstFRET.extend(weie)
