@@ -17,7 +17,7 @@ d.burst_search()
 ds = d.select_bursts(select_bursts.naa, th1=19, computefret=False)
 ds = ds.select_bursts(select_bursts.size, th1=30, computefret=False)
 dsfuse = ds.fuse_bursts(ms=0)
-dsfuse.leakage = 0.07
+# dsfuse.leakage = 0.07
 # alex_jointplot(dsfuse)
 # dplot(dsfuse, hist_fret, show_kde=True)
 
@@ -45,7 +45,7 @@ times = d.ph_times_m[0]  # timestamps array
 bursts = d_fret_mix.mburst[0]
 print('\nNumber of bursts:', bursts.num_bursts)
 
-time_bin = 0.2e-3  # 0.5 ms
+time_bin = 0.5e-3  # 0.5 ms
 time_bin_clk = time_bin / ds.clk_p
 
 sub_bursts_list = []
@@ -90,13 +90,18 @@ mask_aa = d.get_ph_mask(ph_sel=Ph_sel(Aex='Aem'))   # acceptor excitation, accep
 from fretbursts.phtools.burstsearch import count_ph_in_bursts
 PR=[]
 Tau=[]
-
+gamma=0.31        
+beta=1.42
+DexDirAem=0.08
+Dch2Ach=0.07 
 i=-1
 for bursts in sub_bursts_list:
     counts_dd = count_ph_in_bursts(bursts, mask_dd)
     counts_ad = count_ph_in_bursts(bursts, mask_ad)
     counts_aa = count_ph_in_bursts(bursts, mask_aa)
-    pr=(counts_ad / (counts_dd + counts_ad)).tolist()
+    # pr=(counts_ad / (counts_dd*gamma + counts_ad)).tolist()
+    pr=((counts_ad *(1-DexDirAem)-Dch2Ach*counts_dd)/ ((gamma-\
+                            Dch2Ach)*counts_dd + (1-DexDirAem)*counts_ad)).tolist()    
     i=i+1
     j=-1
     for fe in pr:
@@ -130,7 +135,14 @@ g = sns.jointplot(x='x',y='y',data=df, kind="kde", size=7, space=0,ylim=(0,1),xl
 # sns.rugplot(df.y, vertical=True, ax=ax)
 # plt.hist(nanotimes_dd*25e-12*1e9,120)
 
+import scipy.io as sio
+from array import array
 
+Fsel=array("d")
+for i in PR:
+    if i<0.99 and i >0.01:
+        Fsel.append(i)
+sio.savemat('fret.mat', {'fret':Fsel})
 plt.show()
 # import matplotlib.cm as cm
 # import matplotlib.pyplot as plt
