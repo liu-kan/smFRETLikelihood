@@ -14,7 +14,7 @@ d.calc_bg(fun=bg.exp_fit, time_s=10, tail_min_us='auto', F_bg=2)
 # xlim(10, 20)
 # ylim(-50, 50)
 d.burst_search()
-ds = d.select_bursts(select_bursts.naa, th1=19, computefret=False)
+ds = d.select_bursts(select_bursts.naa, th1=5, computefret=False)
 ds = ds.select_bursts(select_bursts.size, th1=30, computefret=False)
 dsfuse = ds.fuse_bursts(ms=0)
 # dsfuse.leakage = 0.07
