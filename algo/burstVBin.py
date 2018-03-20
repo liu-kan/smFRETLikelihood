@@ -4,11 +4,12 @@
 import numpy as np
 from fretbursts import *
 
-bw=np.arange(0.4,0.8,0.02)
+bw=np.arange(0.4,3.02,0.02)
+binTh1=0.52
 
 PR=[]
 Tau=[]
-gamma=0.31        
+gamma=0.34        
 beta=1.42
 DexDirAem=0.08
 Dch2Ach=0.07 
@@ -34,7 +35,7 @@ def burstRange(start,stop,time_bin_clk):
 
 
 # sns = init_notebook()
-full_fname='jupyter/LS3.h5'
+full_fname='data/21c.h5'
 d = loader.photon_hdf5(full_fname)
 # bpl.plot_alternation_hist(d)
 loader.alex_apply_period(d)
@@ -130,8 +131,8 @@ for burst in bursts:
         itb=itb+1
     idx_time_bin_ms=np.argmax(varpr)
     binwidth.append(bw[idx_time_bin_ms])
-    if bw[idx_time_bin_ms]<0.47:
-        ta,=np.where(bw>0.47)
+    if bw[idx_time_bin_ms]<binTh1:
+        ta,=np.where(bw>binTh1)
         idx_time_bin_ms=ta[0]
     fbin.append(dicLT[idx_time_bin_ms])
     sub_bursts = Bursts.from_list(dictBurst[idx_time_bin_ms])
@@ -141,7 +142,7 @@ for burst in bursts:
 
 PR=[]
 Tau=[]
-gamma=0.31        
+gamma=0.34   
 beta=1.42
 DexDirAem=0.08
 Dch2Ach=0.07 

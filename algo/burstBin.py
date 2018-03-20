@@ -4,18 +4,18 @@
 import numpy as np
 from fretbursts import *
 # sns = init_notebook()
-full_fname='jupyter/LS3.h5'
+full_fname='data/n25c.h5'
 d = loader.photon_hdf5(full_fname)
 # bpl.plot_alternation_hist(d)
 loader.alex_apply_period(d)
-d.calc_bg(fun=bg.exp_fit, time_s=10, tail_min_us='auto', F_bg=2)
+d.calc_bg(fun=bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
 # dplot(d, timetrace_bg)
 # dplot(d, timetrace)
 # xlim(10, 20)
 # ylim(-50, 50)
 d.burst_search()
-ds = d.select_bursts(select_bursts.naa, th1=5, computefret=False)
-ds = ds.select_bursts(select_bursts.size, th1=30, computefret=False)
+ds = d.select_bursts(select_bursts.naa, th1=3, computefret=False)
+ds = ds.select_bursts(select_bursts.size, th1=25, computefret=False)
 dsfuse = ds.fuse_bursts(ms=0)
 # dsfuse.leakage = 0.07
 # alex_jointplot(dsfuse)
@@ -45,7 +45,7 @@ times = d.ph_times_m[0]  # timestamps array
 bursts = d_fret_mix.mburst[0]
 print('\nNumber of bursts:', bursts.num_bursts)
 
-time_bin = 0.5e-3  # 0.5 ms
+time_bin = 0.7e-3  # 0.5 ms
 time_bin_clk = time_bin / ds.clk_p
 
 sub_bursts_list = []
@@ -128,7 +128,7 @@ df=pd.DataFrame(dict(x = PR, y = Tau))
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-g = sns.jointplot(x='x',y='y',data=df, kind="kde", size=7, space=0,ylim=(0,1),xlim=(0,1))
+# g = sns.jointplot(x='x',y='y',data=df, kind="kde", size=7, space=0,ylim=(0,1),xlim=(0,1))
 # f, ax = plt.subplots(figsize=(6, 6))
 # sns.kdeplot(df.x, df.y, ax=ax)
 # sns.rugplot(df.x, color="g", ax=ax)
@@ -153,7 +153,7 @@ plt.show()
 # # ax[1].set_title(title)
 # fig.colorbar(im)                       
 
-# import matplotlib.pyplot as plt
-# plt.hist(burstsw, bins=100) 
-# # plt.title(title)
-# plt.show()
+import matplotlib.pyplot as plt
+plt.hist(burstsw, bins=100) 
+# plt.title(title)
+plt.show()
