@@ -36,8 +36,8 @@ bursts = d_fret_mix.mburst[0]
 print('\nNumber of bursts:', bursts.num_bursts)
 time_bin = 1e-3  # 5 ms
 time_bin_clk = time_bin / ds.clk_p
-stime=3.6
-etime=3.9
+stime=0.6
+etime=0.9
 
 from fretbursts.phtools.burstsearch import Burst, Bursts
 mask_dd = d.get_ph_mask(ph_sel=Ph_sel(Dex='Dem'))   # donor excitation, donor emission
@@ -82,12 +82,7 @@ sub_bursts = Bursts.from_list(sub_bursts_l)
 
 from fretbursts.phtools.burstsearch import count_ph_in_bursts
 PR=[]
-TIMEX=[]
 gamma=0.31 
-
-ddp=[]
-adp=[]
-TIMEC=[]
 
 counts_dd = count_ph_in_bursts(sub_bursts, mask_dd)
 counts_ad = count_ph_in_bursts(sub_bursts, mask_ad)
@@ -98,41 +93,18 @@ print(len(counts_dd))
 binsa=np.asarray(bins)
 timex=(binsa[:-1]+np.diff(bins)/2)*ds.clk_p
 print(ds.clk_p)
-
-timexl=timex.tolist()
-i=-1
-for tpr in pr:
-    i=i+1
-    if tpr!=0 and tpr!=1:
-        PR.append(tpr)
-        TIMEX.append(timexl[i])
-
-timexl=timex.tolist()
-i=-1
-for cdd in counts_dd:
-    i=i+1
-    if cdd+counts_ad[i]>0:
-        ddp.append(cdd)
-        adp.append(counts_ad[i])
-        TIMEC.append(timexl[i])
-
-
+    
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 f, (ax1, ax2) = plt.subplots(2, sharex=True)
-ax1.plot(TIMEC, ddp,label='DexDem')
-ax1.plot(TIMEC, adp,label='DexAem')
-ax1.legend(loc="upper right")
-# ax1.set_title('Sharing both axes')
+ax1.plot(timex, counts_dd)
+ax1.plot(timex, counts_ad)
+ax1.set_title('Sharing both axes')
 # ax2.scatter(timex, pr)
-ax1.set_ylabel("counts")
-ax2.plot(TIMEX, PR,label="E")
-ax2.legend(loc="upper right")
+ax2.plot(timex, pr)
 # Fine-tune figure; make subplots close to each other and hide x ticks for
 # all but bottom plot.
 f.subplots_adjust(hspace=0)
-ax2.set_xlabel("Time (s)")
-ax2.set_ylabel("E")
 plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
 plt.show()
