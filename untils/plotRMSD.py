@@ -120,23 +120,17 @@ for cdd in counts_dd:
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-f, (ax1, ax2) = plt.subplots(2, sharex=True)
-ax1.plot(TIMEC, ddp,label='DexDem')
-ax1.plot(TIMEC, adp,label='DexAem')
-ax1.legend(loc="upper right")
-# ax1.set_title('Sharing both axes')
+f, ax2 = plt.subplots(1)
 # ax2.scatter(timex, pr)
-ax1.set_ylabel("counts")
-ax2.plot(TIMEX, PR,label="E")
-ax2.legend(loc="upper right")
-area = np.pi * (6)**2
 
-f.subplots_adjust(hspace=0)
+ax2.plot(TIMEX, PR,label="RMSD")
+
+# f.subplots_adjust(hspace=0)
 ax2.set_xlabel("Time (s)")
-ax2.set_ylabel("E")
-plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
+ax2.set_ylabel("RMSD")
+# plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
 gifbin=3
-dot,=ax2.plot(TIMEX[0],PR[0],markersize=6, marker='o', c='y',alpha=.6)
+dot,=ax2.plot(TIMEX[0],PR[0],markersize=11, marker='o', c='r',alpha=.9)
 def update(i):
     dot.set_xdata(TIMEX[int(i*gifbin)])
     dot.set_ydata(PR[int(i*gifbin)])
@@ -146,7 +140,7 @@ import sys
 if __name__ == '__main__':
     # FuncAnimation will call the 'update' function for each frame; here
     # animating over 10 frames, with an interval of 200ms between frames.
-    anim = FuncAnimation(f, update, frames=np.arange(0, len(TIMEX)/gifbin-1), interval=200)
+    anim = FuncAnimation(f, update, frames=np.arange(0, len(TIMEX)/gifbin-1), interval=120)
     if len(sys.argv) > 1 and sys.argv[1] == 'save':
         anim.save('line.gif', dpi=220, writer='imagemagick')
     else:
