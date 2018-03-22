@@ -25,7 +25,7 @@ def prepareData(histIRF,binData,binIdx=-1,sampleNum=1000,T0=0,fft=True):
 
 # define the single exponential model
 #jumpexpmodel(t,irf,paras):
-def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2):#,tau3,ampl3):#,tau4,ampl4):#,tau5,ampl5,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
+def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4,tau5,ampl5):#,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
     ymodel=np.zeros(t.size)
     # c=paras['x0']
     # y0=paras['y0']
@@ -43,9 +43,9 @@ def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2):#,tau3,ampl3):#,tau4,ampl4):
     #     ymodel+ =paras['ampl'+idx]*np.exp(-(t)/paras['tau'+idx])    
     ymodel+= ampl1*np.exp(-(t)/tau1)        
     ymodel+= ampl2*np.exp(-(t)/tau2)        
-    # ymodel+= ampl3*np.exp(-(t)/tau3)        
-    # ymodel+= ampl4*np.exp(-(t)/tau4)        
-    # ymodel+= ampl5*np.exp(-(t)/tau5)        
+    ymodel+= ampl3*np.exp(-(t)/tau3)        
+    ymodel+= ampl4*np.exp(-(t)/tau4)        
+    ymodel+= ampl5*np.exp(-(t)/tau5)        
     # ymodel+= ampl6*np.exp(-(t)/tau6)        
     z=Convol(ymodel,irf_reshaped_norm)
     z+=y0
@@ -155,19 +155,28 @@ if __name__=='__main__':
     decay1,irf1,x,sdt=prepareData(hi,binData,sampleNum=sampleNum,T0=6)
     maxI=max(decay1)*max(irf1)
     minI=min(min(decay1),min(irf1))
+
+    E=[0.3736,0.6739,0.8314]
+    upb=1.01
+    lowb=0.99
+    TauD0=4.1
+    npE=np.asarray(E)
+    npTau=(1-npE)*TauD0*1000/64
+    iniTauD0=TauD0*1000/64
+
     params = Parameters()
     params.add('x0', value=0,min=-sampleNum/2,max=sampleNum/2)#, vary=False)
-    params.add('y0', value=minI,min=minI/4,max=maxI**0.5)#, vary=False)
-    params.add('tau1', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
-    params.add('ampl1', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau2', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
-    params.add('ampl2', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    # params.add('tau3', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
-    # params.add('ampl3', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    # params.add('tau4', value=sampleNum/8,min=sampleNum/200,max=sampleNum)    
-    # params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    # params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
-    # params.add('ampl5', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
+    params.add('y0', value=minI,min=minI/8,max=maxI**0.5)#, vary=False)
+    params.add('tau1', value=npTau[0],min=npTau[0]*lowb,max=npTau[0]*upb)    
+    params.add('ampl1', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
+    params.add('tau2', value=npTau[1],min=npTau[1]*lowb,max=npTau[1]*upb)    
+    params.add('ampl2', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
+    params.add('tau3', value=npTau[2],min=npTau[2]*lowb,max=npTau[2]*upb)    
+    params.add('ampl3', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
+    params.add('tau4', value=iniTauD0,min=iniTauD0*lowb,max=iniTauD0*upb)    
+    params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
+    params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    params.add('ampl5', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
     # params.add('tau6', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
     # params.add('ampl6', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)    
     
@@ -196,6 +205,7 @@ if __name__=='__main__':
         eall+=e1
         ev[i]=sum(e1)
     #plt.semilogy(x,eall+y0,'bo-')
+    print("Tau^{hat}",npTau*64/1000)
     for i in range(numcom):
         idx=str(i+1)
         print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
@@ -206,11 +216,11 @@ if __name__=='__main__':
 
 
     
-    plt.figure(2)
-    decay1,irf1,x=prepareData(hi,binData,sampleNum=sampleNum,T0=6,fft=False)
-    # plot_fit(x,irf1, decay1, result.params)    
-    plt.semilogy(x,irf1)
-    plt.semilogy(x,decay1)
+    # plt.figure(2)
+    # decay1,irf1,x=prepareData(hi,binData,sampleNum=sampleNum,T0=6,fft=False)
+    # # plot_fit(x,irf1, decay1, result.params)    
+    # plt.semilogy(x,irf1)
+    # plt.semilogy(x,decay1)
     plt.show()    
 
 
