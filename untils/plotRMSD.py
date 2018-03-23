@@ -122,8 +122,9 @@ import matplotlib.pyplot as plt
 
 f, ax2 = plt.subplots(1)
 # ax2.scatter(timex, pr)
-
-ax2.plot(TIMEX, PR,label="RMSD")
+ax2.set_xlim(TIMEX[0],TIMEX[-1])
+ax2.set_ylim(0,1)
+line,=ax2.plot(TIMEX[0], PR[0],label="RMSD")
 
 # f.subplots_adjust(hspace=0)
 ax2.set_xlabel("Time (s)")
@@ -131,7 +132,10 @@ ax2.set_ylabel("RMSD")
 # plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
 gifbin=3
 dot,=ax2.plot(TIMEX[0],PR[0],markersize=11, marker='o', c='r',alpha=.9)
+lasti=0
 def update(i):
+    line.set_xdata(TIMEX[0:int(i*gifbin)])
+    line.set_ydata(PR[0:int(i*gifbin)])
     dot.set_xdata(TIMEX[int(i*gifbin)])
     dot.set_ydata(PR[int(i*gifbin)])
     # return paths, ax2
