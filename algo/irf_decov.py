@@ -25,11 +25,11 @@ def prepareData(histIRF,binData,binIdx=-1,sampleNum=1000,T0=0,fft=True):
 
 # define the single exponential model
 #jumpexpmodel(t,irf,paras):
-def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4,tau5,ampl5):#,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
+def jumpexpmodel(t,irf,**paras):#,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4,tau5,ampl5):#,tau6,ampl6):# Lifetime decay fit Author: Antonino Ingargiola - Date: 07/20/2014
     ymodel=np.zeros(t.size)
-    # c=paras['x0']
-    # y0=paras['y0']
-    c=x0    
+    # paras= params.valuesdict()
+    c=paras['x0']
+    y0=paras['y0']
     n=len(irf)
     irf_s1=np.remainder(np.remainder(t-np.floor(c)-1, n)+n,n)
     irf_s11=(1-c+np.floor(c))*irf[irf_s1.astype(int)]
@@ -37,15 +37,15 @@ def jumpexpmodel(t,irf,y0,x0,tau1,ampl1,tau2,ampl2,tau3,ampl3,tau4,ampl4,tau5,am
     irf_s22=(c-np.floor(c))*irf[irf_s2.astype(int)]
     irf_shift=irf_s11+irf_s22
     irf_reshaped_norm=irf_shift/sum(irf_shift)
-    # numcom=int((len(paras)-2)/2)
-    # for i in range(numcom):
-    #     idx=str(i+1)
-    #     ymodel+ =paras['ampl'+idx]*np.exp(-(t)/paras['tau'+idx])    
-    ymodel+= ampl1*np.exp(-(t)/tau1)        
-    ymodel+= ampl2*np.exp(-(t)/tau2)        
-    ymodel+= ampl3*np.exp(-(t)/tau3)        
-    ymodel+= ampl4*np.exp(-(t)/tau4)        
-    ymodel+= ampl5*np.exp(-(t)/tau5)        
+    numcom=int((len(paras)-2)/3)
+    for i in range(numcom):
+        idx=str(i+1)
+        ymodel += paras['ampl'+idx]*np.exp(-(t)/paras['tau'+idx])    
+    # ymodel+= ampl1*np.exp(-(t)/tau1)        
+    # ymodel+= ampl2*np.exp(-(t)/tau2)        
+    # ymodel+= ampl3*np.exp(-(t)/tau3)        
+    # ymodel+= ampl4*np.exp(-(t)/tau4)        
+    # ymodel+= ampl5*np.exp(-(t)/tau5)        
     # ymodel+= ampl6*np.exp(-(t)/tau6)        
     z=Convol(ymodel,irf_reshaped_norm)
     z+=y0
@@ -99,7 +99,7 @@ def fitIRF(decayData,irf,delayT,pars,model,method='differential_evolution'):
     wWeights=1/np.sqrt(decayData+1)# check for divide by zero,  have used +1 to avoid dived by zero
     mod=Model(model,independent_vars=['t','irf'])    
     # fit this model with weighting , parameters as initilized and print the result  differential_evolution' leastsq'
-    result = mod.fit(decayData,params=pars,weights=wWeights,method=method,t=delayT,irf=irf)    
+    result = mod.fit(decayData,pars,weights=wWeights,method=method,t=delayT,irf=irf)    
     return result
 
 def calcTauOf1Bin(histIRF,binData,binIdx,sampleNum,T0,method='differential_evolution'):    
@@ -176,7 +176,7 @@ if __name__=='__main__':
     params.add('tau4', value=iniTauD0,min=iniTauD0*lowb,max=iniTauD0*upb)    
     params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
     params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
-    params.add('ampl5', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
+
     # params.add('tau6', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
     # params.add('ampl6', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)    
     
@@ -192,7 +192,7 @@ if __name__=='__main__':
     plt.subplot(2,1,2)
     plt.plot(x,result.residual)
 
-    numcom=int((len(result.params)-2)/2)
+    numcom=int((len(result.params)-2)/3)
     y0=result.params['y0'].value
     x0=result.params['x0'].value
     ap=0
