@@ -11,8 +11,9 @@
 # <examples/doc_parameters_basic.py>
 
 
-def myexprs(s,d):
-    return s/d
+def myexprs(*paras):
+    print (len(paras))
+    return paras[0]/paras[1]
 import numpy as np
 
 from lmfit import Minimizer, Parameters, report_fit
@@ -34,17 +35,19 @@ def fcn2min(params, x, data):
     print(decay)
     model = amp * np.sin(x*omega + shift) * np.exp(-x*x*decay)
     return model - data
-from asteval import Interpreter
-aeval = Interpreter()
-aeval.symtable['decay_ast']=myexprs
+# from asteval import Interpreter
+# aeval = Interpreter()
+# aeval.symtable['decay_ast']=myexprs
 # create a set of Parameters
 params = Parameters()#asteval=aeval)
 params.add('amp', value=10, min=0)
 params.add('shift', value=0.0, min=-np.pi/2., max=np.pi/2)
 params.add('decay', value=0.00001, min=0.00001, max=np.pi/2)
 params._asteval.symtable['func'] = myexprs
-params.add('div', expr='func(shift,decay)', value=-10, min=-10.1, max=-9.9)
+strp='shift,decay'
+params.add('div', expr='func('+strp+')', value=-10, min=-10.1, max=-9.9)
 params.add('omega', value=3.0)
+params.add('fix', value=3.0,vary=False)
 
 
 # do fit, here with leastsq model

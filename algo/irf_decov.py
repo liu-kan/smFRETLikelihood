@@ -118,6 +118,35 @@ def calcTauOf1Bin(histIRF,binData,binIdx,sampleNum,T0,method='differential_evolu
     result=fitIRF(decay1,irf1,x,params,exp1model,method)   
     return result.params['tau1'].value*64/sampleNum,result.redchi
 
+def percentage(idx,x,irf1,*params):
+    numcom=int((len(params)-2)/2)    
+    x0=params[0]
+    # print("x0",x0)
+    y0=params[1]
+    # print("y0",y0)
+    eall=np.zeros(len(x))
+    ev=np.zeros(numcom)        
+    for i in range(numcom):
+        e1=exp1model(x,irf1,y0,x0,params[2+i*2],params[3+i*2])-y0
+        eall+=e1
+        ev[i]=sum(e1)
+        # print(i,numcom)        
+    # for i in range(numcom):
+        # idx=str(i+1)
+        # print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
+        # print("p:",ev[i]/sum(eall))    
+    print('p'+str(idx),ev[idx-1]/sum(eall))
+    return ev[idx-1]/sum(eall)
+
+def genParamsList(numcom):
+    pstr='x0,y0'
+    for i in range(numcom):
+        idx=str(i+1)
+        pstr+=',tau'+idx
+        pstr+=',ampl'+idx
+    return pstr
+
+
 if __name__=='__main__':
     import pickle,sys,getopt
     irfdbname="data/alexa488_IRF_32MHz_PIE_3KCPS.sqlite"
@@ -157,14 +186,19 @@ if __name__=='__main__':
     minI=min(min(decay1),min(irf1))
 
     E=[0.3736,0.6739,0.8314]
-    upb=1.01
-    lowb=0.99
+    upb=1.5
+    lowb=0.5
     TauD0=4.1
     npE=np.asarray(E)
     npTau=(1-npE)*TauD0*1000/64
     iniTauD0=TauD0*1000/64
-
+    P=[0.2562,0.2995,0.4443]
+    npP=np.asarray(P)
+    deltaP=1e-2
     params = Parameters()
+    params._asteval.symtable['tt'] =x
+    params._asteval.symtable['irf'] =irf1
+    params._asteval.symtable['func'] =percentage
     params.add('x0', value=0,min=-sampleNum/2,max=sampleNum/2)#, vary=False)
     params.add('y0', value=minI,min=minI/8,max=maxI**0.5)#, vary=False)
     params.add('tau1', value=npTau[0],min=npTau[0]*lowb,max=npTau[0]*upb)    
@@ -173,9 +207,9 @@ if __name__=='__main__':
     params.add('ampl2', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
     params.add('tau3', value=npTau[2],min=npTau[2]*lowb,max=npTau[2]*upb)    
     params.add('ampl3', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
-    params.add('tau4', value=iniTauD0,min=iniTauD0*lowb,max=iniTauD0*upb)    
-    params.add('ampl4', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)
-    params.add('tau5', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
+    params.add('p1', expr='func(1,tt,irf,'+genParamsList(3)+')', value=npP[0], min=npP[0]-deltaP, max=npP[0]+deltaP)
+    params.add('p2', expr='func(2,tt,irf,'+genParamsList(3)+')', value=npP[1], min=npP[1]-deltaP, max=npP[1]+deltaP)
+    params.add('p3', expr='func(3,tt,irf,'+genParamsList(3)+')', value=npP[2], min=npP[2]-deltaP, max=npP[2]+deltaP)
 
     # params.add('tau6', value=sampleNum/8,min=sampleNum/2000,max=sampleNum)    
     # params.add('ampl6', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)    
@@ -195,21 +229,21 @@ if __name__=='__main__':
     numcom=int((len(result.params)-2)/3)
     y0=result.params['y0'].value
     x0=result.params['x0'].value
-    ap=0
+
     eall=np.zeros(len(x))
-    ev=np.zeros(numcom)
-    plt.subplot(2,1,1)
+    ev=np.zeros(numcom)    
     for i in range(numcom):
         idx=str(i+1)
         e1=exp1model(x,irf1,y0,x0,result.params['tau'+idx].value,result.params['ampl'+idx].value)-y0
         eall+=e1
         ev[i]=sum(e1)
-    #plt.semilogy(x,eall+y0,'bo-')
+    # plt.subplot(2,1,1)        
+    # plt.semilogy(x,eall+y0,'y-')
     print("Tau^{hat}",npTau*64/1000)
     for i in range(numcom):
         idx=str(i+1)
-        print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
-        print("p:",ev[i]/sum(eall))
+        print("Tau"+idx+": ",result.params['tau'+idx].value,result.params['tau'+idx].value*64/1000," ns")
+        print("p"+idx+": ",ev[i]/sum(eall))
     
     print(sdt)
 
