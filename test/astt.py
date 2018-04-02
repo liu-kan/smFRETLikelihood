@@ -11,7 +11,7 @@
 # <examples/doc_parameters_basic.py>
 
 
-def myexpr(s,d):
+def myexprs(s,d):
     return s/d
 import numpy as np
 
@@ -30,24 +30,27 @@ def fcn2min(params, x, data):
     shift = params['shift']
     omega = params['omega']
     decay = params['decay']
+    # decay = params._asteval.symtable['decay_ast']
+    print(decay)
     model = amp * np.sin(x*omega + shift) * np.exp(-x*x*decay)
     return model - data
-
-
+from asteval import Interpreter
+aeval = Interpreter()
+aeval.symtable['decay_ast']=myexprs
 # create a set of Parameters
-params = Parameters()
+params = Parameters()#asteval=aeval)
 params.add('amp', value=10, min=0)
 params.add('shift', value=0.0, min=-np.pi/2., max=np.pi/2)
-params.add('div',  value=-10, vary=True, min=-20., max=20)
-
-
+params.add('decay', value=0.00001, min=0.00001, max=np.pi/2)
+params._asteval.symtable['func'] = myexprs
+params.add('div', expr='func(shift,decay)', value=-10, min=-10.1, max=-9.9)
 params.add('omega', value=3.0)
 
 
 # do fit, here with leastsq model
 minner = Minimizer(fcn2min, params, fcn_args=(x, data))
-minner.asteval.symtable['exprd'] = myexpr
-params.add('decay', expr='myexpr')
+
+
 result = minner.minimize()
 
 # calculate final result
