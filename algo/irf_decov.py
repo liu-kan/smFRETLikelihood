@@ -99,7 +99,7 @@ def fitIRF(decayData,irf,delayT,pars,model,method='differential_evolution'):
     wWeights=1/np.sqrt(decayData+1)# check for divide by zero,  have used +1 to avoid dived by zero
     mod=Model(model,independent_vars=['t','irf'])    
     # fit this model with weighting , parameters as initilized and print the result  differential_evolution' leastsq'
-    result = mod.fit(decayData,pars,weights=wWeights,method=method,t=delayT,irf=irf)    
+    result = mod.fit(decayData,pars,weights=wWeights,method=method,t=delayT,irf=irf,iter_cb=iter_cbX)    
     return result
 
 def calcTauOf1Bin(histIRF,binData,binIdx,sampleNum,T0,method='differential_evolution'):    
@@ -136,7 +136,22 @@ def percentage(idx,x,irf1,*params):
         # print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
         # print("p:",ev[i]/sum(eall))    
     print('p'+str(idx),ev[idx-1]/sum(eall))
+    print('tau'+str(idx),params[2+(idx-1)*2])
+    print('ampl'+str(idx),params[3+(idx-1)*2])    
     return ev[idx-1]/sum(eall)
+
+
+def iter_cbX(params, iter, resid, *args, **kws):
+    numcom=int((len(params)-2)/3)
+    # print("resid:",resid)
+    for i in range(numcom):
+        idx=str(i+1)
+        if params['p'+idx].value<params['p'+idx].min or \
+                params['p'+idx].value>params['p'+idx].max:
+            print('p'+str(idx),params['p'+idx].value)                
+            raise
+        else:
+            print('p'+str(i+1),params['p'+idx].value,params['p'+idx].min,params['p'+idx].max)
 
 def genParamsList(numcom):
     pstr='x0,y0'
@@ -219,7 +234,7 @@ if __name__=='__main__':
     print(result.fit_report()) 
     print(result.params['tau1'].value*64/sampleNum) 
     print(result.redchi) 
-
+    # print("params['tau2']",result.params['tau2'].value) 
     plt.figure(1)
     plt.subplot(2,1,1)
     plt.semilogy(x,decay1,'r-',x,result.best_fit,'b')
