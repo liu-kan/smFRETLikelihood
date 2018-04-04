@@ -135,23 +135,47 @@ def percentage(idx,x,irf1,*params):
         # idx=str(i+1)
         # print("Tau"+idx+": ",result.params['tau'+idx]*64/1000," ns")
         # print("p:",ev[i]/sum(eall))    
-    print('p'+str(idx),ev[idx-1]/sum(eall))
-    print('tau'+str(idx),params[2+(idx-1)*2])
-    print('ampl'+str(idx),params[3+(idx-1)*2])    
+    # print('p'+str(idx),ev[idx-1]/sum(eall))
+    # print('tau'+str(idx),params[2+(idx-1)*2])
+    # print('ampl'+str(idx),params[3+(idx-1)*2])    
     return ev[idx-1]/sum(eall)
 
 
 def iter_cbX(params, iter, resid, *args, **kws):
     numcom=int((len(params)-2)/3)
     # print("resid:",resid)
+    # print("resid10:",resid*10)
+    # print(" ITER ", iter, ["%s" % p for p in kws.keys()])
+    x=kws['t']
+    irf=kws['irf']
+    par=(params['x0'],params['y0'],)
     for i in range(numcom):
         idx=str(i+1)
-        if params['p'+idx].value<params['p'+idx].min or \
-                params['p'+idx].value>params['p'+idx].max:
-            print('p'+str(idx),params['p'+idx].value)                
-            raise
-        else:
-            print('p'+str(i+1),params['p'+idx].value,params['p'+idx].min,params['p'+idx].max)
+        par+=(params['tau'+idx],params['ampl'+idx])
+    p=np.zeros(numcom)
+    for i in range(numcom):             
+        p[i]=percentage(i+1,x,irf,*par)
+        idx=str(i+1)
+        if p[i]<params['p'+idx].min or p[i]>params['p'+idx].max:
+            # print('OFp'+str(idx),p)  
+            return
+    print("no of")  
+    dw=[]
+    for v in par:
+        dw.append(v.value)
+    dw.extend(p.tolist())
+    appendCSV('data/csv.txt',dw)   
+def genParams(pdata,i):
+    sizep=pdata.shape[1]
+    params=dict()
+    numcom=int((sizep-2)/3)
+    params['x0']=pdata[i,0]
+    params['y0']=pdata[i,1]
+    for ip in range(numcom):
+        idx=str(ip+1)
+        params['tau'+idx]=pdata[i,2+ip*2]
+        params['ampl'+idx]=pdata[i,3+ip*2]
+    return params
 
 def genParamsList(numcom):
     pstr='x0,y0'
@@ -161,6 +185,38 @@ def genParamsList(numcom):
         pstr+=',ampl'+idx
     return pstr
 
+def createCSV(fn):
+    fo = open(fn, "w")
+    fo.close()
+import csv
+def appendCSV(fn,line):
+    with open(fn, 'a') as f:
+        csvwriter = csv.writer(f)
+        # for line in lines:
+        csvwriter.writerow(line)
+
+def findBetter(time,irf,odata,pdata,plot=False):    
+    sizen=pdata.shape[0]
+    res=np.zeros(sizen)
+    resi=np.zeros([sizen,len(odata)])
+    for i in range(sizen):
+        params=genParams(pdata,i)
+        mdata= jumpexpmodel(time,irf, **{k: v for k, v in params.items()})
+        resi[i,]=np.asarray(odata)-np.asarray(mdata)
+        res[i]=np.dot(resi[i,],resi[i,])
+    idx=np.argmin(res)        
+    if not plot:
+        return idx
+    params=genParams(pdata,idx)
+    best_fit=jumpexpmodel(time,irf, **{k: v for k, v in params.items()})
+    plt.figure(1)
+    plt.subplot(2,1,1)
+    plt.semilogy(time,odata,'r-',time,best_fit,'b')
+    plt.subplot(2,1,2)
+    plt.plot(time,resi[idx,].tolist())
+    plt.show() 
+
+    
 
 if __name__=='__main__':
     import pickle,sys,getopt
@@ -168,6 +224,7 @@ if __name__=='__main__':
     dbname="data/21c_224c.sqlite"
     savefn='data/'+\
         dbname.split('/')[-1].split('.')[-2]+'_gd'+".pickle"
+    createCSV('data/csv.txt')
     fromdb=True
     binMs=1
     decay1=None;irf1=None;x=None;
@@ -201,27 +258,27 @@ if __name__=='__main__':
     minI=min(min(decay1),min(irf1))
 
     E=[0.3736,0.6739,0.8314]
-    upb=1.5
-    lowb=0.5
+    upb=11.5
+    lowb=0.05
     TauD0=4.1
     npE=np.asarray(E)
     npTau=(1-npE)*TauD0*1000/64
     iniTauD0=TauD0*1000/64
     P=[0.2562,0.2995,0.4443]
     npP=np.asarray(P)
-    deltaP=1e-2
+    deltaP=3e-2
     params = Parameters()
     params._asteval.symtable['tt'] =x
     params._asteval.symtable['irf'] =irf1
     params._asteval.symtable['func'] =percentage
-    params.add('x0', value=0,min=-sampleNum/2,max=sampleNum/2)#, vary=False)
-    params.add('y0', value=minI,min=minI/8,max=maxI**0.5)#, vary=False)
+    params.add('x0', value=0,min=-sampleNum,max=sampleNum)#, vary=False)
+    params.add('y0', value=minI,min=-minI,max=maxI)#, vary=False)
     params.add('tau1', value=npTau[0],min=npTau[0]*lowb,max=npTau[0]*upb)    
-    params.add('ampl1', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
+    params.add('ampl1', value=(maxI**0.5)/3,min=minI/12,max=maxI*2)#, vary=False)
     params.add('tau2', value=npTau[1],min=npTau[1]*lowb,max=npTau[1]*upb)    
-    params.add('ampl2', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
+    params.add('ampl2', value=(maxI**0.5)/3,min=minI/12,max=maxI*2)#, vary=False)
     params.add('tau3', value=npTau[2],min=npTau[2]*lowb,max=npTau[2]*upb)    
-    params.add('ampl3', value=(maxI**0.5)/3,min=minI/2,max=maxI)#, vary=False)
+    params.add('ampl3', value=(maxI**0.5)/3,min=minI/12,max=maxI*2)#, vary=False)
     params.add('p1', expr='func(1,tt,irf,'+genParamsList(3)+')', value=npP[0], min=npP[0]-deltaP, max=npP[0]+deltaP)
     params.add('p2', expr='func(2,tt,irf,'+genParamsList(3)+')', value=npP[1], min=npP[1]-deltaP, max=npP[1]+deltaP)
     params.add('p3', expr='func(3,tt,irf,'+genParamsList(3)+')', value=npP[2], min=npP[2]-deltaP, max=npP[2]+deltaP)
@@ -230,16 +287,12 @@ if __name__=='__main__':
     # params.add('ampl6', value=(maxI**0.5)/3,min=minI,max=maxI)#, vary=False)    
     
 
-    result=fitIRF(decay1,irf1,x,params,jumpexpmodel,'leastsq')  
+    result=fitIRF(decay1,irf1,x,params,jumpexpmodel)#,'leastsq')  
     print(result.fit_report()) 
     print(result.params['tau1'].value*64/sampleNum) 
     print(result.redchi) 
     # print("params['tau2']",result.params['tau2'].value) 
-    plt.figure(1)
-    plt.subplot(2,1,1)
-    plt.semilogy(x,decay1,'r-',x,result.best_fit,'b')
-    plt.subplot(2,1,2)
-    plt.plot(x,result.residual)
+
 
     numcom=int((len(result.params)-2)/3)
     y0=result.params['y0'].value
@@ -259,8 +312,8 @@ if __name__=='__main__':
         idx=str(i+1)
         print("Tau"+idx+": ",result.params['tau'+idx].value,result.params['tau'+idx].value*64/1000," ns")
         print("p"+idx+": ",ev[i]/sum(eall))
-    
-    print(sdt)
+    my_data = np.genfromtxt('data/csv.txt', delimiter=',')
+    findBetter(x,irf1,decay1,my_data,True)
 
 
 
@@ -270,7 +323,7 @@ if __name__=='__main__':
     # # plot_fit(x,irf1, decay1, result.params)    
     # plt.semilogy(x,irf1)
     # plt.semilogy(x,decay1)
-    plt.show()    
+   
 
 
 
