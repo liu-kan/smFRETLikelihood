@@ -1,3 +1,6 @@
 #!/bin/bash
 docker build --rm -t smfretlikelihood .
-# docker save smfretlikelihood > ../data/smfretlikelihood.tar
+mkdir ../dist
+docker save smfretlikelihood > ../dist/smfretlikelihood.tar
+cp smfretlikelihood ../dist
+cp install*.sh ../dist

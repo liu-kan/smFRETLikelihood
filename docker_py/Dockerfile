@@ -11,10 +11,10 @@ RUN useradd -ms /bin/bash ${USER}
 USER ${USER}
 WORKDIR /home/${USER}
 RUN pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com --user Cython tables numpy scipy matplotlib pandas sklearn PyQt5 
-
+RUN pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com --user  lmfit notebook ipython ipywidgets
 RUN git clone --depth=1 https://github.com/tritemio/FRETBursts.git
 WORKDIR FRETBursts
-RUN sed -e '$c#citation()' fretbursts/__init__.py | tee fretbursts/__init__.py 
+RUN sed -i -e 's/print(cit)/#print(cit)/g' fretbursts/__init__.py
 RUN python3 setup.py install --user
 WORKDIR ..
 RUN rm -rf FRETBursts
