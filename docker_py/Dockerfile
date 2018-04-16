@@ -18,9 +18,13 @@ RUN sed -e '$c#citation()' fretbursts/__init__.py | tee fretbursts/__init__.py
 RUN python3 setup.py install --user
 WORKDIR ..
 RUN rm -rf FRETBursts
-COPY algo /home/${USER}/algo
-COPY ui /home/${USER}/ui
+
 ADD hi.py /home/${USER}
+ADD scripts/updateApp.sh /home/${USER}
+ADD scripts/ptu2hf5_burstBin.sh /home/${USER}
+RUN mkdir /home/${USER}/data;mkdir /home/${USER}/labdata
+VOLUME /home/${USER}/data
+VOLUME /home/${USER}/labdata
 # USER root
 # RUN dnf -y install libglvnd-glx
 # RUN dnf -y install 
