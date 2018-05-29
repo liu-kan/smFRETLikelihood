@@ -1,4 +1,5 @@
 #!/bin/bash
 cd $HOME
 cd data
-git clone https://app:pwfapp@git.liukan.org/liuk/smFRETLikelihood.git --depth=1
+rm -rf smFRETLikelihood
+git clone ssh://git@git.liukan.org:22000/liuk/smFRETLikelihood.git --depth=1

@@ -6,6 +6,8 @@ USER root
 RUN dnf -y install python3-tkinter git python3-devel hdf5-devel hdf5 gcc lzo-devel bzip2-devel blosc-devel
 RUN dnf -y install /usr/lib/rpm/redhat/redhat-hardened-cc1
 RUN dnf -y install qt5-qtbase-gui
+RUN dnf clean all --enablerepo=\* && \
+    rm -rf /var/cache/yum
 ENV USER liuk
 RUN useradd -ms /bin/bash ${USER}
 USER ${USER}
@@ -22,12 +24,18 @@ RUN rm -rf FRETBursts
 ADD hi.py /home/${USER}
 ADD scripts/updateApp.sh /home/${USER}
 ADD scripts/ptu2hf5_burstBin.sh /home/${USER}
+
 RUN mkdir /home/${USER}/data;mkdir /home/${USER}/labdata
+
+# RUN 
+ADD scripts/installApp.sh /home/${USER}
+RUN mkdir -p ~/.ssh; echo "StrictHostKeyChecking no" > ~/.ssh/config
+COPY --chown=liuk:liuk scripts/id_rsa /home/${USER}/.ssh/
 VOLUME /home/${USER}/data
 VOLUME /home/${USER}/labdata
+
 # USER root
-# RUN dnf -y install libglvnd-glx
-# RUN dnf -y install 
+
 # USER ${USER}
 # ENTRYPOINT ["/bin/bash"]
 CMD ["python3", "hi.py"]
