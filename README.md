@@ -10,7 +10,7 @@
 
     # fedroa
     sudo dnf install python3-tkinter
-    pip3 install --user numpy scipy matplotlib pandas sklearn PyQt5 #mpi4py 
+    pip3 install --user numpy scipy matplotlib pandas sklearn PyQt5 numba progressbar2 #mpi4py 
 
 # Lifetime 使用说明
 

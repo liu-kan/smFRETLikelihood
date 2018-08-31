@@ -100,6 +100,17 @@ def burstBin(full_fname,mat_name):
         counts_dd = count_ph_in_bursts(bursts, mask_dd)
         counts_ad = count_ph_in_bursts(bursts, mask_ad)
         counts_aa = count_ph_in_bursts(bursts, mask_aa)
+        # print(bursts,times[0:43])
+        counts_ddm=0
+        counts_adm=0
+        for burst in bursts:
+            msburst = times[burst.istart:burst.istop + 1]
+            m_dd = mask_dd[burst.istart:burst.istop + 1]
+            m_ad = mask_ad[burst.istart:burst.istop + 1]        
+            counts_ddm+= len(msburst[m_dd])
+            counts_adm += len(msburst[m_ad])
+        assert counts_adm==sum(counts_ad)
+        assert counts_ddm==sum(counts_dd)
         # pr=(counts_ad / (counts_dd*gamma + counts_ad)).tolist()
         pr=((counts_ad *(1-DexDirAem)-Dch2Ach*counts_dd)/ ((gamma-\
                                 Dch2Ach)*counts_dd + (1-DexDirAem)*counts_ad)).tolist()    

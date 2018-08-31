@@ -12,8 +12,8 @@ ENV USER liuk
 RUN useradd -ms /bin/bash ${USER}
 USER ${USER}
 WORKDIR /home/${USER}
-RUN pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com --user Cython tables numpy scipy matplotlib pandas sklearn PyQt5 
-RUN pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com --user  lmfit notebook ipython ipywidgets
+RUN pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com --user lmfit Cython tables numpy scipy matplotlib pandas sklearn PyQt5 progressbar2 numba
+RUN pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com --user notebook ipython ipywidgets
 RUN git clone --depth=1 https://github.com/tritemio/FRETBursts.git
 WORKDIR FRETBursts
 RUN sed -i -e 's/print(cit)/#print(cit)/g' fretbursts/__init__.py
