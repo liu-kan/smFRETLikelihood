@@ -1,7 +1,7 @@
 # coding: utf-8
 import copy,os
 import logging
-
+from sklearn.metrics import r2_score
 import numpy as np
 from scipy import interpolate 
 import datetime
@@ -30,13 +30,15 @@ def burstBin(full_fname,comm,pick,logname="pdampilogger.log"):
     pdaIns=aTpdaMpi.pdaPy(comm,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,\
         bg_ad_rate,bg_dd_rate,clk_p,logger,\
         50,5,None)        
-    pdaIns.set_nstates(3, [0.3,0.3,0.7],[0,0,0,0,0,0],[0.2,0.1,0.2])
-
+    state=2
+    pdaIns.setStateNum(state)
     pdaIns.fitP=[0.6681530537400076,0.4784057184204892,0.962157335443822, 0.9454653214094496, 0.31922221822241714, 0.40184797098402764]
     pdaIns.fitP=[0.24847515799718217, 0.5182234987325258, 0.6704834891885445, 0.3846255599778262, 1.1311325208824514, 1.1030106563348268, 1.6278606238336475, 1.4575266144868801, 0.17129647270017628, 0.3601388637318751, 0.4939339490171665, 0.009230574939612601]
+    pdaIns.fitP=[0.4822779436560594, 0.6775371214614038, -0.22855479513013477, 0.7752800770484245, 0.12264960511418932, 0.08244340848886908]
 
     SgDivSrR,tSgDivSr=pdaIns.aTpdaEK()
-
+    r2=r2_score(SgDivSrR[0], tSgDivSr)  
+    print("R^2:",r2)
         #############
         #rank=1
     import matplotlib as mpl

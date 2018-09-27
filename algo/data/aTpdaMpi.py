@@ -460,7 +460,9 @@ class pdaPy:
         # print(e,p_N,F_RT,F_G,bg_dd,bg_ad,b_g_bar,b_r_bar)
         return p_N*self.P_F_RT_F(F_RT,F_G,e)*self.pdaP_B(b_g_bar,bg_dd)*\
         self.pdaP_B(b_r_bar,bg_ad)
-
+    def setStateNum(self,state):
+        self.n_states=state
+        self.set_nstates(state, np.random.rand(state).tolist(),[0]*(state-1)*state,[0.1]*state)
     def findP(self):
         # bnds = (0,1)
         xmin = [0.03]*self.n_states
@@ -469,7 +471,7 @@ class pdaPy:
         xmin.extend(xmink)
         xmin.extend(xminv)
         xmax = [0.97]*self.n_states
-        xmaxk=[np.log10(80)]*(self.n_states*self.n_states-self.n_states)
+        xmaxk=[np.log10(10)]*(self.n_states*self.n_states-self.n_states)
         xmaxv = [0.6]*self.n_states
         xmax.extend(xmaxk)
         xmax.extend(xmaxv)
