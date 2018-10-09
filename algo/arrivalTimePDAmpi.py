@@ -121,7 +121,7 @@ if __name__ == '__main__':
                 pick=v                
             if o in ("-s", "--state"):
                 state = int(v.strip())
-                print(state)
+                # print(state)
 
     except getopt.GetoptError:  
         # print help information and exit:  
