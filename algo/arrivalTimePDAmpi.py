@@ -59,7 +59,7 @@ def burstBin(full_fname,state,comm,pick,logname="pdampilogger.log"):
     
     pdaIns=aTpdaMpi.pdaPy(comm,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,\
         bg_ad_rate,bg_dd_rate,clk_p,logger,\
-        70,5,chunkLists)
+        50,5,chunkLists)
     pdaIns.set_nstates(state, np.random.rand(state).tolist(),[0]*(state-1)*state,[0.1]*state)
     mpistop=[0]
     fitE=None

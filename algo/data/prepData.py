@@ -89,7 +89,7 @@ def prepHdf5(full_fname,logger,comm=None):
     # plt.legend()
     # plt.yscale('log')
 
-    roi = dict(E1=0, E2=1, S1=0.0, S2=0.95, rect=False)
+    roi = dict(E1=0, E2=1, S1=0.0, S2=0.97, rect=False)
     d_fret_mix = dsfuse.select_bursts(select_bursts.ES, **roi)
     # g = alex_jointplot(d_fret_mix)
     # bpl.plot_ES_selection(g.ax_joint, **roi);
@@ -119,7 +119,7 @@ def prepHdf5(full_fname,logger,comm=None):
         avgdd=np.mean(msburst[m_dd])*d.clk_p*1e3
         avgda=np.mean(msburst[m_ad])*d.clk_p*1e3
         avgaa=np.mean(msburst[m_aa])*d.clk_p*1e3
-        if abs(avgdd-avgda)>0.5 or abs(avgaa-avgda)>0.5 or (len(msburst[m_dd])+len(msburst[m_ad]))<20:
+        if abs(avgdd-avgda)>0.5 or abs(avgaa-avgda)>0.5 or (len(msburst[m_dd])+len(msburst[m_ad]))<24:
             bleachingBurst=bleachingBurst+1
             continue
         # Compute binning of current bursts
@@ -137,6 +137,7 @@ def prepHdf5(full_fname,logger,comm=None):
     T_burst_duration=[]
     dd_count=[]
     ad_count=[]
+    aa_count=[]
     gamma=0.34
     beta=1.42
     DexDirAem=0.08
@@ -175,6 +176,7 @@ def prepHdf5(full_fname,logger,comm=None):
         bg_time_bins_l.append((msburst[0]+msburst[-1])/2*d.clk_p)
         dd_count.append(dd)
         ad_count.append(ad)
+        aa_count.append(counts_aa)
 
 
     bg_time_bins=np.asarray(bg_time_bins_l)
@@ -185,11 +187,14 @@ def prepHdf5(full_fname,logger,comm=None):
     bg_ad_bins = interpSpl(bg_time,bg_ad[:-1], bg_time_bins)  *time_bin
     F_RT=np.asarray(ad_count)-bg_ad_bins*time_bin
     F_G=np.asarray(dd_count)-bg_dd_bins*time_bin
+    F_RTraw=np.asarray(ad_count)
+    F_Graw=np.asarray(dd_count)
+    F_AA=np.asarray(aa_count)
     loginfo(comm,logger,"F_RT min:{},num F_RT<=0:{}".format(min(F_RT),np.where(F_RT<=0)[0].shape[0]))
     loginfo(comm,logger,"F_G min:{},num F_G<=0:{}".format(min(F_G),np.where(F_G<=0)[0].shape[0]))
     
     pN=np.asarray(pN)
-    bins_idx=np.where((pN>=20 )& (F_RT>0) &(F_G>0))
+    bins_idx=np.where((pN>=25 )& (F_RTraw>=5) &(F_Graw>=8)&(F_AA>=4)& (F_RT>0) &(F_G>0))
     # =prepData.duplicateValArray(F_idx,N_idx[0])
     pN=pN[bins_idx]
     SgDivSr=np.asarray(SgDivSr)

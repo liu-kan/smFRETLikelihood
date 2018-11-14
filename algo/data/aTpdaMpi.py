@@ -360,9 +360,9 @@ class pdaPy:
             else:
                 n=n-1
         chisqr=chisqr/(n-self.n_states*(self.n_states+1))            
-        loginfo(self.comm,self.logger,"sum(SgDivSrR){}".format(sum(SgDivSrR[0])))
-        loginfo(self.comm,self.logger,"sum(tSgDivSr){}".format(sum(tSgDivSr)))
-        loginfo(self.comm,self.logger,"chisqr{}".format(chisqr))
+        loginfo(self.comm,self.logger,"sum(SgDivSrR) {}".format(sum(SgDivSrR[0])))
+        loginfo(self.comm,self.logger,"sum(tSgDivSr) {}".format(sum(tSgDivSr)))
+        loginfo(self.comm,self.logger,"chisqr: {}".format(chisqr))
         return SgDivSrR,tSgDivSr
 
     def chiSqr(self):
@@ -482,8 +482,8 @@ class pdaPy:
         # res=minimize(self.chiSqrArrT,self.params, args=(self.stop,),method='L-BFGS-B', bounds=bounds)
         # res = basinhopping(self.chiSqrArrT,self.params, minimizer_kwargs=minimizer_kwargs, \
         #     disp=True)#,interval=5,stepsize=0.1,niter=10
-        res = differential_evolution(self.chiSqrArrT, args=(self.stop,),strategy ='best2bin',bounds=bounds,\
-                           disp=True,polish=False) #maxiter=10
+        res = differential_evolution(self.chiSqrArrT, args=(self.stop,),strategy ='currenttobest1bin',bounds=bounds,\
+                           disp=True,polish=True,maxiter=1)
         loginfo(self.comm,self.logger,"{}".format(res))
         loginfo(self.comm,self.logger,"{}".format(res.x))
         # print (self.numWindows)

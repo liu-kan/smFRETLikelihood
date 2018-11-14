@@ -178,7 +178,10 @@ class pdaPy:
         self.timesMs=timesMs
         self.bg_ad_rate=bg_ad_rate
         self.bg_dd_rate=bg_dd_rate        
-        # self.calcP_N()
+        self.gamma=0.34     
+        self.beta=1.42
+        self.DexDirAem=0.08
+        self.Dch2Ach=0.07     
 
     def drawJ_Si2Sj(self,i):
         P_i2j=copy.deepcopy(self.matP)
@@ -225,20 +228,26 @@ class pdaPy:
             # print("bins",bins)            
             m_ad=self.mask_ad[self.bursts[idx].istart:self.bursts[idx].istop+1]
             b_times=self.timesMs[self.bursts[idx].istart:self.bursts[idx].istop+1]
-            # print("b_times",b_times[m_ad])
-            f_i, _ = np.histogram(b_times[m_ad], bins)
+            m_dd=self.mask_dd[self.bursts[idx].istart:self.bursts[idx].istop+1]
+            f_ia, _ = np.histogram(b_times[m_ad], bins)
+            f_id, _ = np.histogram(b_times[m_dd], bins)
+            f_if=(self.gamma-self.Dch2Ach)*f_id + (1-self.DexDirAem)*f_ia
+            f_i=np.empty_like(f_if)
+            if self.bg_dd_rate==0:
+                f_i=np.around(f_if).astype(int)
+            else:
+                # 计算背景噪声
+                t_a=np.diff(bins)*self.clk_p
+                bg_a=_draw_P_B_Tr((1-self.DexDirAem)*f_ia,t_a,self.bg_ad_rate)
+                bg_d=_draw_P_B_Tr((self.gamma-self.Dch2Ach)*f_id,t_a,self.bg_dd_rate)
+                f_i=np.around(f_if - bg_d - bg_a).astype(int)
             stransNum=len(f_i)
-            # print("stransNum",stransNum)
-            # print("sum(f_i)",sum(f_i))
-            # print("(f_i)",f_i)
+            F=sum(f_if)
             for i in range(stransNum):
-                de=_drawE(self.E[sidx[i]],self.Evar[sidx[i]])
+                de=_drawE(self.E[sidx[i]],self.Evar[sidx[i]])                
                 ai=_drawA_fi_e(f_i[i],de)
-                # ai=self.drawA_fi_e(f_i[i],self.E[sidx[i]])
-                # print("ai",ai)
                 bSgDivSr[sampleTime]=bSgDivSr[sampleTime]+ai
-            bSgDivSr[sampleTime]=bSgDivSr[sampleTime]/sum(f_i)
-            # print("bSgDivSr",bSgDivSr)
+            bSgDivSr[sampleTime]=bSgDivSr[sampleTime]/F
         return bSgDivSr.tolist()
 
     def aTpda(self):
@@ -292,7 +301,7 @@ class pdaPy:
             else:
                 n=n-1
         chisqr=chisqr/(n-self.n_states*(self.n_states+1))                
-        print("chiSqr",chisqr)
+        print("chiSqr: ",chisqr)
         print("=======================================")        
         return chisqr 
 
