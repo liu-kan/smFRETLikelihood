@@ -14,7 +14,7 @@ from data import  aTpdaMpi
 from mpi4py import MPI
 import pickle,pathlib
 
-def burstBin(full_fname,state,comm,pick,logname="pdampilogger.log"):  
+def burstBin(full_fname,state,comm,pick,bins,maxiter,logname="pdampilogger.log"):  
     rank=comm.Get_rank()
     testrank=33
     clsize=comm.Get_size()
@@ -59,7 +59,7 @@ def burstBin(full_fname,state,comm,pick,logname="pdampilogger.log"):
     
     pdaIns=aTpdaMpi.pdaPy(comm,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,\
         bg_ad_rate,bg_dd_rate,clk_p,logger,\
-        50,5,chunkLists)
+        bins,5,chunkLists,maxiter)
     pdaIns.set_nstates(state, np.random.rand(state).tolist(),[0]*(state-1)*state,[0.1]*state)
     mpistop=[0]
     fitE=None
@@ -110,11 +110,17 @@ if __name__ == '__main__':
     savefn=''
     state=2
     pick='out.pickle'
+    bins=70
+    maxiter=1000
     try:  
-        opts, args = getopt.getopt(sys.argv[1:], "l:i:s:o", ["log=", "dat=","state=","pickle="])  
+        opts, args = getopt.getopt(sys.argv[1:], "l:i:s:o:b:m:", ["log=", "dat=","state=","pickle=","bin=","maxiter="])  
         for o, v in opts: 
             if o in ("-l", "--log"):
                 savefn = v
+            if o in ("-b", "--bin"):
+                bins = int(v.strip())                
+            if o in ("-m", "--maxiter"):
+                maxiter = int(v.strip())                                
             if o in ("-i", "--dat"):
                 dbname=v
             if o in ("-o", "--pickle"):
@@ -130,7 +136,7 @@ if __name__ == '__main__':
         sys.exit(1)
     comm=MPI.COMM_WORLD 
     if len(savefn)>1:     
-        burstBin(dbname,state,comm,pick,savefn)
+        burstBin(dbname,state,comm,pick,bins,maxiter,savefn)
     else:
-        burstBin(dbname,state,comm,pick)
+        burstBin(dbname,state,comm,pick,bins,maxiter)
 

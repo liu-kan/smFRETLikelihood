@@ -29,11 +29,11 @@ def burstBin(full_fname,comm,pick,logname="pdampilogger.log"):
     #     50,5,None)
     pdaIns=aTpdaMpi.pdaPy(comm,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,\
         bg_ad_rate,bg_dd_rate,clk_p,logger,\
-        50,5,None)        
+        85,5,None)        
     state=2
     pdaIns.setStateNum(state)
     pdaIns.fitP=[0.41204293319149393, 0.3514845133212948, 0.752816275833226, -0.31291654103739597, 0.7933347931616084, 0.8560774685539163, 0.2439534857827601, -0.8744333819896276, 0.22234927666601756, 0.08593357944187233, 0.17929881711426596, 0.005103389253265755]
-    pdaIns.fitP=[0.7799002806151825, 0.3916857845134203, -0.4908469912900426, -0.3608165103700811, 0.0059675471579127, 0.3985596492474446]
+    pdaIns.fitP=[0.7419905253260204, 0.44440661302580986, -0.9544647400402456, -0.5081247809890648, 0.0028045654508258577, 0.1210317387363557]
     SgDivSrR,tSgDivSr=pdaIns.aTpdaEK()
     r2=r2_score(SgDivSrR[0], tSgDivSr)  
     print("R^2:",r2)

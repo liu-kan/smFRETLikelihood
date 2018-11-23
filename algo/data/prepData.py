@@ -1,3 +1,4 @@
+# *- encoding: utf-8 -*-
 import pickle,pathlib
 import numpy as np
 import datetime
@@ -9,6 +10,7 @@ from data import  aTpdaMpi
 
 mpl.use('Agg')
 from fretbursts import *
+import h5py
 
 # from mpi4py import MPI
 def interpSpl(x_orig, y_orig, x_interp,kind="spline"):
@@ -45,7 +47,7 @@ def prepHdf5(full_fname,logger,comm=None):
     loginfo(comm,logger,'''
     ===========================================
     {}
-    ==========================================='''.format(datetime.datetime.now()))
+    ==========================================='''.format(datetime.datetime.now()))    
     d = loader.photon_hdf5(full_fname)
     # bpl.plot_alternation_hist(d)
     loader.alex_apply_period(d)
@@ -194,7 +196,7 @@ def prepHdf5(full_fname,logger,comm=None):
     loginfo(comm,logger,"F_G min:{},num F_G<=0:{}".format(min(F_G),np.where(F_G<=0)[0].shape[0]))
     
     pN=np.asarray(pN)
-    bins_idx=np.where((pN>=25 )& (F_RTraw>=5) &(F_Graw>=8)&(F_AA>=4)& (F_RT>0) &(F_G>0))
+    bins_idx=np.where((pN>=25 )& (F_RT>0) &(F_G>0))   #& (F_RTraw>=5) &(F_Graw>=8)&(F_AA>=4)
     # =prepData.duplicateValArray(F_idx,N_idx[0])
     pN=pN[bins_idx]
     SgDivSr=np.asarray(SgDivSr)
@@ -230,7 +232,38 @@ def savedata(comm,logger,dictdata,filename="pdampi.dat"):
     print ("save data at ",p.resolve())
     return sbuf
 
-
+def saveHDF5(savefn,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,clk_p,bg_ad_rate,bg_dd_rate):
+    print("clk_p",clk_p)
+    f=h5py.File(savefn,"w")
+    dt=h5py.special_dtype(vlen=str)
+    filename = f.create_dataset('filename', (1,), dtype=dt)
+    filename[0] = savefn
+    bursts = f.create_group('sub_bursts_l')
+    sburst = len(sub_bursts_l)
+    istart = bursts.create_dataset('istart', (sburst,), dtype=np.uint32)
+    istop = bursts.create_dataset('istop', (sburst,), dtype=np.uint32)
+    stop = bursts.create_dataset('stop', (sburst,), dtype=np.int64)
+    start = bursts.create_dataset('start', (sburst,), dtype=np.int64)
+    for i in range(sburst):
+        istart[i] = sub_bursts_l[i].istart
+        start[i] = sub_bursts_l[i].start
+        istop[i] = sub_bursts_l[i].istop
+        stop[i] = sub_bursts_l[i].stop
+    f.create_dataset('times', data=times, dtype=np.int64)
+    f.create_dataset('mask_ad', data=mask_ad, dtype=np.int8)
+    f.create_dataset('mask_dd', data=mask_dd, dtype=np.int8)
+    f.create_dataset('T_burst_duration',
+                     data=T_burst_duration, dtype=np.float32)
+    f.create_dataset('SgDivSr', data=SgDivSr, dtype=np.float32)
+    f.create_dataset('clk_p',(1,), data=clk_p, dtype=np.float32)
+    f.create_dataset('bg_ad_rate',(1,), data=bg_ad_rate, dtype=np.float32)
+    f.create_dataset('bg_dd_rate',  (1,), data=bg_dd_rate,dtype=np.float32)
+    f.flush()
+    v=f['/clk_p']
+    print('delta clk_p', clk_p-v[0])
+    v=f['T_burst_duration']
+    print('delta T_burst_duration', T_burst_duration[1000]-v[1000])
+    f.close()
 
 if __name__ == '__main__':
     a=np.array([1, 2, 3, 5, 7, 9, 10])

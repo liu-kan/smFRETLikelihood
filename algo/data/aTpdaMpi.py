@@ -214,12 +214,13 @@ class pdaPy:
     # def __init__(self,bursts_list,timesMs,maskAD,pN,T,SgDivSr,bg_ad_rate,bg_dd_rate,clk_p,histBinNum=50,reSampleTimes=10,burstWindows=(0)):
     def __init__(self,comm,bursts_list,timesMs,maskAD,maskDD,T,SgDivSr,bg_ad_rate,bg_dd_rate,\
             clk_p,logger,histBinNum=50,\
-            reSampleTimes=10,burstWindows=(0)):
+            reSampleTimes=10,burstWindows=(0),maxiter=5000):
         self.comm=comm
         if comm!=None:
             self.rank=comm.Get_rank()
         self.histBinNum=histBinNum
         self.logger=logger
+        self.maxiter=maxiter
         self.clk_p=clk_p
         self.reSampleTimes=reSampleTimes
         self.mask_ad=maskAD
@@ -483,7 +484,7 @@ class pdaPy:
         # res = basinhopping(self.chiSqrArrT,self.params, minimizer_kwargs=minimizer_kwargs, \
         #     disp=True)#,interval=5,stepsize=0.1,niter=10
         res = differential_evolution(self.chiSqrArrT, args=(self.stop,),strategy ='currenttobest1bin',bounds=bounds,\
-                           disp=True,polish=True,maxiter=1)
+                           disp=True,polish=True,maxiter=self.maxiter)
         loginfo(self.comm,self.logger,"{}".format(res))
         loginfo(self.comm,self.logger,"{}".format(res.x))
         # print (self.numWindows)

@@ -32,6 +32,11 @@ def burstBin(full_fname,savefn='pdampi.dat',logname="pdampilogger.log"):
     sbuf=prepData.savedata(comm,logger,dictdata,savefn)
     print("Data size is ",sbuf," bytes!")
     prepData.loginfo(comm,logger,"Data size is {} bytes!".format(sbuf))    
+    
+    prepData.saveHDF5( savefn+'.hdf5', \
+        sub_bursts_l,times,mask_ad,mask_dd,\
+        T_burst_duration,SgDivSr,clk_p,\
+        bg_ad_rate,bg_dd_rate )
 
 def usage():  
     print("Usage:%s -i|--hdf inputfilename.hf5 -o|--mat outputfilename.dat" % sys.argv[0])
