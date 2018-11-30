@@ -182,11 +182,14 @@ def prepHdf5(full_fname,logger,comm=None):
 
 
     bg_time_bins=np.asarray(bg_time_bins_l)
-    print("len(bg_time_bins_l):{}".format(len(bg_time_bins_l)))    
-    print(len(bg_time))
-    print(len(bg_dd))
-    bg_dd_bins = interpSpl(bg_time,bg_dd[:-1], bg_time_bins) *time_bin
-    bg_ad_bins = interpSpl(bg_time,bg_ad[:-1], bg_time_bins)  *time_bin
+    print("len(bg_time_bins):{}".format(len(bg_time_bins)))    
+    
+    if len(bg_dd)==len(bg_time):
+        bg_dd_bins = interpSpl(bg_time,bg_dd, bg_time_bins) *time_bin
+        bg_ad_bins = interpSpl(bg_time,bg_ad, bg_time_bins)  *time_bin
+    else:
+        bg_dd_bins = interpSpl(bg_time,bg_dd[:-1], bg_time_bins) *time_bin
+        bg_ad_bins = interpSpl(bg_time,bg_ad[:-1], bg_time_bins)  *time_bin        
     F_RT=np.asarray(ad_count)-bg_ad_bins*time_bin
     F_G=np.asarray(dd_count)-bg_dd_bins*time_bin
     F_RTraw=np.asarray(ad_count)

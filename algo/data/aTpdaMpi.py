@@ -206,7 +206,8 @@ class pdaPy:
         # print("=============================")
         # loginfo(self.comm,self.logger,"self.params {}".format(self.params))
         # loginfo(self.comm,self.logger,"self.params {}".format(self.params))
-        rk=10**np.asarray(k)*1000
+        # rk=10**np.asarray(k)*1000
+        rk=k
         self.matK=genMatK(n,rk)
         self.matP=genMatP(self.matK)
         # print("matP",self.matP)
@@ -467,12 +468,12 @@ class pdaPy:
     def findP(self):
         # bnds = (0,1)
         xmin = [0.03]*self.n_states
-        xmink=[np.log10(0.1)]*(self.n_states*self.n_states-self.n_states)
+        xmink=[0]*(self.n_states*self.n_states-self.n_states)
         xminv = [0.001]*self.n_states
         xmin.extend(xmink)
         xmin.extend(xminv)
         xmax = [0.97]*self.n_states
-        xmaxk=[np.log10(10)]*(self.n_states*self.n_states-self.n_states)
+        xmaxk=[10000]*(self.n_states*self.n_states-self.n_states)
         xmaxv = [0.6]*self.n_states
         xmax.extend(xmaxk)
         xmax.extend(xmaxv)
