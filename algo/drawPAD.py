@@ -6,9 +6,10 @@ import numpy as np
 from scipy import interpolate 
 import datetime
 
-from data import  aTpdaMpi
+from data import aTpdaMpiGA as aTpdaMpi
 from mpi4py import MPI
 import pickle,pathlib
+import drawMixGauss
 
 def burstBin(full_fname,comm,pick,logname="pdampilogger.log"):  
     comm=None
@@ -29,14 +30,18 @@ def burstBin(full_fname,comm,pick,logname="pdampilogger.log"):
     #     50,5,None)
     pdaIns=aTpdaMpi.pdaPy(comm,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,\
         bg_ad_rate,bg_dd_rate,clk_p,logger,\
-        50,5,None)        
+        80,5,None)        
     state=2
     pdaIns.setStateNum(state)
     #rsv21c 2stats
     #pdaIns.fitP=[0.7419905253260204, 0.44440661302580986, -0.9544647400402456, -0.5081247809890648, 0.0028045654508258577, 0.1210317387363557]
-    pdaIns.fitP=[0.46884000926701186, 0.5970791117397752, 0.635475821437546, 0.9399873216883663, 0.4153316332800202, 0.3272447486565781]
-    SgDivSrR,tSgDivSr=pdaIns.aTpdaEK()
+    pdaIns.fitP=[0.68503937007874016, 0.23622047244094488, 8702.9247624366726, 6331.5642057620707, 0.15792277614858258, 0.37691202346041053]        
+    pdaIns.fitP=[0.48031496062992124, 0.55905511811023623, 4305.0733310748947, 7497.4068475248732, 0.39096480938416417, 0.321871945259042]
+    SgDivSrR,tSgDivSr,matp,matk=pdaIns.aTpdaEK()
     r2=r2_score(SgDivSrR[0], tSgDivSr)  
+
+    
+
     print("R^2:",r2)
         #############
         #rank=1
@@ -47,9 +52,19 @@ def burstBin(full_fname,comm,pick,logname="pdampilogger.log"):
 
     center = (SgDivSrR[1][:-1] + SgDivSrR[1][1:]) / 2 
     width = np.diff(SgDivSrR[1])        
-    plt.bar(center,SgDivSrR[0] , align='center', width=width)
-    plt.plot(SgDivSrR[1][1:],tSgDivSr,color="y")
-    width = np.diff(SgDivSrR[1])
+    SgDivSrR0=SgDivSrR[0]/(sum(SgDivSrR[0]))
+    tSgDivSr=tSgDivSr/(sum(tSgDivSr))
+    plt.bar(center,SgDivSrR0 , align='center', width=width)
+    plt.plot(SgDivSrR[1][1:],tSgDivSr,color="y")    
+    # gamg=drawMixGauss.gaMixGauss(center,SgDivSrR0,[pdaIns.fitP[0],pdaIns.fitP[1]],\
+    #     [pdaIns.fitP[-2],pdaIns.fitP[-1]])
+    # gar=gamg.gaAlpha()
+    # alpha=gamg.translateDNA(gar[0])
+    # mg=drawMixGauss.mixGaussian(center, [pdaIns.fitP[0],pdaIns.fitP[1]],[pdaIns.fitP[-2],pdaIns.fitP[-1]],\
+    #     [matp[0],matp[1]],True)
+    # for tmg in mg:
+    #     plt.plot(SgDivSrR[1][1:],tmg/sum(tmg),color="r")
+    
     print(np.sum(SgDivSrR[0]*width/(sum(SgDivSrR[0])*width)))        
     plt.title('PDA E fit')
     plt.savefig('temp.png')
