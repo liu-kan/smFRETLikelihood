@@ -20,3 +20,10 @@
     python3 algo/fretAndLifetimeBin.py -i /home/jwx/data/sqlite/rsc21c.sqlite -o /home/jwx/data/t.pickle -b 2
     python3 untils/exportF2mat.py -i /home/jwx/data/t.pickle -o /home/jwx/data/fret.mat
     # use matlab to fit
+
+#  为 gSMFRETda 准备数据
+
+```bash
+untils/ptu2hdf.py
+algo/arrivalTimePDAdata.py
+```
