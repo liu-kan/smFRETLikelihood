@@ -14,7 +14,7 @@ from scipy import stats
 # import mpi4py
 # # mpi4py.rc.initialize = False
 # mpi4py.rc.finalize = False
-from mpi4py import MPI
+from mpich.mpi4py import MPI
 import datetime
 class mburst():
     def __init__(self, istart, istop,start, stop):

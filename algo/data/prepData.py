@@ -243,16 +243,16 @@ def saveHDF5(savefn,sub_bursts_l,times,mask_ad,mask_dd,T_burst_duration,SgDivSr,
     filename[0] = savefn
     bursts = f.create_group('sub_bursts_l')
     sburst = len(sub_bursts_l)
-    istart = bursts.create_dataset('istart', (sburst,), dtype=np.int64_t)
-    istop = bursts.create_dataset('istop', (sburst,), dtype=np.int64_t)
-    stop = bursts.create_dataset('stop', (sburst,), dtype=np.int64_t)
-    start = bursts.create_dataset('start', (sburst,), dtype=np.int64_t)
+    istart = bursts.create_dataset('istart', (sburst,), dtype=np.int64)
+    istop = bursts.create_dataset('istop', (sburst,), dtype=np.int64)
+    stop = bursts.create_dataset('stop', (sburst,), dtype=np.int64)
+    start = bursts.create_dataset('start', (sburst,), dtype=np.int64)
     for i in range(sburst):
         istart[i] = sub_bursts_l[i].istart
         start[i] = sub_bursts_l[i].start
         istop[i] = sub_bursts_l[i].istop
         stop[i] = sub_bursts_l[i].stop
-    f.create_dataset('times', data=times, dtype=np.int64_t)
+    f.create_dataset('times', data=times, dtype=np.int64)
     f.create_dataset('mask_ad', data=mask_ad, dtype=np.int8)
     f.create_dataset('mask_dd', data=mask_dd, dtype=np.int8)
     f.create_dataset('T_burst_duration',

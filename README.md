@@ -11,6 +11,7 @@
     # fedroa
     sudo dnf install python3-tkinter
     pip3 install --user numpy scipy matplotlib pandas sklearn PyQt5 numba progressbar2 #mpi4py 
+    # Use mpi4py from your disto.
 
 # Lifetime 使用说明
 
