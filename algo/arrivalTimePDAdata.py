@@ -29,28 +29,28 @@ def burstBin(full_fname,savefn='pdampi.dat',logname="pdampilogger.log"):
     dictdata=dict(bursts=sub_bursts_l,times=times,mask_ad=mask_ad,mask_dd=mask_dd,\
         T_burst_duration=T_burst_duration,SgDivSr=SgDivSr,clk_p=clk_p,\
         bg_ad_rate=bg_ad_rate,bg_dd_rate=bg_dd_rate) 
-    sbuf=prepData.savedata(comm,logger,dictdata,savefn)
-    print("Data size is ",sbuf," bytes!")
-    prepData.loginfo(comm,logger,"Data size is {} bytes!".format(sbuf))    
+    # sbuf=prepData.savedata(comm,logger,dictdata,savefn)
+    # print("Data size is ",sbuf," bytes!")
+    # prepData.loginfo(comm,logger,"Data size is {} bytes!".format(sbuf))    
     
-    prepData.saveHDF5( savefn+'.hdf5', \
+    prepData.saveHDF5( savefn, \
         sub_bursts_l,times,mask_ad,mask_dd,\
         T_burst_duration,SgDivSr,clk_p,\
         bg_ad_rate,bg_dd_rate )
 
 def usage():  
-    print("Usage:%s -i|--hdf inputfilename.hf5 -o|--mat outputfilename.dat" % sys.argv[0])
+    print("Usage:%s -i inputfilename.hf5 -o outputfilename.hdf5" % sys.argv[0])
 
 if __name__ == '__main__':
     import sys,getopt
     dbname=''
     savefn=''
     try:  
-        opts, args = getopt.getopt(sys.argv[1:], "o:i:", ["dat=", "hdf="])  
+        opts, args = getopt.getopt(sys.argv[1:], "o:i:")  
         for o, v in opts: 
-            if o in ("-o", "--dat"):
+            if o in ("-o"):
                 savefn = v
-            if o in ("-i", "--hdf"):
+            if o in ("-i"):
                 dbname=v
     except getopt.GetoptError:  
         # print help information and exit:  

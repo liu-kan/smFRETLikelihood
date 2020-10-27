@@ -5,10 +5,15 @@ import datetime
 from scipy import interpolate 
 from math import *
 from collections import Counter
-import matplotlib as mpl
-from data import  aTpdaMpi
 
-mpl.use('Agg')
+class mburst():
+    def __init__(self, istart, istop,start, stop):
+            self.istart=istart
+            self.istop=istop
+            self.start=start
+            self.stop=stop
+ 
+
 from fretbursts import *
 import h5py
 
@@ -125,7 +130,7 @@ def prepHdf5(full_fname,logger,comm=None):
             bleachingBurst=bleachingBurst+1
             continue
         # Compute binning of current bursts
-        sub_bursts_l.append(aTpdaMpi.mburst(istart=burst.istart, istop=burst.istop,
+        sub_bursts_l.append(mburst(istart=burst.istart, istop=burst.istop,
                                     start=burst.start, stop=burst.stop))
     # fBursts=Bursts.from_list(sub_bursts_l)    
     loginfo(comm,logger,"bleachingBurst:{}".format(bleachingBurst))
