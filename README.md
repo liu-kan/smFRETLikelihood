@@ -7,6 +7,8 @@
 #  Prepare data for gSMFRETda
 
 ```bash
-untils/ptu2hdf.py
-algo/arrivalTimePDAdata.py
+git clone https://github.com/liu-kan/smFRETLikelihood.git --depth=1
+cd smFRETLikelihood
+python3 untils/ptu2hdf.py
+python3 untils/arrivalTimePDAdata.py
 ```
