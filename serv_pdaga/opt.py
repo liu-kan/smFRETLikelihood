@@ -61,7 +61,7 @@ class opt_toobox():
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.decorate("mate", self.checkBounds(ind_range_min, ind_range_max))
         self.toolbox.decorate("mutate", self.checkBounds(ind_range_min, ind_range_max))
-    def run(self,stopflag,q,ind_num=0,NGEN=500,CXPB=0.35,MUTPB=0.4):
+    def run(self,stopflag,q,ind_num=0,NGEN=500,CXPB=0.35,MUTPB=0.4,topNum=3):
         self.ind_num=ind_num
         qO,qN=q
         if ind_num==0:
@@ -70,9 +70,12 @@ class opt_toobox():
         pop=self.toolbox.population(n=self.ind_num)
         for gen in range(NGEN):            
             # Select the next generation individuals
-            selected = self.toolbox.select(pop, len(pop))
+            tops=tools.selBest(pop, topNum)
+            selNum=len(pop)-int(len(pop)/3)-topNum
+            selected= self.toolbox.select(pop, selNum)
+            newRandPop=self.toolbox.population(n=len(pop)-selNum-topNum)
+            selected.extend(newRandPop)
             # Clone the selected individuals
-            # offspring = map(self.toolbox.clone, offspring)
             offspring = [self.toolbox.clone(ind) for ind in selected]
             # Apply crossover on the offspring
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
@@ -85,9 +88,9 @@ class opt_toobox():
                 if random.random() < MUTPB:
                     self.toolbox.mutate(mutant)
                     del mutant.fitness.values
+            for tInd in tops:
+                offspring.append(self.toolbox.clone(tInd))
             # # Evaluate the individuals with an invalid fitness
-            # for oi in offspring:
-            #     print(gen,"son send: ",oi.fitness.values)
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             count=len(invalid_ind)
             print("sent count: ",count)
@@ -95,14 +98,17 @@ class opt_toobox():
                 if stopflag.value>=1:
                     running=False
                     break
+                ## qO.put() put compute parameter sets to the parameters sending queue.
+                ## you should keep it in you own algorithm                
                 qO.put((i,invalid_ind[i]))
-                # pop_dict[(gen,i)]=invalid_ind[i]
             # The population is entirely replaced by the offspring
             count_r=0
             for _ in range(count):
-                # if stopflag.value>=1:
-                #     running=False
-                #     break
+                if stopflag.value>=1:
+                    running=False
+                    break
+                ## qN.get() get compute result of each parameter set
+                ## you should keep it in you own algorithm
                 ii , ind_fit = qN.get()
                 count_r=count_r+1
                 # print("recv idx: ",ii, " tot_recv: ",count_r," ind_fit: ",ind_fit) 
@@ -111,28 +117,16 @@ class opt_toobox():
             if not running or stopflag.value>=1:
                 break
             pop[:] = offspring
-            bestf=9999999999999.9
+            bestcs=9999999999999.9
             for oi in offspring:
-                print(gen, " oi.fitness.values",oi.fitness.values)
+                # print(gen, " oi.fitness.values",oi.fitness.values)
                 if (oi.fitness.valid):
-                    if (oi.fitness.values[0])<bestf:
-                        bestf=(oi.fitness.values[0])
-            print(gen," , best: ", bestf)
+                    if (oi.fitness.values[0])<bestcs:
+                        bestcs=(oi.fitness.values[0])
+            print("Gen ",gen," , best chisq: ", bestcs)
         # connOpt.close()
-        # print("connOpt.close()")
+        print("Top 3 result:")
+        print(tools.selBest(pop, 3))
 
 if __name__ == '__main__':
-    from multiprocessing import Process, Value, Pipe
-    otb=opt_toobox(2)
-    connO, connI = Pipe()
-    otb_p = Process(target=otb.run, args=((connO, connI),3,6))
-    otb_p.start()
-    connI.close()
-    
-    while 1:
-        try:    
-            i,_=connO.recv()
-            connO.send((i,23.32))
-        except EOFError as e:
-            print(e)
-            break
+    pass
