@@ -1,6 +1,5 @@
 import signal
 from multiprocessing import Process, Value
-# TODO use thread instead multiprocessing
 import sys, argparse,multiprocessing
 from msg import paramsServ
 from opt import opt_toobox
@@ -25,6 +24,7 @@ work.
     parser.add_argument('-p','--port',default='7777',help='listening port (default 7777)')
     parser.add_argument('-s','--s_n',default=3, type=int, help="states' number (default 3)")
     parser.add_argument('-i','--ind_num',default=0, type=int, help="individual number of one gen")
+    parser.add_argument('-k','--ke_zero', nargs="*", type=int, help="which K_{i,j} element are zero")
     args = parser.parse_args()
     # https://stackoverflow.com/questions/11312525/catch-ctrlc-sigint-and-exit-multiprocesses-gracefully-in-python
     # https://www.cloudcity.io/blog/2019/02/27/things-i-wish-they-told-me-about-multiprocessing-in-python/
@@ -34,7 +34,7 @@ work.
     pServ = paramsServ(args.port,args.s_n)
     q=(qO,qN)
     paramsServ_p = Process(target=pServ.run, args=(stopFlag,q))
-    optBox=opt_toobox(args.s_n)
+    optBox=opt_toobox(args.s_n, args.ke_zero)
     optBox_p=Process(target=optBox.run, args=(stopFlag,q,args.ind_num))
     def exit_handler(signal_received, frame):
         global ctrlc
