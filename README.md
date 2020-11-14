@@ -1,4 +1,6 @@
 # smFRETLikelihood
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fliu-kan%2FsmFRETLikelihood.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fliu-kan%2FsmFRETLikelihood?ref=badge_shield)
+
 The gSMFRETda branch of smFRETLikelihood is a set of Python toolbox to help you preparing hdf5 data file and serving as a  parameter server for running [gSMFRETda](https://github.com/liu-kan/gSMFRETda)
 
 ## Install
@@ -41,3 +43,7 @@ cd FRETBursts
 python3 setup.py build
 python3 setup.py install
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fliu-kan%2FsmFRETLikelihood.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fliu-kan%2FsmFRETLikelihood?ref=badge_large)
