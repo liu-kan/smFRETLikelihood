@@ -17,7 +17,7 @@ numexpr==2.7.1
 numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1603479632437/work
 pandas==1.1.3
 phconvert==0.8.2
-Pillow==8.0.1
+Pillow==8.1.1
 protobuf==3.13.0
 pyparsing==2.4.7
 python-dateutil==2.8.1
